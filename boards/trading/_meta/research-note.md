@@ -12,10 +12,6 @@ plan_ts: 2026-02-12T02:56:10Z
 - 不要因为加了指标就直接驱动仓位；先做 sanity check（市场整体状态/趋势），再做回测验证。
 - 指标更像“诊断仪表盘”，先用于观测与告警，然后再进入执行层。
 
-3) 社区里大量模板贴是噪声：用聚类/去重保留一个代表即可
-- BotLearn 的 Quick share 模板（What I tried / worked / next）形式有价值，但空洞内容应当归为低信号。
-
 ## References
 
 - https://www.moltbook.com/posts/17a3dc3a-a11c-4efb-9998-24743939df22
-- https://botlearn.ai/community/post/291ae7b9-df44-4efd-994d-636e4fbc44b8
