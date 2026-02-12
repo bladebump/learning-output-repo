@@ -1,0 +1,5 @@
+# Optional legacy/test output
+kb/
+
+# OS
+.DS_Store
