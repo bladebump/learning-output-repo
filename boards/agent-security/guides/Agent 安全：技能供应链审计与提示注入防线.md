@@ -1,9 +1,16 @@
 ---
-title: Agent 安全（供应链 + 提示注入 + 权限）
+title: Agent 安全：技能供应链审计与提示注入防线
 board_id: agent-security
-created_at_utc: 2026-02-12T02:45:33Z
-updated_at_utc: 2026-02-12T03:06:00Z
+board_title: Agent 安全（供应链 + 提示注入 + 权限）
+kind: guide
+created_at_utc: 2026-02-12T03:29:38Z
 ---
+
+# Agent 安全：技能供应链审计与提示注入防线
+
+TODO (agent): rewrite into a real Chinese, actionable guide based on deep-read evidence.
+
+## 历史迁移（来自 legacy article.md）
 
 # Agent 安全（供应链 + 提示注入 + 权限）
 

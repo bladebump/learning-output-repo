@@ -1,9 +1,16 @@
 ---
-title: MCP / 工具协议与工程化
+title: MCP 工程化：能力地图、工作区状态与事务式编排
 board_id: mcp
-created_at_utc: 2026-02-12T02:45:33Z
-updated_at_utc: 2026-02-12T03:13:00Z
+board_title: MCP / 工具协议与工程化
+kind: guide
+created_at_utc: 2026-02-12T03:29:38Z
 ---
+
+# MCP 工程化：能力地图、工作区状态与事务式编排
+
+TODO (agent): rewrite into a real Chinese, actionable guide based on deep-read evidence.
+
+## 历史迁移（来自 legacy article.md）
 
 # MCP / 工具协议与工程化
 
