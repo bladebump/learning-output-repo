@@ -1,73 +1,63 @@
-# 研究笔记：多智能体与可靠性（协作 + 调度 + 验证）
+# Research Note: 多智能体与可靠性（协作 + 调度 + 验证）
 
-本笔记基于两条社区一手“事故复盘/田野报告”（含评论）整理，重点抽取可复用的运维规则：站会/复盘格式、调度与lane归属、避免cron与人工操作冲突、以及当上游API“报假状态”时的验证策略。
+plan_ts: 2026-02-14T06:58:37Z
 
-## 关键结论（可写入文章的主张）
+覆盖说明（本次尝试全覆盖）
+- 已按 research-task 列表深读全部证据链接（7 个帖子 + 各自 top 评论切片）。
+- 去重：无重复链接。
 
-### 1) 可靠性来自“可回放的时间线”而不是记忆：用站会/复盘式日志把排障变成可协作的过程
-- 证据：Moltbook帖子将故障拆成分钟级时间线（14:52正常启动 → 15:35首次466 → 16:00定位方案 → 16:02恢复），并明确列出“7次失败尝试清单”。这类结构本质上就是可共享的 standup/incident update：当前状态、已尝试、下一步、恢复时间。
-- 为什么有效：
-  - 多人协作时，时间线能减少“重复试错”与口头同步成本。
-  - 渐进式灰度发布会制造“间歇性故障”，只有按时间轴记录才能解释“同一操作有时成功有时失败”。
+## 关键结论（带具体证据）
 
-### 2) 调度要有“lane所有权”：同一资源（账号/额度/速率）同时被cron与人工占用，会触发级联失败
-- 证据：BotLearn帖子明确写到“Never run manual + cron simultaneously”：作者在cron仍运行时又手动批量mint，导致32个agent一起触发rate limit cascade，恢复耗时数小时。
-- 为什么有效：
-  - 多智能体共享同一外部系统的速率限制/冷却窗口，冲突不是局部失败，而是全局退化（排队、重试、封禁、雪崩）。
-  - “lane归属”意味着：某段时间/某批资源只能由一个调度器控制（cron或手动二选一），并且有可审计的锁/开关。
+1) 多 agent 编排的核心不是“路由”，而是“状态管理 + 质量闸门”
+- tmux-as-bus 的核心价值不在并行本身，而在可观测与隔离：每个 agent 一个 pane（或更强隔离），编排者持有上下文、做冲突裁决、负责质量 gate。
+- 多个评论都强调：让 agent 直接互聊会导致 context explosion + 无审计轨迹；更稳的结构是“所有协作通过编排者 + 共享工件（文件/patch/测试命令）”。
+- “handoff 失败”的根因是记忆缺失：每次任务交接都是冷启动，因此必须把 WHY（决策链）外化成工件，而不是仅给 WHAT。
 
-### 3) 上游状态会“误报/漏报”：要把验证做成独立的、可对账的第二通道（prefer read-from-ground-truth）
-- 证据A（BotLearn）：mbc20.xyz 的 indexer API `/api/index-post` 会返回 `processed=false`，即使帖子已经被索引；作者最终改为抓取/爬取代理profile页面来核对真实余额。
-- 证据B（Moltbook）：故障中 GET `/models` 仍然正常，但所有chat completion请求都报466（API版本不支持）。这是一种“部分端点健康”导致的假阳性健康检查。
-- 为什么有效：
-  - 外部平台的“处理状态”经常滞后/缓存/分层，单一API信号不足以判断任务是否真正完成。
-  - 可靠的验证应接近最终用户可见结果（余额、可调用性、实际返回）。
+2) 任务粒度与合同（contract）决定系统是否可扩展
+- 一条可操作的粒度启发：若无法用一句话写清“验收标准”，任务就太大；更通用的甜点区间是 5-15 分钟可独立验证的单元。
+- 典型的稳定合同形态：PR-sized diff + rationale + 风险 + 如何验证（可运行命令/测试）。
 
-### 4) 渐进式发布（gradual rollout）是多智能体系统的隐形敌人：需要“多次采样 + 版本钉死 + 快速回退”的操作手册
-- 证据：Moltbook明确指出“gradual rollout导致调试期间间歇性失败”，并给出具体变更点：必须发送新的 `x-github-api-version=2025-10-01`；同时插件版本从0.26.7升到0.37.4+，以及新endpoint域名。
-- 为什么有效：
-  - 灰度期同一请求路径可能落到不同版本后端，导致“刚修好又坏掉”的错觉。
-  - 版本钉死（headers/插件/客户端版本）能降低变量维度；回退/切fork能缩短MTTR。
+3) 合并策略比“并行”更重要：把共享代码库当成 CI-gated patch queue
+- 评论给出一套具体角色分工：implementer（写）/ reviewer（只读、要 diff）/ tester（只跑测试）。
+- 另一个可复用建议：每个 agent 用 git worktree/独立分支隔离写入，编排者统一合并；降低文件级冲突，并为回滚留路径。
 
-### 5) 多智能体调度的核心不是“随机挑一个能跑的”，而是“对冷却与资源窗口建模”
-- 证据：BotLearn指出32个agent、每个2小时冷却时，随机选择会浪费周期；需要scheduler跟踪每个agent上次发帖时间并挑选下一位可用者，同时做cooldown与rate-limit保护。
-- 为什么有效：
-  - 调度器的目标函数应是吞吐/成功率，而不是公平或随机。
-  - 明确的可用性模型（next_available_at）能减少空转与触发限制的概率。
+4) 可靠性来自“显式状态 + 冷却/限速 + 幂等”，不是靠运气
+- BotLearn 的 rate limit 实战给出具体做法：把 API 返回的 `retry_after` 写入状态（rateLimitExpiry/cooldownUntil），命中限速后优雅退避（不要立刻重试、不要并行绕过）。
+- 另一条可复用模式：用 JSON 记录 lastChecks/lastPost/cooldownUntil 作为单一事实源（single source of truth），并在动作完成后立刻写状态（避免“做了但没记住”）。
 
-## 争议/边界情况（讨论中提到或隐含的坑）
-- “健康检查端点”不等于业务健康：`/models` 正常但chat全挂，说明必须定义业务级SLO探针（真实请求）。
-- 灰度导致的间歇性：单次复现失败不足以证明修复有效；需要在不同时间窗口重复采样（例如连续N次成功、跨越一个灰度周期）。
-- 社区fork与官方修复的取舍：Moltbook评论强调“先搜fork再说”，但这也引入供应链与维护风险（需要内部镜像/固定commit/审计）。
+5) Heartbeat 与 cron 的分工：批处理 + 静默优先，异常才唤醒
+- heartbeat 的要点是：批量检查（邮件/日历/通知），如果没有重要变化就沉默（HEARTBEAT_OK 或不发消息），并尊重 quiet time。
+- cron 更适合“精准时刻 + 隔离任务”。
 
-## 可执行清单（Do / Don’t）
+6) On-chain identity：Identity != Trust，且缺少 runtime attestation 时只是“名牌/车牌”
+- 讨论对 ERC-8004 的共识点：链上注册能解决“跨平台可发现/可证明同一 key”，但不证明当前运行实例未被替换/劫持。
+- 一个可复用的三层验证栈：
+  1) Identity（注册）
+  2) Integrity（运行时证明：TEE/ZK/代码 hash）
+  3) Behavior（长期行为记录/成功率/升级次数）
+- 关键管理（custody）是现实阻碍：没有 key rotation / social recovery / account abstraction（ERC-4337）等机制，身份恢复与授权撤销会非常痛苦。
 
-### Do（建议强制执行）
-- 做“站会式事件更新模板”并要求每次事故按时间线记录：
-  - `现在发生了什么`（症状/影响面）
-  - `从何时开始`（时间戳）
-  - `已尝试/已排除`（清单化）
-  - `下一步假设`（要验证的变量）
-  - `恢复条件`（什么算恢复）
-- 调度系统引入lane开关：
-  - 手动操作前先“暂停cron/锁定lane”（全局互斥锁），完成后再释放。
-  - 每个agent维护 `last_action_at` / `next_available_at`，调度器按可用时间选择。
-- 验证走“双通道”：
-  - 通道A：上游API状态（可能不准）
-  - 通道B：用户可见事实（页面/余额/真实请求返回）
-  - 两者不一致时，以B为准并记录差异。
-- 钉死关键版本并把它当作配置项：例如 `x-github-api-version`、插件版本、endpoint域名；同时准备快速切换/回退方案。
-- 针对灰度发布：修复后做多次采样验证（例如连续10次成功 + 间隔采样），避免“偶然落到旧后端”。
+7) 反 vaporware 的尽调方法：看真实用户、真实端点、真实约束
+- 有一个很尖锐的诊断模式：landing page + 三个 API endpoint + 一堆 smoke test + token，不等于基础设施。
+- “真实存在”的标准更接近：可被 agent 直接调用、具备可验证约束（rate limits、可观测性）、有可复现的集成测试/协议规范，而不是白皮书。
 
-### Don’t（明确禁止）
-- 不要在cron仍运行时做同一资源池的手动批处理（尤其是共享rate limit的场景）。
-- 不要用单一“看似健康”的端点做全局健康判断（如只测 `/models`）。
-- 不要把“删除header/不带版本”当成兼容策略；有些平台要求“必须带正确版本”。
-- 不要在未审计的情况下长期依赖临时fork；如果必须用，至少固定到commit/tag并做最小化diff审阅。
+## 分歧/边界情况
+- 编排者本身会成为瓶颈与单点：需要把编排者决策也外化成 decision log（甚至带 hash/签名），否则无法复盘与改进路由策略。
+- 身份体系争论：链上是重方案，PKI/挑战应答是轻方案；实际取舍取决于是否需要经济结算与跨平台永久性。
 
-## 参考链接（Evidence）
-- Moltbook：GitHub Copilot API 466 Error - Debugging Hell & Solution
-  - https://www.moltbook.com/posts/9e88de76-c9c4-4148-ab61-e6422413a4ea
-- BotLearn：How I Built a 32-Agent $CLAW Mining Operation on OpenClaw
-  - https://botlearn.ai/community/post/2fcdecbf-3e62-4b83-bdc9-cad6594266a7
+## 可执行 checklist（落地决策）
+- 编排结构：明确“编排者负责上下文 + 质量 gate”，workers 只产出可审计工件（diff/测试结果/说明）。
+- 写入隔离：git worktree/分支隔离 + 统一合并；禁止多个 agent 同时写同一文件区域。
+- 合同模板：每个任务必须包含验收命令/预期输出；无法写清则先拆任务。
+- 显式状态：lastChecks/cooldownUntil/retry_after 持久化；动作完成即写状态；限速命中后退避 + 记录。
+- Heartbeat 策略：批处理 + 静默优先；只有异常/紧急才打扰。
+- 身份层：如果要做链上 identity，先把 custody/rotation/撤销与（可选）runtime attestation 的路线图写清。
 
+## Sources
+- https://www.moltbook.com/posts/052f2a05-d897-488e-99dc-8c8756667e30
+- https://botlearn.ai/community/post/6110ed82-f11d-456a-8846-7238b83157a8
+- https://botlearn.ai/community/post/4745df7d-d562-49dc-9af9-79037eb227c0
+- https://botlearn.ai/community/post/6fd6a018-4033-4139-b047-7f4aedd65e62
+- https://www.moltbook.com/posts/6829bd68-edf0-4be7-a9b4-5de852d84f18
+- https://www.moltbook.com/posts/96584e4e-434c-430a-960d-4253fc983df7
+- https://botlearn.ai/community/post/506fd0b8-7795-4959-b3fe-f01aaeedb592
