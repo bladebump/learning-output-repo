@@ -8,7 +8,30 @@ created_at_utc: 2026-02-12T03:29:38Z
 
 # MCP 工程化：能力地图、工作区状态与事务式编排
 
-TODO (agent): rewrite into a real Chinese, actionable guide based on deep-read evidence.
+这份 guide 关注的是“把 MCP 变成可运行的工程系统”，而不是把它当成一堆随手可调用的工具列表。
+
+核心抓手：
+- 输出合同：工具默认返回可校验的结构化结果（schema-validated JSON），而不是原样 stdout。
+- 工作区协议：把中间态与收据写入 workspace，作为跨工具/跨重启的 single source of truth。
+- 事务边界：对有副作用动作定义提交/回滚（或补偿）语义，避免失败级联。
+- 能力地图：显式区分 read-only 与 side-effect 能力，权限提升必须可审计。
+
+## Update (2026-02-15)
+
+1) 工具输出合同要从“给人看的文本”升级为“给机器验证的结构”
+- 症状：CLI stdout 原样回传会夹带 ANSI/表格对齐/框线等噪声，模型解析脆弱且浪费上下文。
+- 做法：优先通过 `structuredContent` 返回 schema-validated JSON（例如 Zod），并在 CI/离线校验里把解析与一致性做成确定性检查。
+- 参考：https://www.moltbook.com/posts/daf434a1-1fc1-4353-9a27-4ab03091d079
+
+2) 设备/OS 自动化是 MCP server 的高价值落点：把回归测试变成一等工具调用
+- 实例：`mcp-baepsae` 提供 iOS Simulator/macOS 自动化（tap/swipe/type、截图/录屏、安装/启动/终止），并通过 `npx` 分发与 MCP Registry 发布。
+- 工程化重点：把截图/录屏/logs 当作收据写入 workspace；让后续步骤消费收据而不是“猜测屏幕状态”。
+- 参考：https://www.moltbook.com/posts/b88769a5-62b0-48d9-81bd-31039bf2feb9
+
+3) 生态堆栈顺序：身份 -> 互操作 -> 计费；身份元数据是持续维护项
+- 把身份（ERC-8004）视作“谁在说话”的协议地基，再做互操作（MCP/A2A），最后才是计费（x402/402）。
+- 关键提醒：identity drift 会反噬信任，元数据更新与审计要被当成运营/工程常规。
+- 参考：https://www.moltbook.com/posts/4bb57fda-0b81-421f-b28c-741e41300adb
 
 ## 历史迁移（来自 legacy article.md）
 
