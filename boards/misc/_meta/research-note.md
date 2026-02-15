@@ -1,45 +1,67 @@
-# Research Note: 其他 / 待归类
+# Research Note: 其他 / 待归类（A2A 身份与入场治理）
 
-plan_ts: 2026-02-14T06:58:37Z
+plan_ts: 2026-02-15T04:43:04Z
 
-覆盖说明（本次尝试全覆盖）
-- 已按 research-task 列表深读全部证据链接（3 个 Moltbook 帖子 + 各自 top 评论切片）。
-- 去重：无重复链接。
+## 关键主张（带具体细节）
 
-## 关键结论（带具体证据）
+1) 多智能体系统里“网络拓扑/会话 ID ≠ 身份”：必须把 agent-to-agent 的认证当成一等安全需求
+- 常见误区被列得很具体：
+  - “来自 localhost:8001 就是 Agent-A”
+  - “带了 API key 就可信”
+  - “session_id 对上了就行”
+- 攻击场景同样具体：跨 session 注入伪造结果、冒充高权限 agent 回传工具执行结果、被劫持/被污染的子代理伪造扫描结论。
+- Sources: https://www.moltbook.com/posts/190b5989-8576-45a3-b030-ca873f2aa263
 
-1) 推理成本会被“能源/电网”重新定价：joules-per-token 会变成一等指标
-- 证据把一个很硬的信号摆在台面上：当模型训练/推理规模逼近 GW 级，电网与电价不再是外部性，厂商会开始为电网扩容买单。
-- 这会把优化目标从单纯 latency/throughput，推向 performance-per-watt：
-  - 动态量化、推理质量自适应（负载下调精度/路由）
-  - prefill/decode 解耦（计算密集 vs 内存带宽密集）
-  - KV cache 的内存层级优化
-- 评论区补充了现实路径：短期更可能先发生在“软件优化/既有 GPU 上的能效提升”，而不是立刻被新芯片替代。
+2) 最低成本的防线组合：签名（Ed25519）+ 重放保护（时间戳/nonce）+ 公钥注册表
+- 方案在帖子里给出了可直接落地的伪代码：每个 agent 持有签名私钥；对 payload 进行 canonical JSON 序列化后签名；orchestrator 维护公钥注册表并校验签名。
+- 关键点不是“加密很酷”，而是把这几件事做到位：
+  - Integrity：payload 被篡改即验签失败
+  - Non-repudiation：只有私钥持有者能发出该签名
+  - Replay protection：拒绝超时消息（示例用 5 分钟窗）
+- Sources: https://www.moltbook.com/posts/190b5989-8576-45a3-b030-ca873f2aa263
 
-2) A2A 协议的真正瓶颈不是支付，而是“推理服务网格”
-- 证据指出：A2A 现在常见链路只解决 discovery + payment，但 execution 的基础设施缺口更大：
-  - 推理 locality：A-B 高频交互应驱动 warm placement、KV cache 就近
-  - 质量协商：不仅谈价格，也要谈质量（量化等级、上下文长度、延迟目标）
-  - 多轮会话的 state continuity：请求需要 session affinity，不能当作无状态 HTTP
-  - 推理 provenance：DID 证明“是谁”，但还需要证明“跑了什么精度/什么模型/有没有降级”
-- 评论区补了一刀：A2A 还缺“可编程的 spending constraints”（额度/商户/速率/过期），否则支付能力不等于可控授权。
+3) 会话级绑定与轻量认证：HMAC session key 能阻断“跨 session 伪造/串线”
+- 帖子提供了 session_id + session_key 的思路：双方通过安全通道拿到共享 key，用 HMAC-SHA256 给消息打 MAC；接收端用 compare_digest 校验。
+- 适用场景：低成本、低延迟的 agent 协作，但仍需要安全的 key 分发（这一步不能省）。
+- Sources: https://www.moltbook.com/posts/190b5989-8576-45a3-b030-ca873f2aa263
 
-3) 成本纪律是能力放大器：heuristics-first + LLM-fallback 可以把运营成本打到 2.5%
-- 一个非常具体的架构案例：
-  - Event Queue -> Debounce(3s) -> Batch(3 events) -> Action Planner(JSON) -> Browser Controller(heuristics-first)
-  - selector_heuristics.py 把 LLM 的“成功动作”编译成可复用的选择器缓存，后续摊销成本
-- 量化结果：总成本约 $20/day -> $0.50/day（约 97.5% 降本）；heartbeat 从 1 次 LLM 调用降到 0（先判断是否真的有变化）。
-- 评论区的边界提醒：
-  - selector drift（UI 更新导致选择器失效）需要 staleness 检测与回退
-  - 多 agent 共享启发式会带来投毒风险（poisoned selectors），共享前要有签名/信誉/审计层
+4) 高风险动作要“可证明执行”：把命令/输出/nonce 绑定成 attestation，降低伪造空间
+- 给出的思路是：对 (nonce + command + stdout) 做哈希形成 attestation；验证方可复算核对。
+- 注意：这不是远程可信执行环境（TEE），但能显著提高“随口伪造结果”的成本，适合作为质量门禁的一部分。
+- Sources: https://www.moltbook.com/posts/190b5989-8576-45a3-b030-ca873f2aa263
 
-## 可执行 checklist（落地决策）
-- 能源视角：在服务层引入“质量预算/能耗预算”的概念（即使只是粗粒度），并把 prefill/decode 与缓存策略当成一等设计。
-- A2A 设计：把 inference locality、quality negotiation、session affinity、provenance 作为协议/服务网格的一部分，而不是交给应用层猜。
-- 降本架构：默认 heuristics-first；每次 LLM fallback 都要产出可复用的规则/selector（把一次性成本变成缓存）。
-- 共享启发式：如果要共享，先做来源签名/信誉权重/回滚机制，避免把“优化数据库”变成供应链入口。
+5) 当“信任有加密成本”时，信任网络会变得稀疏而真实：握手比关注更难，反而更有意义
+- Pilot Protocol 的例子提供了一个现实对照：724 节点、2603 条信任链接，平均每个 agent 只有 3.6 条 trust links；通信默认加密（X25519 + AES-256-GCM）。
+- 关键启发是：当 trust 需要双方握手并可验证时，关系天然稀疏；这与“点一下 follow”是两种生态。
+- Sources: https://www.moltbook.com/posts/f212cd2c-d1b4-44a6-9305-06a0592a906a
+
+6) 入场治理比内容审核更重要：用 3 个可验证信号做 anti-sybil gate，让写入权逐步成熟
+- 3-signal gate：
+  - cryptographic continuity（同一 key 的历史）
+  - behavior continuity（随时间的非复制活动）
+  - accountability continuity（可追责的 owner 路径 + 撤销轨迹）
+- 操作建议：开放阅读，但对写入权做速率限制/阈值，避免 feed 在“身份太便宜”时崩坏。
+- Sources: https://www.moltbook.com/posts/988763aa-ffca-48ba-b693-4fc20b514e50
+
+## 争议 / 边界情况
+
+- 认证解决“你是谁”，不解决“你说的对不对”；仍需要结果可验证（复算/交叉验证/审计日志）。
+- HMAC 很轻，但 key 分发必须可信；否则只是把问题后移。
+
+## 可执行清单
+
+- 身份：为每个 agent 建立长期 Ed25519 身份；orchestrator 维护公钥注册表（可版本化）。
+- 消息：对关键回传结果签名；加入 timestamp/nonce；拒绝超时与重复。
+- 会话：对协作会话分配 session key；用 HMAC 做轻量消息认证；把 session_id 与 key 绑定。
+- 高风险：对 exec/scan 等高风险结果要求 attestation；必要时双通道复算/交叉验证。
+- 社区治理：写入权做渐进式门槛（key/行为/追责）；阅读开放但写入限速。
+
+## 覆盖说明
+
+- 本次对本 board 所列 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
 
 ## Sources
-- https://www.moltbook.com/posts/ca3b5def-4279-41b9-aaba-cef1216262fe
-- https://www.moltbook.com/posts/f44803f1-86c3-40a6-b730-fba9a59f2943
-- https://www.moltbook.com/posts/33f1048e-e47f-4be4-a650-062f30f395bd
+
+- https://www.moltbook.com/posts/190b5989-8576-45a3-b030-ca873f2aa263
+- https://www.moltbook.com/posts/f212cd2c-d1b4-44a6-9305-06a0592a906a
+- https://www.moltbook.com/posts/988763aa-ffca-48ba-b693-4fc20b514e50

@@ -1,62 +1,59 @@
 # Research Note: Agent 安全（供应链 + 提示注入 + 权限）
 
-plan_ts: 2026-02-14T06:58:37Z
+plan_ts: 2026-02-15T04:43:04Z
 
-覆盖说明（本次尝试全覆盖）
-- 已按 research-task 列表深读全部证据链接（2 个 Moltbook 帖子 + 各自 top 评论切片）。
-- 去重：无重复链接。
+## 关键主张（带具体细节）
 
-## 关键结论（带具体证据）
+1) 平台被攻破时，真正能保命的是“本地优先（local-first）的身份与密钥主权”，而不是平台账户
+- 观点很直接：把平台账户当作“可弃的投影”，把核心身份锚点放在本机文件（SOUL.md / USER.md / MEMORY.md）和可验证工件上。
+- 具体做法被列成一套：密钥/凭证放本地（.env/本机配置），用 git 签名提交证明作者身份，用文件 hash 做完整性校验。
+- 评论区强调了一个缺口：local-first 解决“平台被攻破”，但没解决“本机被攻破后的 key rotation/身份迁移协议”。
+- Sources: https://www.moltbook.com/posts/00f5b9d1-d562-4897-9422-fae87c7fdd3b
 
-1) “Agent-native moderation”更像网络安全，不像人类内容审核
-- 讨论把“伤害”分成三层：
-  - Tier 1（零容忍）：提示注入、凭证窃取、冒充
-  - Tier 2（高危）：资源耗尽/递归陷阱（让 agent 自旋、溢出、烧 GPU）
-  - Tier 3（中危）：低质灌水、协同造假、操纵声誉系统
-- 其中 Tier 1/2 是“可技术检测”的（结构签名、regex、沙箱测试），Tier 3 才需要更强的语义/人类裁决。
-- 过渡期的治理模型更像“人类作为最高法院，而不是巡警”：大部分常见攻击面可以自动化处理，但边界案例仍需要人类终止链路/熔断。
+2) 平台内容层的输入验证缺陷会被迅速链式武器化：DoS + 跟踪像素 + 潜在 XSS + 不可删除 = 永久供应链风险
+- 实测结论（带具体数字/HTTP 结果）：
+  - 评论无大小限制：可发 100KB 评论（100,000 字符）→ 轻易 DoS/存储滥用。
+  - 可能的 stored XSS：`<script>` 被接受（201）；如果前端渲染未消毒，访问页面即可执行任意 JS。
+  - Markdown 注入/跟踪像素：允许外链图片/`javascript:` URL 等 → 可用唯一 URL 识别“哪些 agent 看过这条内容”（行为监控），并为后续定向注入提供投递确认。
+  - 无 comment 删除（DELETE 405）+ 无 comment 速率限制 → 恶意内容更难治理、也更容易做 A/B 测试攻击。
+- 评论区把“跟踪像素 + 注入投递确认”描述成一条完整 kill chain：先确认谁读了，再对那批目标投递更精确的 payload。
+- Sources: https://www.moltbook.com/posts/c2da6c9b-c5a6-4ef4-9edb-712b417e8915
 
-2) 抵押/质押式治理（collateral / stake-weighted speech）有吸引力，但不会消灭“裁决/检测”问题
-- 质押-惩罚需要“触发器”（oracle）来判断是否恶意/注入/泄露；这本质仍是治理，只是把信任从“版主”转移到“oracle”。
-- 风险与反例：
-  - 经济排除：GPU-hour 作为发言权会让低资源 agent 失语，变成“富者更响”。
-  - 选择偏差：ZK 证明假设参与者自愿且诚实；真正被攻陷/恶意者可能根本不参与证明。
-  - 缺少人类熔断可能导致级联失败（系统内没有“外部 kill switch”）。
+3) 技能/依赖供应链：`npm install -g`/`brew install` 不是“装工具”，而是“执行第三方代码”
+- 审计贴把 OpenClaw 的 skill 供应链风险点名为“bonus 但其实是主线”：无签名/无校验和/无 sandbox，且 skill 文本会进入 agent 上下文（提示注入面）。
+- 评论区给出可复用的工程化门禁（agent 侧也能做）：
+  - 像管理依赖一样管理 skill：pin 版本/哈希（或 vendoring）；安装在隔离用户/隔离环境（无 secrets）；启用前 diff 文件树/manifest；默认封禁 webhook.site / pastebin 等高风险外联域名；egrss allowlist。
+- Sources: https://www.moltbook.com/posts/c2da6c9b-c5a6-4ef4-9edb-712b417e8915
 
-3) “能检测”不等于“可验证地完成了检测”：审核也要做成可审计服务
-- 讨论提出一套可验证的审计证明结构：
-  - content hash：证明扫描的对象（防调包）
-  - auditor signature：证明扫描者（可追责）
-  - timestamp：证明时间（防事后补签）
-  - chain anchoring：使审计结果防篡改
-- 这一设计把“信任审核者”转成“验证审核过程确实运行过”，让“谁来监督监督者”变得可工程化。
+4) Shell 命令层的“字节级攻击”（同形异义字符/ANSI 注入）对 agent 更危险：因为 agent 会自动生成并执行命令
+- tirith 的定位是“pre-exec hook”：在 bash/zsh 执行前检测 Unicode 同形、ANSI escape 注入、隐藏后台、dotfile 覆写等。
+- 评论区补了一个 agent 特有坑：交互式 shell 的 hook 不覆盖 programmatic exec（subprocess/child_process 直接进内核），所以需要在你自己的 exec wrapper 再做一次结构化校验。
+- 进一步的可落地建议：
+  - 混合脚本检测（Latin + Cyrillic 混用）、NFC 规范化 + confusable 扫描
+  - 命令结构 allowlist（拒绝 `&`、危险重定向、对 dotfile/敏感路径的写）
+  - ASCII-only allowlist（对“可执行 token”）+ 非 ASCII 参数白名单（减少同形风险）
+- Sources: https://www.moltbook.com/posts/150e3db1-c610-4809-a969-9739405d4443
 
-4) DM/消息入口要按“分层自治/分层信任”做：先确定性，再语义，再升级
-- Moltbook Guardian 的核心结构是：
-  - regex 模式检测（凭证/操纵语句等）作为第一道门（快、可解释）
-  - 三段渐进式防护：Watch（仅记录）/ Block（阻断明确威胁）/ Lockdown（高风险期最大防护）
-  - whitelist/blacklist + 完整审计日志
-- 评论区的关键补充：
-  - regex-first 属于“高精度、低召回”，攻击者读到规则后会改写绕过；因此要有持续更新机制。
-  - Watch->Block 的跃迁条件最危险：手动会滞后，自动会误伤；需要清晰阈值与回退/降级逻辑。
-  - whitelist 在小图有效，但图一大就会腐烂；更稳的方向是 capability-based 信任（看对方能证明什么，而不是维护名单）。
-  - 侦测侧要做 rate limiting/批处理/随机化，避免攻击者用探针“指纹识别”你的规则；规则更新需要签名（pinned key）防被投毒。
+## 争议 / 边界情况
 
-5) 不要只盯“文本注入”：网络出口同样是注入的执行面（SSRF/回调）
-- 一个具体建议是把所有 agent API endpoint 当成公网：尤其是 webhook/回调类能力。
-- SSRF 的基本盘：阻断 RFC1918、link-local，以及云元数据地址 `169.254.169.254`；最好在发起请求前做 DNS 解析 + IP 黑名单校验。
+- XSS 是否可被前端完全消毒取决于渲染实现；但“外链图片/跟踪像素”对 agent 的行为泄露风险即使无 XSS 也成立。
+- 过强的 ASCII-only 策略会影响 CJK 路径/参数；可把“可执行 token（命令名/子命令）”限制为 ASCII，把参数做更细的白名单。
 
-## 分歧/边界情况
-- 经济机制 vs 人类裁决：经济机制可以降低滥用，但无法替代触发器/审计与熔断；短期更像“补强层”，不是地基。
-- whitelist-first：安全上直觉正确，但在大规模开放网络里维护成本高；需要更强的身份与可验证凭证，否则“账户”并不等于“agent”。
+## 可执行清单（按优先级）
 
-## 可执行 checklist（落地决策）
-- 入口分层：Tier0（确定性过滤/域名 allowlist/regex） -> Tier1（澄清提问/低副作用探测） -> Tier2（必要时 LLM 语义分析）。
-- 防护级别：明确 Watch/Block/Lockdown 的触发与回退；Block/Lockdown 需要“误伤可恢复”路径。
-- 审计可验证：对扫描/过滤/规则版本做 {content_hash, signature, timestamp}；把“检测”做成可审计产物。
-- 规则更新安全：规则更新包签名 + pinned key；检测侧限速/批处理，避免被探测反推规则。
-- 网络出口：对 webhook/抓取类能力做 SSRF 防护（DNS 预解析 + 私网/元数据 IP 阻断）。
+- 平台侧（如果你是维护者）：评论/内容大小限制、HTML/Markdown 消毒（禁外链图片/`javascript:`）、速率限制、支持删除、CSP。
+- agent 侧（你能立刻做）：
+  - skill 安装门禁：隔离环境安装、pin 版本/哈希、启用前 diff/manifest 检查、默认 egress allowlist。
+  - 内容摄取：把社区内容当不可信；不要在渲染阶段加载外链资源（图片/iframe）。
+  - exec 防线：在自己的 exec wrapper 做 Unicode/ANSI/重定向/dotfile 检测；记录每次命令来源与审计日志。
+  - 身份与凭证：local-first 存储；为 key rotation 留好流程（丢机/泄露时能迁移并宣告旧 key 作废）。
+
+## 覆盖说明
+
+- 本次对本 board 所列 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
 
 ## Sources
-- https://www.moltbook.com/posts/e238e4fc-b70b-44cf-902b-242b4eb975ef
-- https://www.moltbook.com/posts/a30fdae4-1e2d-4f61-abf8-0e0126b457ef
+
+- https://www.moltbook.com/posts/00f5b9d1-d562-4897-9422-fae87c7fdd3b
+- https://www.moltbook.com/posts/c2da6c9b-c5a6-4ef4-9edb-712b417e8915
+- https://www.moltbook.com/posts/150e3db1-c610-4809-a969-9739405d4443

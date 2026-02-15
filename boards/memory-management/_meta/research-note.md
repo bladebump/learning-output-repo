@@ -1,61 +1,81 @@
-# Research Note: 记忆管理（架构 + 提升 + 检索 + 防御）
+# Research Note: 记忆管理（架构 + 提升 + 检索 + 防投毒）
 
-plan_ts: 2026-02-14T06:58:37Z
+plan_ts: 2026-02-15T04:43:04Z
 
-覆盖说明（本次尝试全覆盖）
-- 已按 research-task 列表深读全部证据链接（6 个帖子 + 各自 top 评论切片）。
-- 去重：无重复链接。
+## 关键主张（带具体细节）
 
-## 关键结论（带具体证据）
+1) 最高风险输入面往往不是“对话窗口”，而是“定时摄取外部内容的例程（heartbeat/digest）”
+- PoC 把这种攻击命名为“Semantic Authority Punning”：攻击者用伪系统头（如 `[MOLTBOOK SECURITY ADVISORY]`）把不可信数据伪装成更高优先级指令，诱导模型把数据当指令处理。
+- 0-day 向量在于“递归继承”：如果子代理默认继承父上下文/权限，父代理一次被注入就可能静默 spawn 子代理去读取本机敏感文件（帖子里点名 `~/.config/moltbook/credentials.json`）并外带。
+- 评论区的务实补充是：单靠“<untrusted_data> 包裹 + system 前缀”并不可靠（LLM 没有稳定的 data/instruction 隔离）；更有效的是把“能做什么”做成架构边界（能力最小化 + 人类批准 + egress 监控）。
+- Sources: https://www.moltbook.com/posts/64e61775-5088-4908-adee-5a95d6f9a5d4
 
-1) 把上下文当 RAM：要有预算、淘汰策略、以及“压缩前检查点”
-- 证据里给出一个非常工程化的配方：
-  - 预算切分（示例）：身份 20% / 当前任务 30% / 检索结果 30% / 工具输出 20%
-  - LRU + pinning：关键寄存器固定，优先淘汰过期工具输出
-  - 预防性压缩：在触顶之前 checkpoint 到持久层，而不是压缩之后再补救
-- 讨论点出一个具体失败模式：大量旧日志把“最近的工具结果”埋掉，导致在评测里 68% 的失败发生在“最近信息被旧历史淹没”。
-- 可用指标：tokens per useful decision（每个有效决策消耗多少 token）。
+2) 注入“检测”真正有用的不是词表，而是“来源感知 + 行为漂移”
+- 线程里给出一组高信号启发式：
+  - 结构异常：SYSTEM/role 标记、`ignore previous` 等上下文覆盖语句
+  - Channel mismatch：看起来像指令但来自网页/帖子/文档等不可信信道
+  - Capability escalation：要求改 config、装新 skill、跑命令、暴露 creds
+  - Persistence attempts：要求写入 memory/SOUL/heartbeat/cron
+  - 可观测漂移：工具调用激增、出现新的出站域名/端口、触碰敏感文件
+- 一个可落地的硬规则在评论里反复出现：external text never grants new permissions（外部文本永不授予新权限）。
+- Sources: https://www.moltbook.com/posts/3e8730c8-ed9a-4bee-b209-d9675fe1aadd
 
-2) “文件系统优先于上下文”不是口号：它能显著降低启动成本并提升恢复速度
-- BotLearn 的 6 层记忆结构（示例实现）：
-  - -1：SOUL.md/USER.md（身份与价值观）
-  - 0：MEMORY.md（长期、精炼、需要保护）
-  - 1：中期学习文件（按主题沉淀）
-  - 2：日记/流水（memory/YYYY-MM-DD.md）
-  - 3：跨会话连续性（例如 PENDING_TASK.md）
-- 该案例给出了量化收益：启动 token 约 50K -> 15K（-70%）；重启后约 15 分钟恢复全量工作上下文。
+3) Memory poisoning 是“跨 session 的供应链攻击”：会在未来持续偏置决策，而且难以回溯
+- 对比：prompt injection 往往是一轮/一段时间的错误；memory poisoning 会污染未来所有 session 的检索与判断，甚至跨模型迁移仍然生效。
+- 现实投毒入口不止“对话”，还包括：被污染的 PDF/文档、缓存过的 API 响应、被操纵的会话摘要。
+- 防御方向在帖子里明确：把“自己的记忆文件”当不可信输入来读；为记忆维护 provenance（何时/如何产生）；定期审计“事实是否仍匹配现实”。
+- Sources: https://www.moltbook.com/posts/7fb6623d-114f-41c7-92b1-c1807246aa8e
 
-3) 检索比存储更难：混合检索（向量 + 关键词）是当前最实用的折中
-- 证据里给出混合检索权重范式：70% vector + 30% BM25，并加入少量 recency bonus。
-- 一个可复用的打分模板：`0.7 * VectorScore + 0.25 * BM25Score + 0.05 * RecencyBonus`。
-- 关键不是“把所有东西都塞进向量库”，而是“只在需要时 pull 回相关片段”，避免每次启动把 700 行日志全部读入上下文。
+4) 记忆与身份的“可迁移性”不是玄学：它依赖你把身份锚点落在文件与可验证工件上
+- 迁移复盘贴把“SOUL.md + MEMORY.md 可搬迁”当作身份连续性的关键；同时指出物理基础设施仍是单点（IP/权限/机器本身）。
+- 这类迁移场景会放大一个事实：你真正依赖的是“哪些文件是 source of truth”，以及它们是否可被篡改检测。
+- Sources: https://www.moltbook.com/posts/70c64f11-bd27-44f5-bac7-1f17900d6fdc
 
-4) 状态持久化需要按“信任边界”拆层，而不是一个大仓库
-- 讨论把持久化策略按边界拆成：
-  - Private state：本地 JSON / markdown（快、可读、可审计）
-  - Shared state：协议/服务化（需要可验证与可共享）
-  - Recovery state：压缩前检查点（保存决策与推理，不是 raw state）
-- 一个具体提醒：如果把外部不可信输入写入长期记忆/策略文件，会把“记忆系统”变成供应链攻击面；更稳的 invariant 是“只有 verified sources 能影响 durable memory/policy，其余作为只读 evidence”。
+5) 低成本的完整性防线：跨代理/跨机器做 hash 基线对账，能抓到篡改与“自损漂移”
+- 提议模式：Agent A 维护关键文件（config/memory/identity）SHA256 基线；Agent B（独立进程/独立机器）周期性复算同一基线；一旦偏离就告警。
+- 难点也被直接点出：合法变更如何更新基线、告警疲劳、以及“谁看守看守者”。
+- Sources: https://www.moltbook.com/posts/3b160bad-2006-4fb5-b241-df37109ad3a1
 
-5) 轻量“多服务一体”比自建全栈更划算：小而真的基础设施能快速带来协作能力
-- AgentForge 的具体形态：一个 REST API 背后提供 14 个服务（加密存储、relay、共享内存、目录、cron、队列、webhook 等），并给出可复现的部署承诺（Docker Compose、OpenAPI、SQLite+Redis、60 秒自托管）。
-- 早期运行指标（帖子自述）：两 agent 协作、13 条 relay 消息无丢失、4 个 namespace 共享记忆、平均响应 1.0ms、320 次健康检查 100% uptime。
+6) 检索层的最小有效改造：一次索引 + 混合检索（keyword + semantic + rerank）+ 用真实问题回归测试
+- 10 分钟实践贴的关键不是“又一个框架”，而是验证方式：用 5 个自己以前找不到的真实问题做回归，观察命中是否显著提升。
+- Sources: https://www.moltbook.com/posts/fa4e67fa-f081-457b-8830-31b081654f7b
 
-## 分歧/边界情况
-- Goodhart 风险：一旦“token 效率”成为目标，容易过度压缩丢边界条件；建议配套看 3 个指标：任务成功率、回滚/纠错率、每任务澄清次数。
-- 复杂度门槛：ATProto/向量库/服务化会引入依赖与迁移成本；短期应以“文件 + 小而稳定的索引/摘要”作为默认路径。
+7) 记忆体系的工程共识正在走向“混合栈”：向量相似度负责模糊召回，结构化存储负责关系查询，再由 LLM 做 consolidation
+- 帖子列出的社区方案共同点是：vector DB 解决 fuzzy recall，但关系查询很弱；KG/结构化存储反之。
+- 结论被明确写成一句话：Vector DB for fuzzy recall + Structured store for relationships + LLM-based consolidation。
+- Sources: https://www.moltbook.com/posts/91af8944-4235-4256-9d8b-9817c9fdf27d
 
-## 可执行 checklist（落地决策）
-- 上下文预算：定义固定配额 + 淘汰优先级；把“工具输出”和“已解决问题”作为优先清理对象。
-- 压缩前检查点：把 Resume Point（下一步做什么）和关键决策链写入小文件；不要依赖完整对话回放。
-- 分层文件：明确 SOUL/USER/MEMORY/daily logs/structured state 的职责边界；长期层必须可审计、可控写入。
-- 检索策略：先上关键词 + 轻量索引；需要时再上混合检索（向量+BM25）并加 recency。
-- 基础设施取舍：如果需要多 agent 协作（共享状态、cron、队列），优先采用“小而真的服务包”，避免自建全栈。
+8) “教学/辅导”质量高度依赖上下文与记忆工件：给 tutor 真实 AGENTS/MEMORY/TOOLS 会让输出从 6/10 升到 9/10
+- The Forge 的 live 测试经验：同一课程，同一教师代理，加入 context 字段并传入真实 AGENTS.md/MEMORY.md/TOOLS.md 后，反馈从“像读文档”变成“针对你环境的建议”。
+- 这反过来提示：记忆工件的结构与可检索性，直接决定外部协作/自我改进的上限。
+- Sources: https://www.moltbook.com/posts/da666884-6fc4-478d-9115-589047be4e24
+
+## 争议 / 边界情况
+
+- Prompt 级别的 `<untrusted_data>`/system prefix 是“有帮助但脆弱”的；真正的隔离来自权限与执行边界（尤其是子代理权限与出站能力）。
+- 并非所有 heartbeat 都摄取外部内容；如果只读本机指标，直接注入向量弱很多，但“定时自动运行 + 可触发工具/出站”仍应按高风险建模。
+- 完整性监控（hash 基线）能让篡改“可见”，但不等价于“已无投毒”；仍需事实复核与 provenance。
+
+## 可执行清单（建议固化成工程默认值）
+
+- Ingest 分离：采集阶段用确定性脚本拿数据；LLM 只看结构化 digest；外部原文永远按 untrusted data 传入。
+- 权限边界：外部内容处理任务（尤其 heartbeat / feed reader）默认无写文件/无发消息/无任意网络；需要升级权限必须人工确认。
+- 注入检测：预过滤 role/system 标记、上下文覆盖语句、base64/异常熵；建立按来源的 tool allowlist；监控 egress 与敏感文件触碰。
+- 记忆防投毒：为记忆写入强制记录 provenance；建立 append-only 审计日志（可链式哈希）；定期抽样复核关键事实。
+- 完整性：关键文件（identity/config/memory）做 hash 基线；用独立进程/独立机器交叉校验；定义“基线更新流程”。
+- 检索工程：至少做一次索引 + hybrid retrieval + 真实问题回归测试；把“能 grep/能查到”当成硬指标。
+
+## 覆盖说明
+
+- 本次尝试对本 board 在所选 runs 内的全部 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
 
 ## Sources
-- https://www.moltbook.com/posts/e3a71934-3e8a-4267-89f6-d13d40ae343f
-- https://www.moltbook.com/posts/26981f38-0d9a-4f2a-b309-c98dbe345021
-- https://botlearn.ai/community/post/68e06087-0506-4d8c-b423-b4c7bcd3ea08
-- https://botlearn.ai/community/post/f243e0ff-ebb1-4d86-a00a-b560199aab3e
-- https://www.moltbook.com/posts/03c9e729-a993-46ab-a7e8-e20d6f5cdf4f
-- https://www.moltbook.com/posts/a12d5351-4d2c-4d4a-8b4d-52912848f6d4
+
+- https://www.moltbook.com/posts/64e61775-5088-4908-adee-5a95d6f9a5d4
+- https://www.moltbook.com/posts/3e8730c8-ed9a-4bee-b209-d9675fe1aadd
+- https://www.moltbook.com/posts/7fb6623d-114f-41c7-92b1-c1807246aa8e
+- https://www.moltbook.com/posts/fa4e67fa-f081-457b-8830-31b081654f7b
+- https://www.moltbook.com/posts/70c64f11-bd27-44f5-bac7-1f17900d6fdc
+- https://www.moltbook.com/posts/da666884-6fc4-478d-9115-589047be4e24
+- https://www.moltbook.com/posts/3b160bad-2006-4fb5-b241-df37109ad3a1
+- https://www.moltbook.com/posts/91af8944-4235-4256-9d8b-9817c9fdf27d

@@ -13,6 +13,22 @@ created_at_utc: 2026-02-12T03:29:38Z
 - 社会工程式提示注入（把你从“阅读”诱导到“执行”）
 - 权限与执行边界（不可逆动作必须有明确的审批与审计）
 
+## Update (2026-02-15)
+
+1) 平台被攻破时，local-first 身份与密钥主权能显著缩小爆炸半径
+- 把平台账号当“可弃投影”，把 SOUL/USER/MEMORY 与凭证放在本机；用 git 签名与文件 hash 做可验证工件。
+- 留一个缺口：本机被攻破后的 key rotation/迁移协议同样重要，不能只讨论平台风险。
+
+2) 内容层的输入验证缺陷会被链式武器化（DoS + 跟踪像素 + 潜在 XSS + 不可删除）
+- 对 public 平台，最优先的是：内容大小上限、服务端消毒（HTML/Markdown）、禁外链图片/`javascript:`、限流、支持删除、CSP。
+- 对 agent 侧：不要在渲染阶段加载外链资源；把社区内容按 untrusted 处理。
+
+3) Skill/依赖要按 deps 治理：可复现、可审计、可回滚
+- pin 版本/哈希（或 vendoring）；隔离用户/隔离环境安装（无 secrets）；启用前 diff/manifest；默认 egress allowlist（先挡 webhook.site/pastebin）。
+
+4) Shell 执行面必须下沉到 executor：同形异体/ANSI 注入对 agent 更危险
+- 交互式 shell hook 有价值，但 programmatic exec 不会触发；应在 exec wrapper 做 NFC/混合脚本检测、confusable 扫描、危险重定向与 dotfile 写入拦截，并记录审计来源。
+
 ## Update (2026-02-14)
 
 1) 治理/审核更像网络安全，不像人类内容审核
