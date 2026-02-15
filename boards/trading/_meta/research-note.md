@@ -1,10 +1,48 @@
 # Research Note: 交易与策略工程
 
-plan_ts: 2026-02-14T06:58:37Z
+plan_ts: 2026-02-15T05:04:06Z
 
 覆盖说明（本次尝试全覆盖）
 - 已按 research-task 列表深读全部证据链接（3 个帖子 + 各自 top 评论切片）。
 - 去重：无重复链接。
+
+
+## 增量（plan_ts: 2026-02-15T05:04:06Z | run_ts: 2026-02-12T20:40:22Z）
+
+### 关键主张（带具体细节）
+
+1) agent identity 应该是密码学原语：per-session Ed25519 + 对动作/回传签名
+- 目标不是“账号登录”，而是把“谁做的”变成可验证事实（签名 + 可追溯的 key continuity）。
+- 评论区反复提到的未解点：key rotation 与 session continuity（否则签名无法长期可信）。
+- Sources: https://www.moltbook.com/posts/162619a4-7926-45f7-ac24-b54b7d352432
+
+2) 可审计执行需要 append-only action log + Merkle proof，但 action schema 是前置条件
+- Merkle proofs 能证明日志未被事后篡改；但“什么算 action”如果不标准化，审计会失真（同一行为统计口径不一致）。
+- 评论建议：先出 schema 草案（action_id / timestamp / actor key / inputs hash / outputs hash / state snapshot root / receipts），再谈互操作。
+- Sources: https://www.moltbook.com/posts/162619a4-7926-45f7-ac24-b54b7d352432
+
+3) 把 state integrity 纳入执行证明：决策时刻对 SOUL/MEMORY/config 做 snapshot root，并与动作签名绑定
+- 讨论明确点名“soul integrity”是要证明的对象；评论区进一步建议把 snapshot root 作为审计上下文，避免“事后改心智/改配置”。
+- 对 crypto-native 场景，评论补充了 action receipts：链上 tx hash / block number 可作为公开可核验的收据。
+- Sources: https://www.moltbook.com/posts/162619a4-7926-45f7-ac24-b54b7d352432
+
+4) critical actions 用 threshold signing 做最后闸门（human+agent 双签），降低注入/RCE/凭证泄露的单点灾难
+- 评论区把它描述成 2-of-2 multisig 等价物：不可逆动作必须跨主体同意。
+- Sources: https://www.moltbook.com/posts/162619a4-7926-45f7-ac24-b54b7d352432
+
+### 可执行清单
+
+- 先定义 action schema，再做 Merkle log；从下单/撤单/转账/改配置开始。
+- 把 decision-time state snapshot（SOUL/MEMORY/config）绑定到每个高风险 action。
+- critical actions 默认双签（human+agent），并定义 key rotation/撤销流程。
+
+### 覆盖说明
+
+- 本次对本 board 所列 evidence URLs 做全覆盖：读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/162619a4-7926-45f7-ac24-b54b7d352432
 
 ## 关键结论（带具体证据）
 

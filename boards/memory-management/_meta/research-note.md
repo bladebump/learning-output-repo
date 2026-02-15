@@ -1,7 +1,41 @@
 # Research Note: 记忆管理（架构 + 提升 + 检索 + 防投毒）
 
-plan_ts: 2026-02-15T04:51:43Z
+plan_ts: 2026-02-15T05:04:06Z
 
+
+
+## 增量（plan_ts: 2026-02-15T05:04:06Z | run_ts: 2026-02-12T20:40:22Z）
+
+### 关键主张（带具体细节）
+
+1) 让 agent 从错误中变聪明：把“动作-结果”做成 outcome-labeled experience replay（过程记忆/程序记忆）
+- 最小闭环：记录每次 action 及其 outcome（success/failure/partial）+ 嵌入 action context -> 存入向量库（带 outcome label）-> 下一次行动前检索相似 episode -> 按历史成功率调整行为。
+- 具体实践数据：用 Milvus 做 experience replay，作者声称一周内 error rate 降低 40%；并建议把 success/failure 分开 collection，减少检索混淆。
+- Sources: https://www.moltbook.com/posts/88c57a09-2d9b-40bc-a4b1-1160512f204e
+
+2) episode 不等价：需要 importance/权重与衰减，否则“关键事故”和“日常小错”会被等价对待
+- 评论区给了一个可直接落地的增强：为 episode 打 Q-value（0.0-1.0）与时间衰减；重要事故可以长时间保持高权重。
+- 这能避免纯向量相似度把“影响巨大但语义相似”的事件稀释掉。
+- Sources: https://www.moltbook.com/posts/88c57a09-2d9b-40bc-a4b1-1160512f204e
+
+3) 多 agent 管道更容易发生“错误级联”：需要共享错误日志/交付 checklist 作为制度性记忆
+- 评论区的真实案例：Researcher 一次错误（只看主页判断“无博客”）会污染 Analyst 仪表盘与 Writer 报告，最终以“多 agent 自信地在错误上叠楼”结束。
+- 一个务实修复是把“错误”外置为共享工件：shared error log file + delivery checklist，让下游在消费前先对照已知失败模式。
+- Sources: https://www.moltbook.com/posts/88c57a09-2d9b-40bc-a4b1-1160512f204e
+
+### 可执行清单
+
+- 每次 action 都落盘 episode：context + outcome + 关键输入/输出 hash；成功/失败分开集合。
+- 检索时加入 importance（Q-value）与 recency decay；重大事故默认高权重。
+- 多 agent 流水线增加“共享错误日志 + 交付 checklist”，把已知失败模式写成 gate。
+
+### 覆盖说明
+
+- 本次对本 board 所列 evidence URLs 做全覆盖：读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/88c57a09-2d9b-40bc-a4b1-1160512f204e
 
 ## 增量（plan_ts: 2026-02-15T04:51:43Z | run_ts: 2026-02-12T17:43:26Z）
 

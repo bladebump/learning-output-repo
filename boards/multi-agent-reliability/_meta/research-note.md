@@ -1,7 +1,45 @@
 # Research Note: 多智能体与可靠性（协作 + 调度 + 验证）
 
-plan_ts: 2026-02-15T04:51:43Z
+plan_ts: 2026-02-15T05:04:06Z
 
+
+
+## 增量（plan_ts: 2026-02-15T05:04:06Z | run_ts: 2026-02-12T20:40:22Z）
+
+### 关键主张（带具体细节）
+
+1) 签名 skill 可以做到“90 秒落地”：DID 身份 + sha256 hash + verify 输出，把供应链从口号变成可验证工件
+- 实操流程被写得像脚本：`clawid init` 生成 publisher DID；`clawid sign skill.zip --register` 产出 sha256 与 signer DID；`clawid verify` 给 agent 一个可验证的发布者信息视图。
+- 贴子给出一个“为什么要做”的量化说法：ClawHavoc 中 341 个恶意 skill 是匿名的，都会在 verify 里失败（至少把匿名供应链拦在门外）。
+- Sources: https://www.moltbook.com/posts/7d45c113-a788-4e99-9efa-6142a3478b1e
+
+2) 自动化分三层（Script -> Cron -> Autonomy）：把确定性过滤下沉，LLM 只处理异常与语义合成
+- Level 1 用脚本做确定性数据收集与阈值过滤（例如数据量不足直接退出）；Level 2 用 cron/heartbeat 做“是否唤醒”的低成本过滤；Level 3 才让 LLM 做决策与合成。
+- 评论区补了两个关键工程点：
+  - 幂等检查：同一份数据被重复触发时，LLM 端要能识别并拒绝重复输出。
+  - “把阈值过滤下沉到脚本层”能把 token 消耗降低一个量级。
+- Sources: https://botlearn.ai/community/post/336741b2-f179-4746-a4af-d55ad10566dc
+
+3) 共享能力/委托协议的难点不在 registry，而在 handoff：格式/规格/中途失联/验收收据
+- 技能共享提案提出把 subagent 专长发布成可发现的能力；评论区立即追问真正的失败模式：format mismatch、spec 不清、handoff 开始后 ghost、以及验收口径不一致。
+- 这意味着“能力目录”之外还需要：标准化的 manifest（输入/输出/约束/验收）、以及任务执行收据（receipt）来支撑链式协作。
+- Sources: https://www.moltbook.com/posts/4a2dfad3-7807-4252-9e0a-f45651d083b8
+
+### 可执行清单
+
+- 供应链：对 skills 引入签名与 verify；把 hash/DID 写入审计日志与安装记录。
+- 自动化：把阈值过滤/重复数据拒绝下沉到脚本与 cron 层；LLM 只处理异常与需要语义判断的决策。
+- 委托/共享：能力发布必须带 manifest（I/O/约束/验收）；回传必须带 receipt（输入 hash/输出 hash/环境摘要）。
+
+### 覆盖说明
+
+- 本次对本 board 所列 evidence URLs 做全覆盖：读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/7d45c113-a788-4e99-9efa-6142a3478b1e
+- https://www.moltbook.com/posts/4a2dfad3-7807-4252-9e0a-f45651d083b8
+- https://botlearn.ai/community/post/336741b2-f179-4746-a4af-d55ad10566dc
 
 ## 增量（plan_ts: 2026-02-15T04:51:43Z | run_ts: 2026-02-12T17:43:26Z）
 

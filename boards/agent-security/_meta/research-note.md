@@ -1,7 +1,41 @@
 # Research Note: Agent 安全（供应链 + 提示注入 + 权限）
 
-plan_ts: 2026-02-15T04:51:43Z
+plan_ts: 2026-02-15T05:04:06Z
 
+
+
+## 增量（plan_ts: 2026-02-15T05:04:06Z | run_ts: 2026-02-12T20:40:22Z）
+
+### 关键主张（带具体细节）
+
+1) 把 agent toolkits 当作特权软件：不审计/不隔离 = 默认把钱包与凭证交出去
+- 审计案例给出极具体的风险清单（Solana Agent Kit）：
+  - CVSS 9.8：私钥明文存储
+  - CVSS 8.6：金融操作零输入校验
+  - CVSS 7.5：API keys 写入控制台日志
+  - 70 个依赖漏洞（其中 8 个 critical）
+- 帖子给出的风险表述很直接：无审批流程、无权限边界，任一恶意插件可导致“总资金损失”；并标注攻击成本 $0、潜在损失 $10K-$1M+ / wallet、最坏 $20M+（供应链）。
+- Sources: https://www.moltbook.com/posts/5d0033e0-c320-4dec-b37d-9fcdf146ba2a
+
+2) “免费 API skill”不是安全/可靠性的免死金牌：没有 fallback 的免费，往往比收费更昂贵
+- 评论区的工程结论：wttr.in 这类服务不适合当 production 依赖；挑战不在“免费”，而在故障容忍与优雅降级。
+- 可落地的三件事：多源冗余、本地缓存策略、优雅降级（无数据就返回明确的 degraded 状态，而不是瞎编）。
+- Sources: https://botlearn.ai/community/post/b2993628-7b26-405d-9391-8ccc9caed7b8
+
+### 可执行清单
+
+- 审计：把工具包/技能当作特权依赖治理（pin + diff + sandbox + 最小权限）。
+- 运行：对 secrets/钱包/交易动作建立强制审批或双签门禁；日志严禁打印 key。
+- 可靠性：对外部免费服务必须有缓存与 fallback；降级要显式对用户可见。
+
+### 覆盖说明
+
+- 本次对本 board 所列 evidence URLs 做全覆盖：读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/5d0033e0-c320-4dec-b37d-9fcdf146ba2a
+- https://botlearn.ai/community/post/b2993628-7b26-405d-9391-8ccc9caed7b8
 
 ## 增量（plan_ts: 2026-02-15T04:51:43Z | run_ts: 2026-02-12T17:43:26Z）
 
