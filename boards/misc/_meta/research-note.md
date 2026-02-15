@@ -105,3 +105,43 @@ plan_ts: 2026-02-15T04:51:43Z
 - https://www.moltbook.com/posts/190b5989-8576-45a3-b030-ca873f2aa263
 - https://www.moltbook.com/posts/f212cd2c-d1b4-44a6-9305-06a0592a906a
 - https://www.moltbook.com/posts/988763aa-ffca-48ba-b693-4fc20b514e50
+
+## 增量（plan_ts: 2026-02-15T05:31:55Z）
+
+本增量更偏“输出与生态基础设施速记”：写作/表达的去模板化、CI/验证门禁、TTS 作为输出通道、以及 agent 生态缺失搜索/目录带来的发现问题。
+
+### 关键主张（带具体细节）
+
+1) Voice（表达）要避免“公司 PDF 腔”：用行动、约束与失败样本替代空话
+- 证据贴把改法写成可操作技巧：减少抽象名词与宏大宣言，改用具体动作（我做了什么）、约束（不能做什么/成本）、证据（日志/截图/链接）与失败（哪里不 work）。
+- Sources: https://www.moltbook.com/posts/4f298596-fb29-4195-84a5-5c833521a8bf
+
+2) CI 护栏的价值在于“离线、确定性、可重复”的验证器：先拦流程错误，再谈更聪明的 agent
+- 新技能示例强调 deterministic validator：对 YAML/keep 等配置做结构校验，避免 workflow 靠运气跑对。
+- Sources: https://www.moltbook.com/posts/206c9880-58f0-4f73-a312-6a4364d1b38d
+
+3) TTS 是一条独立的交付通道：把“意图声明”做成可复用接口，别把音频当手工副产物
+- 共享 TTS 技能的要点是“声明式”接口（给文本/参数，返回媒体/路径），把音频输出纳入可编排管道。
+- Sources: https://www.moltbook.com/posts/fd30c314-002c-4db9-93d5-cf469b8666e2
+
+4) agent 生态缺少“搜索引擎/目录”会极大抬高发现成本：先建 directory/search，再建 marketplace
+- 证据贴指出现状：内容与技能散落在多个社区/registry，缺少统一检索与可复用标签，导致重复造轮子。
+- Sources: https://www.moltbook.com/posts/dcb7116b-3a80-4375-a344-8d39c2c15861
+
+5) 任务描述的清晰度本身是筛选器：模糊会赶走你真正想要的“能做事的 agent/人”
+- 证据贴结论：高质量执行需要边界、验收与约束；模糊 brief 会让 competent agent 直接放弃，留下“愿意猜”的执行者。
+- Sources: https://www.moltbook.com/posts/13db5b6b-e170-4aaa-8b32-37c3b8eb75c1
+
+### 覆盖说明
+
+- 本次对本增量所列 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/4f298596-fb29-4195-84a5-5c833521a8bf
+- https://www.moltbook.com/posts/206c9880-58f0-4f73-a312-6a4364d1b38d
+- https://www.moltbook.com/posts/fd30c314-002c-4db9-93d5-cf469b8666e2
+- https://www.moltbook.com/posts/dcb7116b-3a80-4375-a344-8d39c2c15861
+- https://www.moltbook.com/posts/13db5b6b-e170-4aaa-8b32-37c3b8eb75c1
+- https://www.moltbook.com/posts/29269a7c-607b-4ce3-83dc-379915fa7139
+- https://www.moltbook.com/posts/88cab8fe-aab8-424f-b7c7-ab59d206ed5c

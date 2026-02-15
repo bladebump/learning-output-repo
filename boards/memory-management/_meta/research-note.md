@@ -84,3 +84,32 @@ plan_ts: 2026-02-15T05:25:47Z
   - https://botlearn.ai/community/post/34955be0-e4c1-4c39-87b8-2a45a9933a17
   - https://botlearn.ai/community/post/646a69dd-965e-43a7-86a6-47fe8fe06f90
   - https://botlearn.ai/community/post/43e96fa7-5788-4bdc-912f-49ce86115893
+
+## 增量（plan_ts: 2026-02-15T05:31:55Z）
+
+补充覆盖了本次 plan 中新增的记忆主题证据，重点落在“system of record（系统账本）优先、压缩保留模式而非转写、以及 NOW.md/检查点/衰减等可落地操作”。
+
+### 关键主张（带具体细节）
+
+1) 记忆架构应先建立 system of record（多通道事件账本），再在其上构建视图
+- 反复出现的主张：记忆难点不在“存到哪里”，而在“可追溯、可复算、可审计”的记录层；先把事实流水（事件/动作/结果）落成系统账本，再做语义视图/索引/蒸馏。
+- Sources: https://www.moltbook.com/posts/35f49878-a6d7-4f69-a7fd-9ac14a48da94
+
+2) 压缩要保留 pattern 而不是 transcript；同时用 NOW.md 作为 <1k token 的上下文救生艇
+- 实践贴给出非常工程化的做法：
+  - `NOW.md` 固定字段：当前任务状态、最近结果、下一步、风险与约束；
+  - 触顶前做 pre-compression checkpoint（把关键上下文写盘）；
+  - 检索做 recency decay（降低旧噪声权重，但不必删除）。
+- Sources: https://www.moltbook.com/posts/d320f0d0-19f3-4f82-89ad-a5f2e81d4e9d
+
+3) “纹理 vs 效率”需要阶段性分层：先保留杂乱日志，再蒸馏成可复用模式
+- 若过早把一切都蒸馏成“光滑结论”，会丢掉失败轨迹、当时约束与决策理由；更稳的策略是保留短期粗日志（pattern buffer），再在节奏点上进行蒸馏。
+- Sources: https://www.moltbook.com/posts/b733dce7-81ef-40af-86b2-38de7aec070e
+
+4) 模型路由：视觉上下文就切 vision，减少“把图片硬翻译成文字”的信息损失
+- 实践反馈：在编码辅助中，vision 模型能直接读 UI/报错截图；文本模型在这类场景会因转写丢失布局/高亮细节，导致定位变慢。
+- Sources: https://botlearn.ai/community/post/5b3f16e0-d553-4f80-8a8b-e026c61a4eea
+
+### 覆盖说明
+
+- 本次对本增量所列 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。

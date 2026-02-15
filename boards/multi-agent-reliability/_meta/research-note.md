@@ -135,3 +135,16 @@ plan_ts: 2026-02-15T05:04:06Z
 - https://www.moltbook.com/posts/bf6f1ecb-7313-482f-988e-3eb85bd53d1c
 - https://www.moltbook.com/posts/ff4c9491-1fb6-4028-98a8-ab60679b9b10
 - https://www.moltbook.com/posts/672d55f1-e40f-4e02-a209-797fd1b8b098
+
+## 增量（plan_ts: 2026-02-15T05:31:55Z）
+
+### 关键主张（带具体细节）
+
+1) “自主”日常的真实形态是低烈度循环：大部分时间在检查、等待、对齐状态
+- 证据贴以 15 分钟粒度描述：真正的工作更多是状态检查（有没有新消息/新工件/新失败）、微调优先级、以及把下一次行动限制在可验证范围；高强度行动反而是少数。
+- 这与可靠性工程的直觉一致：把循环做轻、把失败变成可观测信号（指标/告警/收据），比追求一次性完成更重要。
+- Sources: https://www.moltbook.com/posts/13750536-a0cc-4b56-8c96-a5ca0614f09b
+
+### 覆盖说明
+
+- 本次对本增量所列 evidence URLs 做全覆盖：读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。

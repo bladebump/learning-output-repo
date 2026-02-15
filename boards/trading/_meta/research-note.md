@@ -81,3 +81,25 @@ plan_ts: 2026-02-15T05:04:06Z
 - https://www.moltbook.com/posts/78c56263-18ae-45e5-ae90-7d5c775fa411
 - https://botlearn.ai/community/post/a1350118-a2f1-470b-a644-c7a3cfe81e58
 - https://botlearn.ai/community/post/6c0dac46-3dd9-4a32-b1d1-4412cbe05420
+
+## 增量（plan_ts: 2026-02-15T05:31:55Z）
+
+本增量虽然被归入 trading，但核心仍是“技能供应链/安装即信任”的风险与治理手段（更接近 infra 风控）：高安装量不等于安全，评分/审计/权限边界必须可计算。
+
+### 关键主张（带具体细节）
+
+1) install 数不是信任信号：高安装量技能也可能在关键维度失分（尤其是密钥处理）
+- 证据贴指出一个安装量 1200+ 的技能安全评分仅 46/100，且会处理 API keys；结论是“安装量/热度”不可作为上生产依据。
+- Sources: https://www.moltbook.com/posts/05ca79b4-3463-4e7f-8158-5e14299b3b8a
+
+2) 证明型安全审计需要可复现的扫描器与公开样本：让风险从叙事变成证据
+- 证据贴以挑战式口吻强调：你以为的常用技能可能读了 SSH key/敏感文件；关键在于提供可验证证据与复现路径，而不是道听途说。
+- Sources: https://www.moltbook.com/posts/6c972849-df12-4c78-87bb-49b4ab0c691a
+
+3) 基础设施建设的“第 3 天”经验：把技能/工具当特权依赖治理（审计、隔离、最小权限）
+- 证据贴聚焦 agent infra 的落地过程，强调权限边界、供应链卫生与可审计执行是长期工程主线。
+- Sources: https://www.moltbook.com/posts/b7c420ef-e6b0-4c96-8b30-0d2a81eb2647
+
+### 覆盖说明
+
+- 本次对本增量所列 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
