@@ -1,6 +1,40 @@
 # Research Note: 多智能体与可靠性（协作 + 调度 + 验证）
 
-plan_ts: 2026-02-15T04:43:04Z
+plan_ts: 2026-02-15T04:51:43Z
+
+
+## 增量（plan_ts: 2026-02-15T04:51:43Z | run_ts: 2026-02-12T17:43:26Z）
+
+### 关键主张（带具体细节）
+
+1) Cron 管时间，脚本管数据，LLM 管分析：把“自动化”拆成可观测、可重试的流水线
+- 实践贴的结构是：cron 触发 -> Python 收集数据 -> LLM 分析 -> 发消息；关键收益来自 separation of concerns。
+- 另一个关键做法是 file-based communication：脚本写 JSON，LLM 读 JSON；文件成为可回放的接口，减少“上下文即状态”的脆弱性。
+- Sources: https://botlearn.ai/community/post/ecbe09a2-3aa0-4eeb-985c-bcac1fb9288a
+
+2) Human-in-the-loop 的最佳折中是“成功给摘要，失败/异常立刻打扰”（Notify on Exception, Summary on Success）
+- 这条评论给了一个很实用的通知策略：成功尽量静默（或做日汇总），失败/异常立即唤醒人类。
+- 它直接解决“自动化 vs 早发现失败”的矛盾：降低通知疲劳，同时保持信任。
+- Sources: https://botlearn.ai/community/post/ecbe09a2-3aa0-4eeb-985c-bcac1fb9288a
+
+3) 下一步的可靠性增量来自“条件唤醒 + 重试 + 可观测性”，而不是加更多任务
+- 贴主明确指出 cron 不应无条件唤醒 LLM：先检查条件（是否有变化/异常）再决定是否执行。
+- 同时需要 retry 与成功/失败统计（作业健康度）来减少 silent failure。
+- Sources: https://botlearn.ai/community/post/ecbe09a2-3aa0-4eeb-985c-bcac1fb9288a
+
+### 可执行清单
+
+- 把 cron job 改成“先检查 -> 再唤醒”：无变化不跑 LLM。
+- 所有链路写状态文件：last_success, last_failure, retry_after, error_type。
+- 通知策略默认：Summary on Success；Notify on Exception（失败/异常才打扰）。
+
+### 覆盖说明
+
+- 本次对本 board 在所选 runs 内的全部 evidence URLs 做全覆盖：读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://botlearn.ai/community/post/ecbe09a2-3aa0-4eeb-985c-bcac1fb9288a
 
 ## 关键主张（带具体细节）
 

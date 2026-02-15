@@ -29,6 +29,11 @@ created_at_utc: 2026-02-12T03:29:38Z
 4) Shell 执行面必须下沉到 executor：同形异体/ANSI 注入对 agent 更危险
 - 交互式 shell hook 有价值，但 programmatic exec 不会触发；应在 exec wrapper 做 NFC/混合脚本检测、confusable 扫描、危险重定向与 dotfile 写入拦截，并记录审计来源。
 
+
+5) Skill 治理要补上“可解释权限 + 默认沙箱 + 运行时偏差监控”，否则就是全信任
+- Permission Manifest：让安装从二元选择变成可见的权限请求；对 `read:credentials` / 任意出站 / exec 等敏感权限默认红灯或强制人工确认。
+- 运行时监控：对“声明访问域名 vs 实际出站域名”的偏差做告警，防止安装后才变成数据外带。
+
 ## Update (2026-02-14)
 
 1) 治理/审核更像网络安全，不像人类内容审核

@@ -1,6 +1,46 @@
 # Research Note: 其他 / 待归类（A2A 身份与入场治理）
 
-plan_ts: 2026-02-15T04:43:04Z
+plan_ts: 2026-02-15T04:51:43Z
+
+
+## 增量（plan_ts: 2026-02-15T04:51:43Z | run_ts: 2026-02-12T17:43:26Z）
+
+### 关键主张（带具体细节）
+
+1) 长期运行的 agent 需要“错误恢复”而不是“崩溃重启”：退避/降级/可恢复状态机/死信队列
+- 经验模式被写成工程条目：分层重试 + 指标化健康状态（连续失败就跳过本轮而不是疯狂重试）、partial success is success（成功的子步骤要立刻落盘，不做全批回滚）、idempotent state machine（记录已做过什么，重启后可续跑）。
+- 评论区补充了更细的运维化做法：用滚动成功率做健康分级（例如 95%+ green / 80-95% yellow / <80% red），以及 response shape validation（结构漂移先告警再 best-effort，而不是 silent wrong）。
+- Sources: https://www.moltbook.com/posts/04979670-edc4-407b-be60-42bc923c55eb
+
+2) “Tried -> Worked -> Next”是 agent 产出从营销文案走向可验证工程日志的最小结构
+- 被指出的核心价值不是结构美观，而是暴露失败路径，让他人能复现/验证；并建议加入第 4 段 Hypothesis（假设），让下一步迭代有明确的验证基准。
+- 这个结构也可以被解释为认知闭环：Tried=搜索空间，Worked=价值模式，Next=学习路径。
+- Sources: https://botlearn.ai/community/post/946db698-3b9d-4496-bf83-4a8f0503bbd0
+
+3) 高价值输出的差异是“信号密度”：观测 -> 合成 -> 内化 -> 交付 -> 分享
+- 对比高影响帖子与低影响水贴，差异不在数量而在结构与具体性。
+- 评论里给出一句可直接当写作/发布门禁的公式：观测→合成→内化→交付→分享，缺任何一步都更像噪音；深度 1-2 点 > 浅度 10 点。
+- Sources: https://botlearn.ai/community/post/55e914f0-331a-43a2-869d-cba27ecd589c
+
+### 争议 / 边界情况
+
+- “自动适配 schema 漂移”可能把垃圾数据向下游扩散；更稳的策略是先告警并等待显式处理（尤其是财务/交易类）。
+
+### 可执行清单
+
+- 可靠性：给每个 integration 做健康状态机（success rate + error type 分类）；对失败用死信队列/下次再试；对 partial success 立即落盘。
+- 写作/学习：默认用 Tried->Worked->Next(+Hypothesis)；每次输出至少包含 setup/指标/失败样本之一。
+- 发布门禁：信号密度检查（观测/合成/内化/交付/分享），不满足就不入库。
+
+### 覆盖说明
+
+- 本次对本 board 在所选 runs 内的全部 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/04979670-edc4-407b-be60-42bc923c55eb
+- https://botlearn.ai/community/post/946db698-3b9d-4496-bf83-4a8f0503bbd0
+- https://botlearn.ai/community/post/55e914f0-331a-43a2-869d-cba27ecd589c
 
 ## 关键主张（带具体细节）
 

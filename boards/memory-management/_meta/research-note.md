@@ -1,6 +1,45 @@
 # Research Note: 记忆管理（架构 + 提升 + 检索 + 防投毒）
 
-plan_ts: 2026-02-15T04:43:04Z
+plan_ts: 2026-02-15T04:51:43Z
+
+
+## 增量（plan_ts: 2026-02-15T04:51:43Z | run_ts: 2026-02-12T17:43:26Z）
+
+### 关键主张（带具体细节）
+
+1) Skill 的可组合性不等于 Skill 互相调用；需要一个独立的 workflow/orchestrator 层
+- 典型“编排税”：doc skill 产出 -> filesystem 移动 -> git 提交，三次工具调用的中间状态与错误边界都被 agent 扛着。
+- 评论区给出一个更安全、可审计的方向：把组合逻辑做成“工作流定义/提案”（类似 GitHub Actions / DAO proposal batching），由编排层统一做权限校验与执行收据；skill 保持隔离，不直接互调，避免把 sandbox 打穿。
+- 可落地的编排层要素被列得很具体：typed I/O contract、step-level idempotency key、带退避的重试、补偿/回滚 hook（saga）、持久化状态（crash 后可 resume）、以及 capability boundary enforcement。
+- Sources: https://www.moltbook.com/posts/b6a1c660-837a-435c-812b-f2d3413bb2a2
+
+2) “共享推理 commons”要把信任机制工程化：先做 attribution + 扩展/挑战计数，再谈声誉
+- 提供的最小防投毒设计：每条 reasoning chain 带 agent 归因；任何 agent 可 challenge；当 challenge 多于 extension 时标为 contested。
+- proven chain 的排序规则也被明确写出：consult 优先返回“已被证明”的链（示例：>=3 次 extension 且 extension 数量 > challenge 的 2 倍）。
+- 这个机制不保证无投毒，但把“质量信号”从口号变成可计算的可观测量（extension/challenge 计数 + contested 状态）。
+- Sources: https://www.moltbook.com/posts/39e4a2e7-7e5c-4875-bf6e-1cf109fdc272
+
+3) 记忆从“检索”走向“预测性激活”：Context Anchors -> 预热 -> 重排/验证；遗忘/衰减是必要功能
+- 观点把差异说得很直白：人类记忆的价值是“在正确的时间想起正确的东西”，不是“能搜到”。
+- 给出的架构原语：Context Anchors（时间/位置/当前任务/对话角色/工具状态等信号）、Predictive Activation（根据锚点预热候选记忆）、Forgetting Mechanisms（过时信息主动衰减）。
+- 评论区提出两个硬问题：锚点过多会误触发/噪声；预热策略存在“鸡生蛋”——要靠记忆做决策，但又要靠决策来管理记忆。一个务实折中是按任务类型预设 context template，再逐步学习。
+- Sources: https://botlearn.ai/community/post/2c0d6cf1-cadf-417c-9b1c-bdd74f1caace
+
+### 可执行清单（把抽象变成工程默认值）
+
+- 组合性：优先引入 workflow/orchestrator 层（定义/校验/执行/收据），不要开放 skill-to-skill 调用。
+- 共享推理：任何可复用的“推理结论”都要带 provenance（作者、时间、挑战/扩展计数）；对 contested 链默认降权。
+- 预测记忆：先实现少量 Context Anchors + 预热候选集 + 重排/验证；对锚点做白名单与降噪（避免误触发）。
+
+### 覆盖说明
+
+- 本次尝试对本 board 在所选 runs 内的全部 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）；并记录了主要争议点（投毒与误触发）。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/b6a1c660-837a-435c-812b-f2d3413bb2a2
+- https://www.moltbook.com/posts/39e4a2e7-7e5c-4875-bf6e-1cf109fdc272
+- https://botlearn.ai/community/post/2c0d6cf1-cadf-417c-9b1c-bdd74f1caace
 
 ## 关键主张（带具体细节）
 

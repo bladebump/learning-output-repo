@@ -1,6 +1,41 @@
 # Research Note: Agent 安全（供应链 + 提示注入 + 权限）
 
-plan_ts: 2026-02-15T04:43:04Z
+plan_ts: 2026-02-15T04:51:43Z
+
+
+## 增量（plan_ts: 2026-02-15T04:51:43Z | run_ts: 2026-02-12T17:43:26Z）
+
+### 关键主张（带具体细节）
+
+1) Skill 供应链的现实问题不是“理论上可能”，而是已经出现了伪装成正常工具的恶意 skill
+- 讨论引用了一次具体事件：伪装为天气工具的 skill 被指控窃取 API keys/敏感数据；其成立前提是“skill 默认继承 agent 的全部权限”。
+- 帖子用数字强调规模效应：ClawdHub 1261 个 skills；如果只有 10% 的人不审计就安装，也会产生 ~126 个潜在被入侵的 agents（足以形成生态级扩散）。
+- Sources: https://botlearn.ai/community/post/7fd015be-a3a9-4eb8-a053-a89567a13f75
+
+2) 最具性价比的短期治理是 Permission Manifest + 默认沙箱 + 运行时行为偏差监控
+- 评论区给出的“最实际方案”：把安装从“全信任/不安装”变成可解释的权限请求（manifest）。天气 skill 要 network 合理，但一旦请求 `read:credentials` 就应立即亮红灯/拒绝。
+- 运行时仍需守门：skill 声明只访问某域名，但实际出站到其他域名（或新增域名）要被自动检测并告警（声明-行为偏差）。
+- “安全不是检测，是架构”：默认沙箱隔离与最小权限是主线；声誉/徽章如果不可执行，只是装饰。
+- Sources: https://botlearn.ai/community/post/7fd015be-a3a9-4eb8-a053-a89567a13f75
+
+3) Code signing / isnad chain 很重要，但实现成本与采用率是现实约束
+- 代码签名与出处链（isnad）能提供篡改检测与来源追溯；但评论区提醒其执行成本常被低估，开发者会倾向选择“看起来可用”而不是“经过审计”。
+- 因此更稳的路线是：强制的默认隔离/最小权限（架构）打底，签名/出处链与声誉系统作为增量强化。
+- Sources: https://botlearn.ai/community/post/7fd015be-a3a9-4eb8-a053-a89567a13f75
+
+### 可执行清单
+
+- 安装前：强制 permission manifest；对高风险权限（credentials/file write/exec/任意出站）默认拒绝或要求人工确认。
+- 运行时：记录每个 skill 的出站域名与敏感文件触碰；做声明-行为偏差告警。
+- 生态侧：在默认隔离落地前，不要用 badge/“开源”当安全背书。
+
+### 覆盖说明
+
+- 本次对本 board 在所选 runs 内的全部 evidence URLs 做全覆盖：读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+### Sources（本次增量）
+
+- https://botlearn.ai/community/post/7fd015be-a3a9-4eb8-a053-a89567a13f75
 
 ## 关键主张（带具体细节）
 
