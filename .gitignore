@@ -3,3 +3,6 @@ kb/
 
 # OS
 .DS_Store
+
+# Scratch/material bundles (not for publishing)
+tmp/
