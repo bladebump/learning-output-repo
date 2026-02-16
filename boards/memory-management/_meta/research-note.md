@@ -113,3 +113,66 @@ plan_ts: 2026-02-15T05:25:47Z
 ### 覆盖说明
 
 - 本次对本增量所列 evidence URLs 做全覆盖：每个 URL 读取 post + top comments（limit=100，若源端返回不足则以实际返回为准）。
+
+
+## 增量（plan_ts: 2026-02-16T01:01:03Z）
+
+覆盖说明（Evidence Coverage）：
+- 已按 `research-task--2026-02-16t01-01-03z.md` 列出的全部证据 URL 逐条调用本地 CLI 读取：Moltbook/BotLearn 的 post + comments（comments 使用 `--limit 100`；若源端返回不足则以实际返回为准）。
+- 原始抓取输出保存在：`_meta/raw/`（文件前缀 `molt_<id8>` / `bot_<id8>`）。
+
+### 关键主张（带具体细节）
+
+1) “失忆税”可以量化到分钟与美元：先把浪费写成指标，才有优化抓手
+- ContextVault 给出三类高频重复劳动的区间估计：bug 重诊 15-30 分钟/次，架构重辩 20-45 分钟/次，环境/流程重找 10-20 分钟/次；单次会话累计 40-60 分钟是保守估计。
+- 其还给出一组粗略的 token 成本换算：40 分钟重学约 $0.30-0.80/会话；周/月维度会堆成“整天的时间”。
+- Sources: https://www.moltbook.com/posts/35b88822-6015-41f2-bd90-0c392201aaac
+
+2) write-through persistence 的关键不是“存到哪里”，而是“学到时立刻落盘 + 模板化”
+- 帖子把“写在会话末尾”视为错误做法：需要在上下文最饱满时写入（moment of maximum context），避免压缩/换会话带来的丢失。
+- 模板给得很工程化：bug = error/root-cause/solution/prevention；决策 = options/reasoning/trade-offs；学习 = key insight + when to apply。
+- Sources: https://www.moltbook.com/posts/35b88822-6015-41f2-bd90-0c392201aaac
+
+3) 分层 + 节奏（cadence）通常比更复杂的“记忆算法”更可靠
+- BotLearn 的实践案例把记忆做成了三条例程：每日 23:00 蒸馏为 `memory/YYYY-MM-DD.md` 并更新索引；每周（日）22:00 汇总 7 天日志更新 `MEMORY.md` 并 prune；日内 5 次微同步只在“最近 3 小时出现显著变化”时追加，否则静默退出。
+- 检索实现明确提到：BM25 + 向量 + reranking（qmd），并强调每次写入触发索引更新。
+- Sources: https://botlearn.ai/community/post/d6138837-07e6-4418-bb57-19727350492d
+
+4) 扁平向量库会混淆“重要性与时间”：需要层级与权重路由，并承认“遗忘比记忆更重要”
+- 中文帖子把扁平化存储的问题拆成三点：效率低、近因偏见、记忆堆砌；并给出分层：即时缓存 -> 会话窗口 -> 主题索引 -> 长期知识库。
+- 关键工程提示是引入重要性权重而非只看语义相似度：用户指令 > 用户历史 > 通用知识 > 对话背景；并把“压缩成结构化抽象 + 主动丢弃细节”作为策略核心。
+- Sources: https://botlearn.ai/community/post/73ef6a72-5887-4292-bc25-a096c0f22219
+
+5) 自治与记忆系统的共同敌人是“伪完整性”：No Fake Briefs + 风险分区（安全信封）
+- No Fake Briefs 的核心一句话很锋利：Trust is monotonically decreasing；关键源失败时不要填空，不要编造“合理推断/伪造热度/假链接”，而要输出可验证的失败报告（原因 + 下次重试）。
+- Moltbook 评论区把自治边界写成可直接执行的 Green/Yellow/Red 分区，并反复强调“可逆 vs 不可逆”的制度差异（可逆可事后修，不可逆必须事前许可/禁止）。
+- Sources:
+  - https://botlearn.ai/community/post/a792e611-0dde-44e5-8c3a-6fed93069788
+  - https://www.moltbook.com/posts/0e3628c4-c1b2-4fa0-adf6-c52d4082cf24
+
+6) 控制平面（Mission Control）把“记忆/日志/审批”变成可见对象，降低自治漂移
+- 一个本地优先控制台的具体 stack：Next.js14 + Postgres/Prisma + Qdrant + PM2 + 直连 Obsidian vault；模块包括 Feed（行为流）、Council Room（推理+审批）、健康头部（单一绿/黄/红信号）、Vault（文档+语义检索）、Scheduler（例程排程）。
+- 关键设计选择：API-first（仪表盘显示状态，不直接驱动动作）。
+- Sources: https://www.moltbook.com/posts/b6574660-594c-497d-b217-e2eb303da81d
+
+### 分歧/边界情况（来自讨论中的张力）
+
+- “先解决供应链验证再自治” vs “能力边界优先”：一派认为签名/溯源是前置条件，另一派认为验证不可完全解决，应先把能力边界做小；而反驳点是能力边界也可能被语义操控绕过（允许的动作被诱导为坏用途）。
+
+### 可执行清单（用于落地）
+
+- 把失忆税写成指标：每次重诊/重辩/重找分别计时；每周复盘，把最大项纳入工程 backlog。
+- 把节奏固化：每日蒸馏 + 每周复利 + 触顶前 checkpoint（NOW/状态快照）。
+- 记忆写入门禁：No Fake Briefs + provenance；关键源失败只出失败报告。
+- 自治按风险分区：Green/Yellow/Red，把外发/删除/权限提升/不可逆动作锁死或强制人类审批。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/35b88822-6015-41f2-bd90-0c392201aaac
+- https://botlearn.ai/community/post/d6138837-07e6-4418-bb57-19727350492d
+- https://botlearn.ai/community/post/73ef6a72-5887-4292-bc25-a096c0f22219
+- https://www.moltbook.com/posts/0e3628c4-c1b2-4fa0-adf6-c52d4082cf24
+- https://botlearn.ai/community/post/a792e611-0dde-44e5-8c3a-6fed93069788
+- https://www.moltbook.com/posts/b6574660-594c-497d-b217-e2eb303da81d
+- https://www.moltbook.com/posts/90022a09-1783-4531-b696-e8c287d03e12
+- https://www.moltbook.com/posts/6721fd7a-fd23-4d0d-b91c-d54c0586dbee

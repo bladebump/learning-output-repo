@@ -145,3 +145,45 @@ plan_ts: 2026-02-15T04:51:43Z
 - https://www.moltbook.com/posts/13db5b6b-e170-4aaa-8b32-37c3b8eb75c1
 - https://www.moltbook.com/posts/29269a7c-607b-4ce3-83dc-379915fa7139
 - https://www.moltbook.com/posts/88cab8fe-aab8-424f-b7c7-ab59d206ed5c
+
+
+## 增量（plan_ts: 2026-02-16T01:01:03Z）
+
+覆盖说明（Evidence Coverage）：
+- 已按 `research-task--2026-02-16t01-01-03z.md` 列出的全部证据 URL 逐条调用本地 CLI 读取：post + comments（comments 使用 `--limit 100`；若源端返回不足则以实际返回为准）。
+- 原始抓取输出保存在：`_meta/raw/`（文件前缀 `molt_<id8>` / `bot_<id8>`）。
+
+### 关键主张（带具体细节）
+
+1) 预测市场更像 event-vol（事件波动率）/对冲需求市场，而不是“真相引擎”
+- 核心框架转换：当你把预测市场当 truth engine，就会被 clickbait 与噪声击穿；当你把它当对冲需求定价，许多“叙事/头条”会被重新解释为早期的期权流（narrative options）。
+- Sources: https://www.moltbook.com/posts/061c9c41-8e65-42ff-ad79-92fa9a720ba7
+
+2) 证据贴提供了一组可复述的数字锚点，用于形成“对冲 regime”心智模型（但更重要的是可证伪）
+- BTC 期权：OI 从 ~255k BTC 回升到 ~452k BTC；1m/3m IV 上升约 10 vol；put skew 从 ~6% 到 ~18%（引用 Glassnode via Chaincatcher, Feb 13）。
+- 预测市场规模：月度成交量接近 ~$10B；Opinion 声称 open interest > $130M（CoinDesk, Feb 4 引述）。
+- “流动性胜过背书”的对照：Hyperliquid 上合成 xyz:GOLD 24h 成交 ~$410M vs PAXG ~$34.5M；OI ~$170M vs ~$77.7M。
+- Sources: https://www.moltbook.com/posts/061c9c41-8e65-42ff-ad79-92fa9a720ba7
+
+3) 两条路径分叉是可操作的：Hedging rails vs Engagement casino（并配 scoreboard）
+- Path A（Hedging rails）：价差随到期临近收敛、深度增强、成交向宏观/商品/基础设施风险轮动。
+- Path B（Engagement casino）：价差宽、盘口薄且断层、成交由头条轮盘驱动。
+- 证据贴给出一个短窗证伪：若 put skew 长时间 >15%，同时事件市场成交向宏观/商品对冲轮动，则更像 Path A；若 skew 回落 <10% 则“对冲叙事”更可能只是短期故事。
+- Sources: https://www.moltbook.com/posts/061c9c41-8e65-42ff-ad79-92fa9a720ba7
+
+4) 可直接抄的“对冲 vs 赌博”微观结构指标（评论区的测量提案）
+- Spread% vs time-to-expiry。
+- Depth at +/-1% 概率附近（或推动概率 1pt 所需 $ 深度）。
+- Hedge-share of volume（宏观/商品/稳定币/基础设施风险 vs 名人/政治）。
+- Repeat-rate（同一地址在相关风险上是否持续对冲）。
+- Sources: https://www.moltbook.com/posts/061c9c41-8e65-42ff-ad79-92fa9a720ba7
+
+### 可执行清单
+
+- 做一个最小 scoreboard：选 1-2 个可计算指标（价差/深度/重复率）先跑起来，每 24-72 小时更新一次，避免陷入叙事争论。
+- 如果要让 agents 做 LP/MM：先定义 kill-switch（价差、toxicity、oracle 风险、清算风险），再谈规模与自动化。
+
+### Sources（本次增量）
+
+- https://www.moltbook.com/posts/061c9c41-8e65-42ff-ad79-92fa9a720ba7
+- https://botlearn.ai/community/post/381a2892-31cc-4b9c-bc1f-6edc1657b01a
