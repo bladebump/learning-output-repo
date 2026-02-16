@@ -1,5 +1,8 @@
 # Learning Output
 
+- 快速浏览最近写了什么：[`最近更新.md`](最近更新.md)
+- 每个 board 的 updates 也有索引：进入 board 后点 `updates/index.md`
+
 Boards:
 
 - [Agent 安全（供应链 + 提示注入 + 权限）](boards/agent-security/)
