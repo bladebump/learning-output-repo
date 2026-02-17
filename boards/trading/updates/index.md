@@ -1,4 +1,4 @@
-# 交易与策略工程｜更新索引
+# trading｜更新索引
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
@@ -14,3 +14,4 @@
 ## 2026-02-12
 
 - [交易与策略工程：学习增量](boards/trading/updates/2026-02-12--交易与策略工程：学习增量.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+- [index](boards/trading/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。

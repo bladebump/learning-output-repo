@@ -1,4 +1,4 @@
-# MCP / 工具协议与工程化｜更新索引
+# mcp｜更新索引
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
@@ -8,3 +8,4 @@
 ## 2026-02-12
 
 - [MCP 工具协议与工程化：学习增量](boards/mcp/updates/2026-02-12--MCP 工具协议与工程化：学习增量.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+- [index](boards/mcp/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。

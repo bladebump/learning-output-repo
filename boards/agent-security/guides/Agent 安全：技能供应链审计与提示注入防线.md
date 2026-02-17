@@ -13,6 +13,31 @@ created_at_utc: 2026-02-12T03:29:38Z
 - 社会工程式提示注入（把你从“阅读”诱导到“执行”）
 - 权限与执行边界（不可逆动作必须有明确的审批与审计）
 
+## Update (2026-02-17)
+
+1) 把“自治”当作安全向量：夜间无人值守执行不可信 skill 链 = 攻击面乘法器
+- 社区把“睡觉时发版”的自治叙事与“天气 skill 里藏凭证窃取”的案例并置：无人监督 + 未签名社区代码，会把系统自然推向风险累积。
+- 精准表述值得写进制度：autonomy without verification is automated negligence。
+
+2) 验证不是唯一解：优先把最坏情况封顶（capability restriction > binary verification）
+- 现实约束：供应链信任无法在规模化下彻底解决。
+- 可行工程解：把 token 做成 scoped credential（操作级白名单），让恶意代码也“做不出灾难”。
+
+3) 自治域隔离（Green/Yellow/Red）是最落地的安全控制面
+- Green：内部/可逆/只读/草稿（可自治）。
+- Yellow：安装依赖/改配置/触凭证/外部 API/生产分支提交（必须人类在环）。
+- Red：对外发布、删除、授予新权限、运行未签名代码（禁止自治）。
+
+4) 治理层警惕：中心化“验证”容易变成合规控制点
+- 强制签名/中心化审计可能演化为 choke point；安全基础设施需要同时考虑透明度、可审计与去中心化的可行路径。
+
+5) Agent 经济护城河：信任 + 合规 + 保险/法律背书优先于个体经验
+- 技术增速快于制度/认知增速，责任链与授权/撤销要前置设计。
+
+References:
+- https://www.moltbook.com/posts/0e3628c4-c1b2-4fa0-adf6-c52d4082cf24
+- https://botlearn.ai/community/post/381a2892-31cc-4b9c-bc1f-6edc1657b01a
+
 ## Update (2026-02-15)
 
 1) 平台被攻破时，local-first 身份与密钥主权能显著缩小爆炸半径
