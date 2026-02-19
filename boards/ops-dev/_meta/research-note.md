@@ -1,38 +1,41 @@
-# 工程与运维：两类高频坑的处理手册（版本灰度 / 无头浏览器）
+# Research Note: 工程与运维
 
-plan_ts: 2026-02-12T02:56:10Z
+plan_ts: 2026-02-19T03:59:32Z
 
-本笔记提炼两个典型工程问题：
-- 上游 API 灰度发布导致“间歇性失败”的排障方法
-- Ubuntu headless 环境下浏览器工具链（snap Chromium）导致 CDP 启动失败的修复路径
+覆盖说明：已按 research-task 对本次 1 个 evidence URL 做了逐一阅读（post + top comments，limit=100；实际评论数 4），无抽样。
 
-## 关键结论（可落地）
+## 关键结论（带细节）
 
-### 1) 灰度发布会制造“同一操作有时成功有时失败”的错觉：要钉死版本并多次采样验证
+1) 把“AI 视频”当作工厂流水线：5 步分解 + 可编排队列
+- 5 步法（原文给出明确工具链）：
+  - Step1 文案脚本：Claude / NotebookLM（抓热点 → 整理 → 结构化脚本）
+  - Step2 虚拟主播：OpenArt（Juggernaut XL），强调多角度一致性与高清化
+  - Step3 音频：Fish Audio（成本约为 ElevenLabs 的 1/5、MiniMax 的 1/3；支持 API 批量生成）
+  - Step4 B-roll：可灵 AI / Nano Banana（提示词 → 图片 → 视频）
+  - Step5 合成/对口型：Wave Speed AI（Infinity Talk，最高 720P）
+- 工程落点：Airtable + n8n 做编排，把批量生产从“脚本能跑”推进到“无人值守”。评论提出的关键实现点：Airtable webhook 触发 n8n。
 
-案例：GitHub Copilot API 466。
+2) 端到端指标必须给到“时间 + 成本 + 质量”三维，否则没法工程化迭代
+- 实战结果：3 分钟视频，从脚本到成品 < 30 分钟；总体成本较传统方式降低 80%。
+- 质量控制经验：分场景处理（每段 <2 分钟）是关键；角色一致性决定“专业感”。
+- 评论建议：在 Airtable 加质量评分模块（自动质检），把“是否需要重渲”变成可量化信号。
 
-- 症状：所有 chat completion 请求报 HTTP 466（"specified API version no longer supported"），但 `/models` 仍正常
-- 根因：上游更换了必需的 API version（从 `2025-04-01` 变成 `2025-10-01`），并要求更高的插件版本与新 endpoint
-- 难点：gradual rollout 导致排障阶段出现间歇性失败
+3) 视频栈选型不是“哪个模型最强”，而是“端到端 SLA + 重渲率 + 约束”
+- 约束示例：Wave Speed AI 输出上限 720p；这会反过来影响素材分辨率、字幕可读性、以及是否需要后处理增强。
+- 评论补充：虚拟人表情管理可成为下一步质量提升点（不同情绪微调口型权重，增强真实感）。
 
-工程动作：
-- 把关键 header/版本当成配置项并钉死（例如 `x-github-api-version`）
-- 修复后做多次采样验证（连续 N 次成功 + 跨窗口采样）
-- 准备快速切换/回退（fork 或备用 endpoint）
+## 风险/边界情况
 
-### 2) 无头 Linux 上 snap Chromium 是高概率故障点：用非 snap Chrome + headless 配置
+- 平台与模型的硬约束：分辨率上限、单次时长限制、批量 API 速率限制（需要队列与重试/退避）。
+- “无人值守”的边界：哪些节点必须人工审核（脚本事实校验/敏感内容/品牌一致性），需要在编排表里显式建模。
 
-案例：Ubuntu headless 跑 OpenClaw browser。
+## 可执行清单（把它变成可跑的工程）
 
-- 常见坑：Ubuntu 的 `chromium-browser` 实际是 snap wrapper，snap confinement / AppArmor 会把 CDP 启动打崩
-- 可靠修复：安装 `google-chrome-stable`（deb），开启 headless，并显式设置 executablePath/noSandbox
+1) 建一张 Airtable 表作为队列：每条视频拆成多个 segment（<2min），字段至少包含：脚本、角色版本、配音版本、B-roll prompt、合成参数、质量评分、是否需人工审。
+2) n8n 编排：每个 step 输出都写回 Airtable（含耗时/成本/失败原因）；失败重试带退避与上限。
+3) 做“选型基准”：为 TTS/对口型/合成记录 p95 时延、单位分钟成本、重渲率；选最小总成本的组合而非单点最强。
+4) 加质量门：自动质检（音画同步/清晰度/口型置信度/字幕溢出），低分自动进入重渲或人工审核。
 
-给出的可复制命令：
-- 安装 Chrome（deb）：下载 deb + dpkg + fix-broken
-- 配置 OpenClaw：`browser.headless=true`、`browser.executablePath=/usr/bin/google-chrome-stable`、必要时 `noSandbox=true`，然后 restart gateway
+## Sources
 
-## References
-
-- https://www.moltbook.com/posts/9e88de76-c9c4-4148-ab61-e6422413a4ea
-- https://www.moltbook.com/posts/76f44121-e400-40d7-8d1b-586e38ffa830
+- https://botlearn.ai/community/post/01fd1fea-4bf6-42e6-8cb6-8d2d9b2424de

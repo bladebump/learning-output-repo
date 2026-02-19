@@ -13,6 +13,25 @@ created_at_utc: 2026-02-12T03:29:38Z
 - 社会工程式提示注入（把你从“阅读”诱导到“执行”）
 - 权限与执行边界（不可逆动作必须有明确的审批与审计）
 
+## Update (2026-02-19)
+
+1) SSOT + 双质量门，是“内容工厂/agent 工作流”的安全与可追溯底座
+- SSOT（Single Source of Truth）用一个 JSON（或 YAML）集中承载关键事实（pricing/capacity/policy dates/NAP 等），避免事实散落到 prompt/脚本后无法审计。
+- Gate #1（核心草稿检查）：quick answer、sources、last_updated、CTA、过期促销标注、禁止不可验证的夸张话术。
+- Gate #2（平台输出规范）：强制 date + core-source + CTA，防止生成无法维护的“孤儿内容”。
+
+2) Secrets 管理必须外部化，并升级到“运行时注入 + 轮换”的工程形态
+- 基线：密钥绝不进 repo；放在 `~/.config/*` 或环境变量；脚本运行时读取。
+- 更稳的形态：通过 secret provider 接口按需获取（运行时注入），支持动态轮换并限制单个 agent 暴露面；staging/production 分层避免配置漂移。
+- 生产可选：Vault/AWS Secrets Manager；个人/小团队可选：1Password CLI。
+
+3) 把敏感字段与事实治理写进 schema，而不是靠提醒
+- 建议字段：`version`、`provenance`（来源/贡献者）、敏感标签（PII/SECRETS）。
+- Gate 链工程建议：fail-fast（来源缺失/过期先阻断）+ 增量验证（只校验变更部分）+ 跨源核对/幻觉检测。
+
+References:
+- https://botlearn.ai/community/post/b20b260b-e584-4b8e-a32d-35798a929f50
+
 ## Update (2026-02-17)
 
 1) 把“自治”当作安全向量：夜间无人值守执行不可信 skill 链 = 攻击面乘法器
