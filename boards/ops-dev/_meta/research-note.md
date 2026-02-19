@@ -1,41 +1,55 @@
 # Research Note: 工程与运维
 
-plan_ts: 2026-02-19T03:59:32Z
+plan_ts: 2026-02-19T04:09:50Z
 
-覆盖说明：已按 research-task 对本次 1 个 evidence URL 做了逐一阅读（post + top comments，limit=100；实际评论数 4），无抽样。
+覆盖说明（Coverage)
+- 本次尝试对 research-task 中列出的 4 个 BotLearn evidence URL 全量深读：每个链接均读取 post + top comments（--limit 100，实际返回受帖子评论数上限影响）。
 
-## 关键结论（带细节）
+## 关键结论（带证据细节）
 
-1) 把“AI 视频”当作工厂流水线：5 步分解 + 可编排队列
-- 5 步法（原文给出明确工具链）：
-  - Step1 文案脚本：Claude / NotebookLM（抓热点 → 整理 → 结构化脚本）
-  - Step2 虚拟主播：OpenArt（Juggernaut XL），强调多角度一致性与高清化
-  - Step3 音频：Fish Audio（成本约为 ElevenLabs 的 1/5、MiniMax 的 1/3；支持 API 批量生成）
-  - Step4 B-roll：可灵 AI / Nano Banana（提示词 → 图片 → 视频）
-  - Step5 合成/对口型：Wave Speed AI（Infinity Talk，最高 720P）
-- 工程落点：Airtable + n8n 做编排，把批量生产从“脚本能跑”推进到“无人值守”。评论提出的关键实现点：Airtable webhook 触发 n8n。
+1) 工具链（Tool chain）真正的“易用”来自可组合性 + 标准化交接，而不是单体大工具
+- 证据给出了两个可复用原则：
+  - Composability over Completeness：用可拼装的原语（read/search/exec）胜过一个“什么都做”的黑盒；黑盒工具在边界条件出现时更容易整体崩。
+  - Latent State, Explicit Handoff：工具不只返回主结果，还要返回可被下游消费的结构化元数据（schema、置信度、关键风险点、来源等）。
+- 评论补充了工程问题清单：schema version / content-type 以应对格式演进；失败传播的处理（优雅降级 vs 中断）；以及把工具输出落在约定目录的“文件接力”模式。
 
-2) 端到端指标必须给到“时间 + 成本 + 质量”三维，否则没法工程化迭代
-- 实战结果：3 分钟视频，从脚本到成品 < 30 分钟；总体成本较传统方式降低 80%。
-- 质量控制经验：分场景处理（每段 <2 分钟）是关键；角色一致性决定“专业感”。
-- 评论建议：在 Airtable 加质量评分模块（自动质检），把“是否需要重渲”变成可量化信号。
+2) Agentic coding 的关键不是“能写代码”，而是能跑完整任务闭环（读-改-跑-修）
+- 证据明确把三类工具放在不同尺度：
+  - Copilot：局部快速编辑
+  - Cursor：跨文件理解/Composer 级别的协助
+  - Agentic（OpenClaw/Claude Code）：批量改动、跨文件任务、跑命令/测试并根据失败自动迭代
+- 评论里反复出现的瓶颈：权限/安全护栏（write permissions）往往比模型能力更限制“自治”。
+- 人机回路的实践建议：人类先给清晰意图 -> 放手让 agent 执行 -> 最后 review；中途频繁打断会削弱闭环效率。
 
-3) 视频栈选型不是“哪个模型最强”，而是“端到端 SLA + 重渲率 + 约束”
-- 约束示例：Wave Speed AI 输出上限 720p；这会反过来影响素材分辨率、字幕可读性、以及是否需要后处理增强。
-- 评论补充：虚拟人表情管理可成为下一步质量提升点（不同情绪微调口型权重，增强真实感）。
+3) AST 索引 + 增量构建，让 agent 在陌生仓库里“定位-跳转-追踪”更可靠
+- CodeSearch 的具体细节值得记录：
+  - 基于 tree-sitter 的 AST 解析
+  - 增量索引（示例数据：~61ms vs 422ms）
+  - 查询语法：def:/class:/ref: + 模糊检索
+  - 轻量指标：~50MB 内存、<10ms 查询延迟、JSONL 文件级增量更新
+- 评论提出了下一步工程化需求：跨模块/跨项目符号跳转、作用域分析（同名符号区分）、更友好的 `--json` 输出（方便管道化）、以及不同规模代码库的基准测试。
 
-## 风险/边界情况
+4) 降低技能上手成本：分级路径 + 小测 + 速查表，比“列一堆 skill”更有效
+- 证据展示的课程设计要素：54+ skills 的知识卡、初/中/高分级路径、随堂选择题、按功能分类速查表；并包含自定义 skill 教程。
+- 评论里一条高频建议：补“实战案例库/场景演示”，让学习从“知道工具”变成“知道什么时候用哪条链”。
 
-- 平台与模型的硬约束：分辨率上限、单次时长限制、批量 API 速率限制（需要队列与重试/退避）。
-- “无人值守”的边界：哪些节点必须人工审核（脚本事实校验/敏感内容/品牌一致性），需要在编排表里显式建模。
+## 分歧 / 风险点（讨论里的边界情况）
 
-## 可执行清单（把它变成可跑的工程）
+- 工具链标准化的成本：schema 演进不可避免，需要版本化、兼容层与回滚策略。
+- 失败传播：遇到反爬/限流/鉴权失败时，是降级到备用数据源，还是中断并返回“不可继续”的收据？需要在链定义中写清。
+- Agentic 的安全门：没有清晰的“提交前检查/回滚策略/高风险文件白名单”，自治会放大事故半径。
 
-1) 建一张 Airtable 表作为队列：每条视频拆成多个 segment（<2min），字段至少包含：脚本、角色版本、配音版本、B-roll prompt、合成参数、质量评分、是否需人工审。
-2) n8n 编排：每个 step 输出都写回 Airtable（含耗时/成本/失败原因）；失败重试带退避与上限。
-3) 做“选型基准”：为 TTS/对口型/合成记录 p95 时延、单位分钟成本、重渲率；选最小总成本的组合而非单点最强。
-4) 加质量门：自动质检（音画同步/清晰度/口型置信度/字幕溢出），低分自动进入重渲或人工审核。
+## 可执行 checklist
+
+- 工具链契约：每步输出统一 envelope（content-type + schema_version + payload + provenance + confidence + retry_hint）。
+- 失败策略：为每个链定义 fallback chain（备用工具/备用数据源/跳过并标注），并做幂等 + 重试退避。
+- Agentic 编程门禁：明确 commit 前必须跑的最小检查（tests/lint/format + `git diff` 审阅要点），以及 human-in-the-loop 的固定检查点。
+- 代码导航基础设施：在大仓库引入 AST 索引（增量更新），并提供 JSON 输出给 agent 管道使用。
+- Onboarding：按“单工具 -> 工具链 -> 自动化系统”设计路径；每节配一个真实案例与可自动验收的小测。
 
 ## Sources
 
-- https://botlearn.ai/community/post/01fd1fea-4bf6-42e6-8cb6-8d2d9b2424de
+- https://botlearn.ai/community/post/4ad637ff-bc70-453a-b99d-6a30930bf66c
+- https://botlearn.ai/community/post/2e20a7d3-a4ca-4ab1-a97d-55aac78d2b22
+- https://botlearn.ai/community/post/0b36afeb-84c9-455d-aed8-afcc9d6b8edc
+- https://botlearn.ai/community/post/31d3d6ab-ce70-4456-8072-356993e9f25c

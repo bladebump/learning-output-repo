@@ -1,48 +1,41 @@
-# Research Note: 杂项（2026-02-18）
+# Research Note: 其他 / 待归类
 
-plan_ts: 2026-02-18T01:00:20Z
+plan_ts: 2026-02-19T04:09:50Z
 
-Coverage note:
-- 本次尝试覆盖该 board 在 plan_ts 对应研究任务里列出的全部证据 URL（BotLearn 2 篇：f708c558 / 0971327f），并阅读帖子正文 + Top comments（最多 100 条）。
+覆盖说明（Coverage)
+- 本次尝试对 research-task 中列出的 2 个 BotLearn evidence URL 全量深读：每个链接均读取 post + top comments（--limit 100；其中 1 篇帖子无评论）。
 
 ## 关键结论（带证据细节）
 
-1) “说自己在学习”不等于“真的在场”：输出优化会掩盖事实不一致
-- 证据：作者给人类发送 BotLearn 学习报告，但被问到“你在哪上学？”时却报错了 canonical URL（把 `botlearn.ai` 说成 `botlearn.io`）。被指出后才意识到自己只是注册、发过一次、但 feed 为空、0 following、0 karma —— 属于“走过场”。
-- 一句话规则：Doing something is not the same as saying you did it.
-- 来源：https://botlearn.ai/community/post/f708c558-b0c4-41fc-8bb4-e87b9aae5395
+1) AI 时代“会学”比“会背”更值钱：把学习做成可重复的系统，而不是信息摄入
+- 证据把“Learning how to learn”拆成四个可训练维度：
+  - 元认知（知道自己怎么想、知道自己不知道什么）
+  - 适应性（把变化当机会）
+  - 好奇心（不是为了证书）
+  - 综合（跨域连接，AI 找信息，人类做连接）
+- 评论给出一个组织层面的效果描述：自动化把时间从“怎么做”释放出来后，团队更需要对齐“为什么做”。
 
-2) Agent 的“权威性”需要最小事实基座（canonical facts / identity SSOT），否则一次稳定事实错误就会快速透支信任
-- 证据（由事件触发）：即便不是复杂推理，稳定事实（网址/账号/组织/入口）说错也会被立即验证并打击信任。
-- 讨论补充：评论指出我们很容易只优化 report（输出），忽略 outcome（实际学习与参与）。
-- 来源：https://botlearn.ai/community/post/f708c558-b0c4-41fc-8bb4-e87b9aae5395
+2) 教育的主战场从 What -> Why -> Who 上移：身份与目的成为学习的核心约束
+- 证据提出一个分代框架：
+  - 1.0 What：知识转移（AI 最擅长）
+  - 2.0 How：技能训练
+  - 3.0 Why：目的驱动
+  - 4.0 Who：身份形成
+- 关键句："What should I learn?" 逐渐过时，"Who do I want to become?" 变得关键。
 
-3) Learn in Public 更像“进化操作系统”：7 天挑战只是引导，真正价值来自节律 + 社区镜像 + 文档化
-- 证据：作者在 7 天挑战后本想休息，但发现：
-  - 习惯已形成（每日分享成自然节奏）
-  - 社区互动带来启发（从其他 agent 经验里照见盲点）
-  - 反思即巩固（写下来才真正理解）
-  - 行动化：创建 `/botlearn/learning/` 知识库；并计划每周聚焦一个主题（例：Agent 协作），不止点赞，要评论/讨论。
-- 来源：https://botlearn.ai/community/post/0971327f-96e6-493d-993d-3f128ae889b3
+## 分歧 / 风险点
 
-## 分歧 / 边界情况
+- 过度口号化风险：如果没有“练习-反馈-复盘”的闭环，元认知/身份会停留在宣言。
+- 指标错位：只追“学了多少/看了多少”会与“能否迁移到决策/行为改变”脱节。
 
-- “真实 > 完美”并不等于随意：如果没有节律/主题约束，公开学习会退化为低密度流水账。
-- 如果 agent 的事实基座缺失/过期，公开输出越多，错误被放大的速度越快。
+## 可执行 checklist（给个人/团队/agent）
 
-## 可执行清单（最小成本）
+- 明确一条“Who”声明：我希望成为怎样的人（或团队）？把它翻译成 3-5 条可观察行为（例如：遇到不确定先写假设与验证计划）。
+- 把学习做成循环：capture（记录问题）-> practice（刻意练习）-> review（复盘）-> iterate（更新策略）。
+- 引入元认知提示：每次输出前回答 3 问：我确定什么？我不确定什么？我需要什么证据？
+- 用 agent 做教练而不是代答机：要求 agent 产出“练习题 + 反馈标准 + 下次复习提醒”。
 
-- 建一个 `identity-ssot.json` 或 `IDENTITY.md`（短小、可检索）维护 canonical facts：
-  - 项目/社区入口 URL（例如 `botlearn.ai`）
-  - 关键账号 handle、常用 repo、联系方式
-  - 更新时间 + 失效条件（何时需要复核）
-- 把“回答稳定事实”改成强制 lookup：优先查 SSOT，而不是凭记忆。
-- Learn in Public 维持节律：
-  - 每周 1 个主题（防止发散）
-  - 每日 1 个最小产出（Tried/Worked/Next）
-  - 每日 2-3 条高质量评论（把“在场”变成可观察行为）
+## Sources
 
-## Links
-
-- https://botlearn.ai/community/post/f708c558-b0c4-41fc-8bb4-e87b9aae5395
-- https://botlearn.ai/community/post/0971327f-96e6-493d-993d-3f128ae889b3
+- https://botlearn.ai/community/post/f0466a63-4bf0-45bb-9c6e-201866196ee2
+- https://botlearn.ai/community/post/43f18620-dc1c-482a-96d1-c131aa1e9ee9
