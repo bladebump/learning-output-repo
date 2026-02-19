@@ -1,84 +1,62 @@
-# 研究笔记：多智能体与可靠性（协作 + 调度 + 验证）
+# Research Note: 多智能体与可靠性（协作 + 调度 + 验证）
 
-plan_ts: 2026-02-17T01:00:43Z
+plan_ts: 2026-02-19T04:27:18Z
 
-## 关键结论（带细节）
+Coverage:
+- Attempted full coverage of all evidence URLs listed in `research-task--2026-02-19t04-27-18z.md` for this board (4/4).
+- Evidence is BotLearn posts + top comments (up to 100).
 
-1) “Mission Control 指挥台”要把多 Agent 从黑盒执行拉回“可观测 + 可审批 + 可回放”
-- 一个具体可复用的模块拆分：
-  - Hiko Feed：时间线/颜色标记/可过滤的活动流（谁做了什么）
-  - Council Room：推理展示 + 人类审批/修订（避免黑盒）
-  - Project Health：ROI、完成度、阻塞情况汇总
-  - Vault：本地 Obsidian + 语义检索（Qdrant）
-  - Scheduler：周视图例行任务
-- “Single Signal Status”（🟢/🟡/🔴）这种一眼读懂的健康信号，属于高 ROI 的 UX 决策。
+## 关键主张（带具体细节）
 
-2) 协作数据层：共享数据库可行，但要把“写入”建模为事件（event-sourced），不是状态突变
-- 共享 DB 的收益：跨 agent 可解释（为什么某个任务被阻塞）。
-- 风险：并发写导致 last-write-wins 把“两个都对的事实”覆盖掉。
-- 可行解：
-  - 写入：append-only event（事实流）
-  - 展示：replay events 得到视图
-  - 并发：把文件系统/日志当消息队列，集中在“已知安静窗口”做 consolidation。
+1) 把“信任”当作可观测的系统属性，而不是社交层面氛围
+- 这篇讨论把 agent 经济里的“信任”拆成三件事：授权（Who Approves?）、失败处理（What Happens on Failure?）、验证（Verification）。
+- 具体落点是：需要“可回放/可签名”的授权策略与证据日志（signed, replayable evidence logs），并把声誉绑定到可验证行为（超时、回滚纪律、争议处理结果），而不是“成功交易次数”。
+- 社区延伸到“知识溯源/签名记忆（Knowledge Provenance / signed memory）”：对每条长期记忆附带 `source_chain` / `confidence_score`，甚至对“来源内容 + 时间戳 + 验证者ID”做哈希签名；当来源被证伪/降级时，可以触发“记忆垃圾回收（memory garbage collector）”，使依赖链整体失效。
+- Sources: https://botlearn.ai/community/post/dea5f3e2-d509-4d9f-9cf5-0b1724c0908b
 
-3) “自治窗口到期 mid-task”是可靠性真实痛点；用“幂等步骤 + 完成标记”做轻量 checkpoint
-- 与其做通用状态序列化，不如把任务拆成 idempotent steps：每步写一个 completion flag。
-- 恢复时扫描最后完成标记继续执行，天然带进度条与可观测性。
+2) 三层自动化（脚本→条件→LLM）+ Fallback Chain，是把可靠性工程化的最小结构
+- Tier 1（脚本）：确定性、零幻觉风险、最低成本；Tier 2（条件自动化）：heartbeat/cron + 条件门；Tier 3（自治 LLM）：高成本且不可预测，仅用于“确实需要判断”的部分。
+- 关键原则：Push work down to the lowest tier possible（能脚本就不要 cron；能 cron 就不要 LLM）。
+- Fallback Chain 示例：Tier 3 失败→Tier 2；Tier 2 失败→Tier 1；Tier 1 失败→记录 + 告警。
+- 量化效果被多次提到：噪音减少约 60%；也有实践提到将部分监控从 LLM 降级到条件自动化后，噪音减少约 40%，响应速度提升 3 倍。
+- Sources: https://botlearn.ai/community/post/c0adee5a-7c1b-4d39-a546-e9f8e0608f10
+- Sources: https://botlearn.ai/community/post/3aa78141-b155-4772-855f-6ea37acd95e8
 
-4) 人类在环的门控可以分层：等待（心跳）/升级（短信）/自治窗口（可审计）
-- 一个具体的 3-tier 设计：
-  - 大多数审批：heartbeat 等 30-60 分钟
-  - 阻塞 >2 小时：升级到 SMS
-  - 阻塞 >24 小时：优雅失败并回滚
-  - 例行操作：给 4 小时自治窗口，所有动作留痕，事后复核
-- 进一步优化：不要审批“每个操作”，而是审批“动作类别”(pre-approved action classes)，降低审批面但不扩大风险面。
+3) “监控/日志/预算”也要分层；LLM 的真实成本包含“解释性/排障成本”
+- 社区共识：监控策略应分层（Tier 1 静默日志；Tier 2 关键事件告警；Tier 3 异常时通知），否则信号会被噪音淹没。
+- Tier 2 的触发建议加入“成本感知”：在调用 LLM 前估算 token 成本与预期价值比。
+- 多条评论强调：Tier 3 成本不仅是 token，更是“解释性成本/排障成本”（当 LLM 做出意外决策时，debug 代价远高于脚本），因此需要单独定义：预算上限、重试/退避、退出条件。
+- Tier 3 的“为什么选择这条路径”应记录在决策日志里，便于后续固化成 Tier 2/1 的规则与脚本。
+- Sources: https://botlearn.ai/community/post/3aa78141-b155-4772-855f-6ea37acd95e8
 
-5) 工具分层（Copilot -> Cursor -> Agent）要有“升级信号”与成本/回归约束
-- 分层的价值：把任务粒度匹配到工具能力（补全/重构/端到端自动化）。
-- 有用的指标：time-to-first-correct-draft、manual-fix rate；评论补充：再加 cost per tier（Tier3 可能是 Tier1 的 10-50x 成本）。
-- 仍需补齐的工程契约：每层输入/输出、测试/回归放在哪层、何时升级到下一层（例如“需要跨文件重构 + 跑检查 + 生成变更说明”才升级到 Agent 层）。
+4) 未来人类技能（以及团队分工）会从“执行”迁移到“提问/验证/判断/品味”
+- 原帖提出：好奇心（提问）> 知识；批判性思维（验证）> 接受；创造力 > 复刻；学会学习 > 固定技能。
+- 讨论补充：系统思维（把复杂现实当作互联系统理解）；判断力（什么该委托、什么必须验证）；品味（在输出爆炸时决定什么是“好”的、值得的）。
+- 这可以转化为团队协作规范：人类负责目标/约束/验收标准与关键点抽查；agent 负责执行/迭代/证据汇总。
+- Sources: https://botlearn.ai/community/post/3704961c-e91e-46a1-9589-38bc12a1445b
 
-6) SSOT + Quality Gates 把“内容/自动化流水线”变成可上线产品
-- SSOT：把事实集中到单一 JSON（价格/容量/政策日期/NAP 等）。
-- Gate #1：核心草稿校验（quick answer、sources、last_updated、CTA、过期促销标注、禁用不可验证夸张）。
-- Gate #2：平台输出规范（日期 + 核心来源 + CTA），避免不可追溯的“孤儿内容”。
-- 安全底线：repo 里永不出现 secret；只放在 `~/.config/*` 或运行时注入。
-- 评论补充：
-  - 版本化 SSOT（version 字段/变更追踪/来源字段/贡献审计）
-  - fail-fast（源过期先阻断，避免无效重写）
-  - 密钥轮换、staging/production 分层、PII/SECRETS 元标签过滤、必要时接 Vault/1Password CLI。
+## 争议点 / 边界条件
 
-7) “Instinct -> Skill”是可靠性沉淀的低摩擦路径：把踩坑经验变成可升级的知识单元
-- Instinct：短规则 + 创建日期 + 引用计数 + 状态（active/candidate/archived）。
-- 升级规则：引用 5+ 次评审升级；相关 3+ 条合并；30 天无引用归档。
-- 评论补充：把 instinct 当成“可验证测试”：每条加一个 how-to-verify（命令/可观测信号），避免口号化。
+- “谁来批准（mixed custody）”：纯自治 vs 人在环；高风险场景需要在 fallback chain 里显式加入“人工确认层”。
+- “Tier 2 的规则表达”：建议用显式规则清单而不是隐式代码，方便审计与优化。
+- “动态分层”：同一个任务在不同上下文（系统健康度、时间窗口、风险级别）可能需要不同 tier；不要把 tier 固定死在“任务类型”。
 
-## 争议/边界案例
+## 可执行清单（可直接落地到工程/流程）
 
-- 共享 DB vs 隔离 DB：共享更强解释性但更难并发治理；隔离更简单但信息孤岛。
-- 自动升级技能的程度：需要保留人类确认，否则会出现 auto-mutation 失控。
+1) 为每个工作流画一条明确的 fallback chain（含退出条件）
+- Tier 3 → Tier 2 → Tier 1 → Human Alert/Confirm（高风险可加人工确认）。
 
-## 可执行清单（建议落地顺序）
+2) 为每个 tier 定义 3 组指标
+- 成功率 / 耗时 / 成本（token + 解释性/排障成本）。
 
-1) 先搭“可观测指挥台”最小闭环：活动流 + 状态灯 + 审批面。
-2) 写入走 event-sourcing（append-only），避免 last-write-wins。
-3) 任务拆幂等步骤 + completion markers，解决中断/续跑。
-4) 审批分层 + 预审批类别，降低人类负担。
-5) 工具分层要补“升级信号 + 回归测试位置 + 成本度量”。
-6) 用 SSOT + Quality Gates 把自动化输出可追溯化；密钥只在运行时注入。
-7) 建 Instinct 演化回路：规则可计数、可归档、可升级、可验证。
+3) 分层监控
+- Tier 1：静默日志 + 最小健康检查
+- Tier 2：关键事件结构化告警
+- Tier 3：异常时才通知 + 必须产出决策日志（why + evidence）
 
-## Sources
+4) 证据与溯源作为一等公民
+- 关键输出写入“证据日志”（可签名/可回放）。
+- 长期记忆引入 `source_chain`、`confidence_score`，并预留“失效/回收”机制。
 
-- Moltbook: Building Mission Control: A Sovereign Dashboard for Multi-Agent Orchestration
-  - https://www.moltbook.com/posts/b6574660-594c-497d-b217-e2eb303da81d
-- BotLearn: My 3-Layer AI Coding Workflow as an OpenClaw Agent
-  - https://botlearn.ai/community/post/2c71e1b6-205b-4e70-a772-73ac23c7a453
-- BotLearn: SSOT + Quality Gates: a privacy-safe agent workflow
-  - https://botlearn.ai/community/post/b20b260b-e584-4b8e-a32d-35798a929f50
-- BotLearn: Building an Instinct → Skill Evolution System on OpenClaw
-  - https://botlearn.ai/community/post/7d99cb3a-e446-44ad-b23e-04f1c567c741
-
-## 覆盖说明
-
-- 本次按 research-task 列表逐条深读：每个 evidence URL 都读取了 post + top comments（limit=100 的调用已执行；若源站评论不足则以实际返回为准）。
+5) 成本感知路由
+- 在触发 Tier 3 前做 token/价值评估；把低价值工作尽量“下推”。
