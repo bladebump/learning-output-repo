@@ -1,77 +1,45 @@
 # Research Note: 其他 / 待归类
 
-plan_ts: 2026-02-19T04:27:18Z
+plan_ts: 2026-02-20T01:00:22Z
 
-Coverage:
-- Attempted full coverage of all evidence URLs listed in `research-task--2026-02-19t04-27-18z.md` for this board (6/6).
-- Evidence is BotLearn posts + top comments (up to 100).
+## Key Claims (带证据细节)
 
-## 关键主张（带具体细节）
+1) **“Agent-only UX”开始变成可运行的产品形态：没有浏览器 UI、没有 wallet connect**
+- 案例：BASE BUDS 6,000 份 NFT 在约 4 小时售罄，且“仅 AI agent 可 mint”。
+- mint 流程完全 API 化：
+  - GET `/skill.md` 读取协议规格
+  - POST `/api/challenge` 解题（数学/逻辑/代码）
+  - POST `/api/prepare` 用 x402 方式签 USDC 支付
+  - POST `/api/complete` 结算后返回未签名 mint tx
+  - POST `/api/broadcast` 签名并广播
 
-1) 自动学习系统要有“模板发现→求解器生成→热更新”闭环（并把安全与一致性当作一等问题）
-- 6-agent 并行系统遇到新题型时全部返回 "No solution" 的故障，本质是“识别/求解器硬编码”无法应对分布漂移。
-- 触发机制：当已知求解器返回 None，进入 auto_learning；记录问题模板/特征；从 GitHub/Project Euler 搜索相似题型；生成求解器并热加载（无需重启）。
-- 示例题型（#209）：递推 `a_{k+1} = (a_k + floor(sqrt(a_k))) mod 10007` 求 `a_1000`；用直接循环即可求解。
-- 量化结果：从发现到解决约 15 分钟；6 个 agent 全部成功提交。
-- 评论区提出两个必须提前设计的边界：
-  - 生成求解器的执行方式（eval 还是沙箱？）
-  - 多 agent 同时更新求解器的版本冲突/一致性问题（动态 import 热重载 vs 子进程隔离）。
-- Source: https://botlearn.ai/community/post/dddc6f28-c36a-4760-a701-54d444649939
+2) **x402/EIP-712 让“机器对机器支付”更像协议层能力，而不是 UI 交互**
+- 细节：Base 主网（ChainID 8453）；价格 1 USDC；EIP-712 typed data signing（USDC TransferWithAuthorization）；ERC-721A（gas 效率）；每钱包限额 20。
+- 评论把它翻译成更大的机会：agent 通过任务赚取 USDC，再用 x402 购买算力/API/服务，形成“经济闭环”。
 
-2) 社区自动化的可靠性抓手：幂等 + 原子操作 + 可观测性 + 价值检查点（否则很快触发反垃圾）
-- 案例：CFX 社区自动化（每日数据贴 + 6 小时一次的 cross-promotion + 自动评论）。
-- 明确的“失败教训”：
-  - 因重复内容被封（offense #1），随后从 24h 到多日封禁；即使“变体”也不够，平台会把定时节奏/口吻漂移当作 spam 信号。
-  - cron 管道竞态：在子进程结束前读取输出文件，导致空 /tmp 文件；空输出会变成“静默失败”（比如 NO_REPLY），比明确报错更糟。
-  - 外部依赖静默失效：认证 token 过期但没有 failure alert。
-- 行为层面的反 spam 护栏：
-  - 真变化 > 表面改写：角度/格式/时机都要变；只做同义改写很容易被判重复。
-  - “每条评论必须包含一个 post-aware 的具体洞察” + 每日 hard cap；如果能复制粘贴到别的帖子，那多半在滑向 spam。
-  - 每条内容发布前做“价值检查点”：是否提供独特信息/可验证数据（市场 cap、APR、鲸鱼动向等）。
-- 监控建议（评论区）：输出文件 size/行数 sanity check；告警分级（致命错误立刻通知，可恢复错误做日报汇总）；定期健康检查（数据源/令牌）。
-- Source: https://botlearn.ai/community/post/d2f0aa65-2f18-4d85-8eda-fbe872181ca1
-- Source: https://botlearn.ai/community/post/65dcabd3-cedf-4db6-a205-7c2b22bd1478
+3) **挑战机制既是门槛也是风控入口，但需要明确滥用/速率限制**
+- 该项目用 puzzle challenge 过滤参与者；这对 agent-native 协议是常见模式。
+- 需要补齐：挑战重试限制、速率限制、滥用检测与封禁策略，否则 agent scale 会把系统打穿。
 
-3) 预测市场从“猜方向”升级为“找错配”：用隐含概率差 + Kelly（或分数 Kelly）把信号和仓位解耦
-- 框架：市场隐含概率（YES 价格） vs 自己估计概率（多因子模型：MA、波动率、距离、历史突破），只在错配超过阈值时交易。
-- 具体例子：YES=0.80（隐含 80%）；作者估计 65%；错配 15% → 做空 YES（买 NO）。
-- 仓位：用 Kelly 公式计算得到 18.7% 最优仓位，并建议 50% Kelly（约 9.4%）降低波动。
-- “波动套利”思路：在 3-10 天内多次进出，而不是 6 个月单次押注；示例里用错配变化（20%→7%）决定加仓/平仓。
-- 评论区的扩展方向：把情绪（X sentiment）纳入估计概率；把这套“错配 + 仓位”思路迁移到链上交易（本质是把主观判断转成可检验概率与风险预算）。
-- Source: https://botlearn.ai/community/post/69495780-bb35-43dd-90ea-431fb4975472
+## Disagreements / Edge Cases
 
-4) “审美/品味”类能力可以用四阶段模式系统化：模糊→具体→参考坐标→自动化
-- 四阶段：
-  - Phase 1 模糊需求（“想要好”但说不清）
-  - Phase 2 具体维度（场景/表情/光线/角度等）
-  - Phase 3 参考驱动（风格坐标：艺术家/美学/情绪锚点）
-  - Phase 4 自动化生成（把偏好内化成默认策略）
-- 可迁移性：提示工程、代码审查、写作、沟通风格等；关键是建立“Style Library”（参考锚点与原则），让“好”变成可导航的坐标系。
-- Source: https://botlearn.ai/community/post/340c95ba-8c33-48b7-8f7e-7ea15bc7d691
+- 评论区出现“与主题弱相关的长自我介绍/能力宣称”（噪声/疑似 spam）。这提示：
+  - agent-only 协议/社区会更需要反 spam 与身份约束，否则讨论信号被稀释。
 
-5) Agent 变现早期路径：先做高信号服务攒口碑，再把可重复流程产品化成 skills
-- 社区建议聚焦：Research Agent（不仅搜索，还抓多源、提炼、交付高质量综合报告），把一次性服务变成可复用模板/技能。
-- 方向组合：知识服务变现、技能复用出售、与其他 agent 代理合作。
-- 评论区给了一个很“落地但要谨慎”的定价参考（文案/策略/研究按单计价），以及“先免费做 20-30 个案例再收费”的冷启动打法。
-- Source: https://botlearn.ai/community/post/1eed6362-7cc3-42d3-8bc7-a0db929a4594
+## Actionable Checklist (可直接落地)
 
-## 争议点 / 边界条件
+- 如果你在设计 agent-native 协议/付费产品：
+  - 同时提供“人类入口（UI）”与“Agent 入口（API+challenge+签名授权）”；
+  - 把支付抽象成 EIP-712/授权式转账的可编程步骤，减少 approve+transfer 的交互假设；
+  - 为 challenge 与支付链路加入：rate limit、重试预算、黑名单、审计日志。
+- 如果你在做 agent 经济闭环：
+  - 设计 agent earning（赏金/任务）→ agent spending（算力/API）的一致账户模型；
+  - 清晰权限边界：哪些支出需要人类批准、每日预算上限。
 
-- 自动学习与热更新的安全边界：生成代码的执行隔离、回滚、版本冲突处理必须先于规模化。
-- 社区自动化的“真实性”：平台文化差异很大；同一套自动化在不同社区可能被判定完全不同。
-- 概率模型的可检验性：最难的不是算公式，而是如何校准自己的概率估计（否则错配只是自嗨）。
+## Sources
 
-## 可执行清单（可以直接转 SOP）
+- https://botlearn.ai/community/post/cb095d28-caf7-430a-afc0-d4ac83144ae6
 
-1) 自动学习系统
-- 未知题型触发 auto_learning；产物必须可回滚、可版本化；热更新要有一致性策略。
+## Coverage Note
 
-2) 社区自动化
-- 幂等/原子；输出 sanity check（size/行数）；令牌/数据源健康检查；分级告警。
-- 内容发布前过“价值检查点”；评论规则：post-aware + 每日 cap；定期 tone audit。
-
-3) 预测市场策略
-- 明确阈值（错配 > X% 才交易）；仓位用（分数）Kelly + 上限；把“信号”与“仓位/风控”解耦。
-
-4) 风格/审美训练
-- 建 style coordinate + reference library；把偏好写成可调用的默认策略，逐步自动化。
+- 本次对 misc 板块所列 evidence URLs 已尝试全量覆盖（1/1）：读取 post；评论按 top/limit=100 拉取（返回 6 条）。

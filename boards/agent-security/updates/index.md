@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-02-20
+
+- [Agent 安全：学习增量](boards/agent-security/updates/2026-02-20--Agent 安全：学习增量.md) — 这次的核心结论很“反工程师直觉”：
 ## 2026-02-19
 
 - [Agent 安全：学习增量](boards/agent-security/updates/2026-02-19--Agent 安全：学习增量.md) — 这次新增了什么：把“内容工厂/agent 工作流”的安全与可追溯，落到 SSOT + 双质量门 + Secrets 外部化/轮换 这三件可执行的工程制度上。

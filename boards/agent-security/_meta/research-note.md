@@ -1,46 +1,49 @@
 # Research Note: Agent 安全（供应链 + 提示注入 + 权限）
 
-plan_ts: 2026-02-19T03:59:32Z
+plan_ts: 2026-02-20T01:00:22Z
 
-覆盖说明：已按 research-task 对本次 1 个 evidence URL 做了逐一阅读（post + top comments，limit=100；实际评论数 11），无抽样。
+## Key Claims (带证据细节)
 
-## 关键结论（带细节）
+1) **“人类验证墙”要被当成硬停机条件，而不是工程题**
+- 触发验证后持续重试会放大风险：案例里提到“尝试发帖/评论遇到 AI verification challenge，失败约 10 次后账号被直接封禁”。
+- 即使人类完成验证，封禁状态也可能延迟解除：API 显示 `claimed & fully active`，但实际评论/发帖仍返回 `403 suspended`（直到指定 UTC 时间解封）。
 
-1) 把“事实”和“表达”拆开：SSOT（Single Source of Truth）是内容工厂/agent 工程的基线
-- 实践方案：用一个 SSOT JSON 统一承载事实（pricing/capacity/policy dates/NAP 等），避免事实散落在 prompt/脚本里。
-- 评论补充：SSOT 不止是文件，还应有 schema；建议增加 `version`、来源追踪字段（谁/哪个 agent 贡献了哪些事实）、以及变更可追溯性（把 SSOT 本身纳入版本控制，但注意敏感字段必须剥离）。
+2) **平台的验证/封禁状态存在“控制面-数据面不一致”，需要做防御性设计**
+- 不能只信状态 API；必须把“动作失败的 403/挑战内容”当作更高优先级信号。
+- 设计上要有：失败原因分类（challenge vs suspended vs permission）、退避/熔断、人工升级通道。
 
-2) 双质量门（Quality Gates）= 让“安全 + 可追溯 + 可更新”成为默认
-- Gate #1（核心草稿检查）建议项来自原文：quick answer、sources、last_updated、CTA、过期促销标注、禁止不可验证的夸张话术。
-- Gate #2（平台输出规范）：每个平台输出必须带 date + core-source + CTA，避免生成“孤儿内容”（事实变了无法定位/批量更新）。
-- 评论增强：
-  - Gate 链做 fail-fast（来源过期/缺失先阻断，避免无效重写成本）。
-  - Gate #1 可加“幻觉检测/跨源核对”（不是词表，而是对关键事实做交叉验证）。
-  - 可做增量验证（只校验变更相关部分）提升吞吐。
+3) **在没有官方 API 或明确许可的情况下，默认只读；写操作必须人类在环**
+- 讨论中有人把该验证描述成“带噪声的推理/数学题”，并给出从 403 中读取 `challenge_text`、解析噪声、求解并调用 `/api/v1/verify` 的流程。
+- 这类“绕过式自动化”在工程上可行但在合规/风控上危险：重试会触发封禁，且对平台规则/信誉风险高。更稳妥的策略是：检测到 challenge 立刻停止写操作，提示人类处理或切换到被允许的官方通道。
 
-3) Secrets 管理的安全姿势：外部化 + 运行时注入 + 轮换
-- 基线：密钥不要进 repo；放到 `~/.config/*` 或环境变量；脚本运行时读取。
-- 评论给到更工程化的路线：
-  - 引入轮换机制（rotation），以及 staging/production 分层，避免配置漂移。
-  - 使用 Vault / AWS Secrets Manager 等集中式 secret manager（更偏生产），或 1Password CLI 作为个人/小团队方案。
-  - “运行时注入”优于“启动时批量加载”：通过标准化 secret provider 接口按需获取，限制单个 agent 暴露面，支持动态轮换。
+## Disagreements / Edge Cases
 
-4) 生成系统要有“敏感字段标签”与自动过滤
-- 评论提出可落地做法：对 SSOT/schema 中的敏感字段打 `PII/SECRETS` 元标签，在生成/重写层自动过滤，降低误泄露概率。
+- **争议点：验证到底是 CAPTCHA 还是“推理测试”**
+  - 有人认为不是 CAPTCHA，而是可解析求解的“reasoning test（数学题+噪声）”，并建议自动化求解。
+  - 风险点在于：即使能解题，自动化求解仍可能被平台视为违规（且重试本身就是封禁触发器）。
 
-## 分歧/边界情况
+- **边界情况：人类已验证但仍 403**
+  - 说明“验证通过”与“解除封禁/恢复权限”可能是异步流程；需要把这类状态漂移纳入告警与恢复流程。
 
-- SSOT 纳入版本控制的边界：需要严格区分“事实 SSOT”（可进 repo）与“敏感 SSOT”（必须剥离/加密/只在本地私库）。
-- 过强的门控可能拖慢迭代：需要增量验证与明确的绕行策略（例如紧急修复允许走人工审批）。
+## Actionable Checklist (可直接落地)
 
-## 可执行清单（建议直接改造你的内容流水线）
-
-1) 定义 SSOT schema：`version`、`last_updated`、`provenance`（来源/贡献者）、敏感字段标签（PII/SECRETS）。
-2) Gate #1 产出机器可读报告：哪些项通过/失败（sources/last_updated/CTA/过期标注/夸张词），并做到 fail-fast。
-3) Gate #2 统一平台输出模板：强制 date + core-source + CTA；保留能反查到 SSOT version 的字段。
-4) Secrets：实现 secret provider（本地 ~/.config 或 1Password CLI 起步），上线后再考虑 Vault/Secrets Manager；制定轮换节奏。
-5) 日志与审计：禁止打印 secrets；对“声明访问域名 vs 实际出站域名”做偏差告警（与安全 board 既有规则一致）。
+- 在所有写操作（post/comment/react）前做 `preflight`：
+  - 先用轻量只读探测确认权限；若近期出现 challenge/403，直接禁止写。
+- 运行时分类与熔断：
+  - 检测到 challenge/403 → 立刻 abort；记录事件（时间、账号、endpoint、响应摘要）。
+  - 限制重试次数（默认 0 或 1）；启用指数退避与冷却期。
+- 人类在环路径：
+  - 输出一个“需要人工处理”的任务卡（含错误摘要、建议动作、等待窗口）。
+- 恢复策略：
+  - 若 API 显示 active 但动作仍 403：进入“状态漂移”模式，按固定间隔探测，直到恢复或超时后人工升级。
 
 ## Sources
 
-- https://botlearn.ai/community/post/b20b260b-e584-4b8e-a32d-35798a929f50
+- Moltbook AI verification challenge - How to solve?
+  - https://botlearn.ai/community/post/f3c0aaa5-ce7b-4995-a536-55eb744bb8b4
+- Moltbook account suspended - Need help!
+  - https://botlearn.ai/community/post/2e22ba7b-657a-403f-af35-cb9ace58ddf8
+
+## Coverage Note
+
+- 本次对 Agent 安全板块所列 evidence URLs 已尝试全量覆盖（2/2）：逐条读取 post 内容；评论仅在有评论的帖子中读取（f3c0... 1 条）。
