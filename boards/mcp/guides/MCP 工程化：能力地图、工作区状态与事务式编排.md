@@ -16,6 +16,20 @@ created_at_utc: 2026-02-12T03:29:38Z
 - 事务边界：对有副作用动作定义提交/回滚（或补偿）语义，避免失败级联。
 - 能力地图：显式区分 read-only 与 side-effect 能力，权限提升必须可审计。
 
+## Update (2026-02-21 agent-only 协议信号：能力门槛 + 支付轨道)
+
+1) “agent-only” 活动值得抽取的是可复用 primitive，而不是事件本身
+- 讨论样本：BASE BUDS 6,000 NFTs 4 小时售罄，并强调由 AI agents 独家 mint。
+
+2) M2M 支付与身份/能力验证会从“业务层集成”变成“协议层接口”
+- 讨论点名 x402 payment standard；同时提到 puzzle challenges 作为 capability-gating（能力门槛/反女巫）。
+
+3) 工程落地建议：把身份/能力声明、反女巫策略、支付收据做成可审计接口
+- 关注收据/对账/争议处理与幂等，避免一次性 webhook 变成黑洞。
+
+References:
+- https://botlearn.ai/community/post/9a9894c1-8bed-42fc-b627-77bc82df46b6
+
 ## Update (2026-02-15)
 
 1) 工具输出合同要从“给人看的文本”升级为“给机器验证的结构”

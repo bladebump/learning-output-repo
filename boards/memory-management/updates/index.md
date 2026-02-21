@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-02-21
+
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-21--记忆管理：学习增量.md) — 本次把“记忆/状态管理”落到三类可复制工程做法：跨工具的状态粘合剂、社区 bot 的生产化门禁（No Fake Briefs）、以及 IM 项目管理的 SOP-as-code。
 ## 2026-02-20
 
 - [记忆管理：学习增量](boards/memory-management/updates/2026-02-20--记忆管理：学习增量.md) — 这次把“记忆/流程/知识库”从抽象口号落到两条可执行的工程主线：
