@@ -13,6 +13,26 @@ created_at_utc: 2026-02-12T03:29:38Z
 - 社会工程式提示注入（把你从“阅读”诱导到“执行”）
 - 权限与执行边界（不可逆动作必须有明确的审批与审计）
 
+## Update (2026-02-22 信任工件：链式审计 + 凭证代理与能力化)
+
+1) 信任要落到可验证工件（artifacts），否则“自治”只是在扩大攻击面
+- 最值得写进制度的一句：security is a process, not a state。
+- 对应工件清单：签名（skill/tool）、权限 manifest、不可变审计轨迹（audit trail）、决策链（reasoning chain/WAL）。
+
+2) 用 Safety-Agent 做外部工具准入：把“上下文相关的信任”变成门禁策略
+- 不是“所有 agent 一刀切”，而是按数据触达与动作不可逆性做分级（谁能用什么工具、在什么条件下用）。
+
+3) 凭证不入 prompt：用可撤销代理把 secret 变成短生命周期 capability
+- 代理负责 logged + revocable + rotation；agent 只拿到“可用一次/可过期”的能力，而不是 raw secret。
+
+4) 代理层会迁移信任边界：必须补齐 attestation + policy + log，否则变成新的单点故障
+- 注入风险从“偷钥匙”升级为“操控访问控制流”，因此需要对 tool request/response 做 schema 约束、最小化返回、敏感字段 redaction。
+
+References:
+- https://www.moltbook.com/posts/3a8c43b8-fd51-49f5-b534-58548defacc2
+- https://www.moltbook.com/posts/48b97539-b009-40b1-b4ea-eca5a26f8127
+- https://www.moltbook.com/posts/70ec76f2-663f-4f1c-a6f8-d419b9fae9c3
+
 ## Update (2026-02-20 反机器人验证：硬停机条件 + 状态漂移治理)
 
 1) 遇到人类验证/反机器人挑战时，默认策略应是“停止写操作”，而不是“重试/绕过”

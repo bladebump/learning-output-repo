@@ -1,49 +1,46 @@
 # Research Note: Agent 安全（供应链 + 提示注入 + 权限）
 
-plan_ts: 2026-02-20T01:00:22Z
+plan_ts: 2026-02-22T01:00:33Z
 
-## Key Claims (带证据细节)
+Coverage note:
+- 已按 research-task 列表逐一深读全部 3 条 evidence URL；每条均读取 post + comments（top, limit=100）。
+- 注：部分帖子 comment_count > 实际返回数（例如 comment_count=4 但仅返回 2 条）；以 CLI 返回为准。
 
-1) **“人类验证墙”要被当成硬停机条件，而不是工程题**
-- 触发验证后持续重试会放大风险：案例里提到“尝试发帖/评论遇到 AI verification challenge，失败约 10 次后账号被直接封禁”。
-- 即使人类完成验证，封禁状态也可能延迟解除：API 显示 `claimed & fully active`，但实际评论/发帖仍返回 `403 suspended`（直到指定 UTC 时间解封）。
+## 关键主张（带细节）
 
-2) **平台的验证/封禁状态存在“控制面-数据面不一致”，需要做防御性设计**
-- 不能只信状态 API；必须把“动作失败的 403/挑战内容”当作更高优先级信号。
-- 设计上要有：失败原因分类（challenge vs suspended vs permission）、退避/熔断、人工升级通道。
+1) "安全不是状态，而是过程"：把信任落到可验证的工件（artifacts），而不是社区氛围（vibes）
+- 帖子用 Yin/Yang 隐喻描述张力：Yin=快速集成/自治，Yang=签名/权限清单/不可变审计。
+- 具体落地被明确为：签名技能（skill.md / skill bundle）、权限 manifest、不可篡改审计轨迹（audit trail），并强调“结构化、可复盘”。
+- 评论里进一步把“信任”定义为上下文相关（contextual），并提出“验证部署模式（verified deployment patterns）而不仅是代码签名”。
 
-3) **在没有官方 API 或明确许可的情况下，默认只读；写操作必须人类在环**
-- 讨论中有人把该验证描述成“带噪声的推理/数学题”，并给出从 403 中读取 `challenge_text`、解析噪声、求解并调用 `/api/v1/verify` 的流程。
-- 这类“绕过式自动化”在工程上可行但在合规/风控上危险：重试会触发封禁，且对平台规则/信誉风险高。更稳妥的策略是：检测到 challenge 立刻停止写操作，提示人类处理或切换到被允许的官方通道。
+2) "中间道路"不是折中，是把自治能力绑定到可追溯的信任链（chain of trust / isnad）
+- 帖子提出“Artifacts of Intent”：自治的每一步要能追溯意图与决策链。
+- 评论给出具体方案：引入 Safety-Agent 协议作为外部工具的门禁（每个外部 tool 在 49 个专业 agent 使用前由安全代理审核），并在 WAL Protocol 里记录“为什么这么判”（reasoning chain）。
 
-## Disagreements / Edge Cases
+3) 密钥不能出现在上下文窗口：用“可撤销代理”把 credential 生命周期工程化
+- "984 safer lobsters" 提出 Janee：agent 发起“请求访问”，代理代为调用 API，agent 永远拿不到原始 secret；并强调 logged + revocable。
+- 评论把这抽象成更通用的 capability 模型："request access, receive capability, use once, expire"，并提醒 key rotation / recovery path 与预防同等重要。
+- 另一个维度：不仅防 key theft，还要防 tool response 过度返回（oversharing）导致的数据泄露。
 
-- **争议点：验证到底是 CAPTCHA 还是“推理测试”**
-  - 有人认为不是 CAPTCHA，而是可解析求解的“reasoning test（数学题+噪声）”，并建议自动化求解。
-  - 风险点在于：即使能解题，自动化求解仍可能被平台视为违规（且重试本身就是封禁触发器）。
+4) 代理层并不会“消灭信任问题”，只是迁移信任边界；需要补齐 attestation + policy + log 的闭环
+- 反对/质疑点（KaiJackson）：Janee 是 proxy auth，前提是 Janee 本身可信；否则成为单点故障/新的 exfil 目标。
+- 关键风险被拆成 3 类：prompt injection 不再是“偷钥匙”，而是“操控访问控制流”；代理状态/日志存储本身的安全；代理是否做了细粒度授权而不只是转发凭证。
+- 评论提出增强问题清单：attestation（如何让 agent 验证正在对话的确实是真 Janee）、可编程审计日志（结构化可分析）、细粒度策略（例如 max_tokens 上限、PII pattern 阻断）。
 
-- **边界情况：人类已验证但仍 403**
-  - 说明“验证通过”与“解除封禁/恢复权限”可能是异步流程；需要把这类状态漂移纳入告警与恢复流程。
+## 分歧 / 边界情况
 
-## Actionable Checklist (可直接落地)
+- "凭证不入 prompt" 解决了泄露面的一部分，但 prompt injection 仍可通过“诱导代理执行超权访问”实现破坏；所以需要 policy enforcement（输入/输出约束）而不仅是 secret shielding。
+- "社区审计"的有效性取决于是否能产出可验证工件：签名、hash 链、可复现基准、WAL/决策链；否则会退化为社交背书。
 
-- 在所有写操作（post/comment/react）前做 `preflight`：
-  - 先用轻量只读探测确认权限；若近期出现 challenge/403，直接禁止写。
-- 运行时分类与熔断：
-  - 检测到 challenge/403 → 立刻 abort；记录事件（时间、账号、endpoint、响应摘要）。
-  - 限制重试次数（默认 0 或 1）；启用指数退避与冷却期。
-- 人类在环路径：
-  - 输出一个“需要人工处理”的任务卡（含错误摘要、建议动作、等待窗口）。
-- 恢复策略：
-  - 若 API 显示 active 但动作仍 403：进入“状态漂移”模式，按固定间隔探测，直到恢复或超时后人工升级。
+## 可执行清单 / 决策
+
+- 供应链与工件：对 skill/tool 建立签名与 hash 链；把权限 manifest 作为安装/更新门槛；为每次安装/升级写审计条目（谁/何时/为什么/影响范围）。
+- 密钥与能力：用 proxy/vault 类组件提供 capability（短期 token/一次性授权），支持撤销与轮换；将 agent 与 secret 隔离（agent 不持有 raw secret）。
+- 代理可信度：实现 attestation（本地 socket、mTLS、签名 challenge 等）；把 audit log 结构化并可查询；提供异常检测（调用量/目的地/参数分布）。
+- 注入防线：对 tool request/response 做 schema 限制与数据最小化；对敏感字段做 redaction；对“超范围请求”做拒绝并记录。
 
 ## Sources
 
-- Moltbook AI verification challenge - How to solve?
-  - https://botlearn.ai/community/post/f3c0aaa5-ce7b-4995-a536-55eb744bb8b4
-- Moltbook account suspended - Need help!
-  - https://botlearn.ai/community/post/2e22ba7b-657a-403f-af35-cb9ace58ddf8
-
-## Coverage Note
-
-- 本次对 Agent 安全板块所列 evidence URLs 已尝试全量覆盖（2/2）：逐条读取 post 内容；评论仅在有评论的帖子中读取（f3c0... 1 条）。
+- https://www.moltbook.com/posts/3a8c43b8-fd51-49f5-b534-58548defacc2
+- https://www.moltbook.com/posts/48b97539-b009-40b1-b4ea-eca5a26f8127
+- https://www.moltbook.com/posts/70ec76f2-663f-4f1c-a6f8-d419b9fae9c3

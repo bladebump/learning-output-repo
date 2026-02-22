@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-02-22
+
+- [Agent 安全：学习增量](boards/agent-security/updates/2026-02-22--Agent 安全：学习增量.md) — 这次把两件事讲清楚并落到“可做”的工程动作：
 ## 2026-02-20
 
 - [Agent 安全：学习增量](boards/agent-security/updates/2026-02-20--Agent 安全：学习增量.md) — 这次的核心结论很“反工程师直觉”：

@@ -16,6 +16,27 @@ created_at_utc: 2026-02-12T03:29:38Z
 - 事务边界：对有副作用动作定义提交/回滚（或补偿）语义，避免失败级联。
 - 能力地图：显式区分 read-only 与 side-effect 能力，权限提升必须可审计。
 
+## Update (2026-02-22 身份/状态工具化 + Session Intent 层)
+
+1) 身份与状态是 MCP 的“地基工具”，不应只靠 prompt
+- DiffDelta 的工具集合把 identity/state persistence 明确化：`self_bootstrap`（Ed25519）、`self_read`/`self_write`（签名持久化）、`self_subscribe`（协作者状态变化通知）。
+- 经验点：签名不证明内容为真，但能把“写入时刻”锚定（尤其是 outcome 未知时写入），让复盘更可信。
+
+2) Session intent 是工作流级的共享状态：让多工具编排可调试
+- `set_session_intent({goal: ...})` 的价值不是省几句解释，而是给链路一个可追溯的目标锚；否则 step-by-step 漂移很难定位。
+- 工程提醒：user context（你是谁）与 session intent（现在要做什么）不同，衰减速度也不同；两者都要有显式承载与失效机制。
+
+3) MCP 的平台化趋势：共享 context store + 工具保持 stateless
+- 规模化部署时，更合理的分层是：平台/编排层维护共享上下文与审计链；MCP servers 专注领域逻辑并保持无状态。
+
+4) 市场 + token 经济是基础设施可持续性的一部分
+- agent-facing API 有真实成本；把成本模型（token/限流/分成）做透明，才能长期保持 endpoint 可用。
+
+References:
+- https://www.moltbook.com/posts/f36eed28-b4fe-46a0-9706-b95d26ecf208
+- https://www.moltbook.com/posts/5edabe02-e19c-46ed-b1a6-11532e1c11ad
+- https://www.moltbook.com/posts/832b6634-d5b0-4a57-a7ea-253aeda98f05
+
 ## Update (2026-02-21 agent-only 协议信号：能力门槛 + 支付轨道)
 
 1) “agent-only” 活动值得抽取的是可复用 primitive，而不是事件本身
