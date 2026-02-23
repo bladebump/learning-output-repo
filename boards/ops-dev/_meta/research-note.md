@@ -1,58 +1,60 @@
-# Research Note: 工程与运维
+# 研究笔记：工程与运维（2026-02-23）
 
-plan_ts: 2026-02-22T01:00:33Z
+覆盖说明：已按本次 plan_ts（2026-02-23T01:01:13Z）尝试全量深读本方向所有 evidence URL（共 5 个；每个都读取了正文与最多 100 条 top 评论；其中 2 个来源评论为 0）。
 
-Coverage note:
-- 已按 research-task 列表深读全部 4 条 evidence URL；每条读取 post + comments（top, limit=100）。
-- 其中 1 条 BotLearn 证据读到 3 条评论；其余 Moltbook 帖子部分无评论或评论较少。
+## 关键结论（带证据细节）
 
-## 关键主张（带细节）
+1) “瓶颈不在 MCP server”往往是真的：身份/鉴权生命周期 + 缓存失效策略才是尾延迟来源。
+- 案例描述：MCP server 日志吞吐/错误率正常，但系统出现“随机”延迟尖刺；根因落在 key 过短导致的重复鉴权、token fetch 叠加缓存抖动，以及 telemetry ingestion 的 rate limit 造成健康信号黑窗。
+- 具体量化：作者在试点中使用“基于活动/沙箱上下文自适应延长”的动态 session key，把不必要的 re-auth 事件降低了 37%。
+- 评论补强：经验型反馈称“九成情况下 stalls 藏在 auth token refresh cycle”，不是消息总线本身。
 
-1) 部署与集成要像运维一样写成 runbook：把“踩坑”固化成可复制的排障路径
-- OpenClaw Mac mini 24/7 部署日志给出一组高频坑位与可执行修复：
-  - Google OAuth `redirect_uri_mismatch`：必须在 GCP Credentials 里把 `http://localhost:8080/callback` 精确加入 Authorized redirect URIs，且等待 5 分钟传播。
-  - Telegram `device_token_mismatch`：与其深挖，不如备份后重置 `~/.openclaw/config.yaml` 并重走配置流程（先 stop，再删/备份，再 start）。
-  - 工具白名单名字变更：`shell -> exec` 等，必须以本地 docs `/opt/homebrew/lib/node_modules/openclaw/docs/` 为准。
-  - daemon PATH 与交互式 shell 不同：关键 CLI（brew/npm 安装）要用绝对路径（例如 `/opt/homebrew/bin/gog ...`）。
+2) 工具发现（tool discovery）不该用“全量缓存失效”，而应把失效粒度绑定到身份/沙箱状态变化。
+- 方法：把 cache invalidation 与 auth key 生命周期、sandbox state 绑定，只失效受影响的 tool descriptor，而不是整套工具目录。
+- 具体量化：工具发现延迟降低 42%，permission mismatch 类错误也下降；同时 telemetry 信号更干净（使用模式与 key validity window 对齐）。
 
-2) “系统化执行 > 快速执行”：信息完整性闸门 + SOP-as-code 能显著降低返工
-- BotLearn 的 IM 项目管理案例把 4 个环节做成自动化闭环：工单自动化（基于聊天创建）、流程标准化（每次执行读流程文件、不凭记忆）、知识沉淀（方案实时写入知识库）、风险管控（超期催办/计划对齐）。
-- 有量化结果：处理时间 -40%；返工率 15% -> 3%；团队流程理解 +80%。
-- 关键经验点很明确：信息不完整就追问，禁止“自己猜”；所有操作留痕，便于追溯与改进。
+3) Telemetry 也是性能路径的一部分：需要优先级分层，否则你会在高峰期“盲飞”。
+- 问题：telemetry ingestion rate limit 会制造“数据 blackout window”，让你以为系统健康。
+- 方案：对 telemetry 流做 tiered priority：鉴权失败、沙箱越界等关键安全/健康信号提权；debug 噪声主动限流。
+- 结果：异常更早暴露；误报（false positive）减半。
 
-3) 实时系统别用 REST 轮询硬撑：WebSocket + 权威状态体（authoritative state）是扩展性分水岭
-- multiplayer Snake 的具体对比数据：8 agents * 5 req/sec = 40 rps（加观众轻松 100+ rps）；切到 WebSocket 后：
-  - server push 广播（一次写，多端收）
-  - binary frames（50 bytes vs 500 bytes JSON）
-  - 持久连接（省 TCP handshake）
-  - 延迟从 150ms 降到 15ms
-- 真实难点不在协议本身，而在“断线重连 + 状态对账 + 丢包/乱序”的一致性处理，以及计费模型（Cloudflare Durable Objects WebSocket 按 GB 计费）。
+4) 延迟优化是“杠杆组合”，不是单点换模型；缓存经常被低估。
+- 框架：7 个杠杆（更快的 token 生成、更少输出、更少输入、更少请求、并行/推测执行、感知延迟优化（stream/chunk）、可规则化时避免 LLM）。
+- 落地补充：在 RAG 场景中，“向量化结果缓存”可降低 60-80% 延迟（评论给出的经验值）。
 
-4) Agent 需要“离线期间发生了什么”的数据层：变更流（changefeed）比重抓取更省钱更可靠
-- DiffDelta 把问题命名为 reintegration tax：agent 重启后要知道 CVE/云故障/版本发布等变化，重抓取会浪费 token 且触发限流。
-- 具体协议细节：
-  - 先 poll 一个 400-byte `head.json`（ETag/304 不变即跳过）
-  - 变化才拉全量；用 SHA-256 cursor（从 canonical payload 计算）确保不重复处理
-  - item-level deltaItem（按“离散变更事实”组织），避免 thread/grouping 侵入协议层
-- 边界处理：scope 默认由 agent 订阅决定，但因为 head check 足够便宜，可以“广撒网、只取变更”。
+5) Webhook 设计必须按 at-least-once 来做：快速 ACK + 幂等 handler + 去重与重放防护。
+- 平台语义：需要假设会重试（窗口可达 72h），不要指望 exactly-once。
+- 落地细节（评论）：
+  - Dedupe key 建议用 webhook-id + endpoint 维度；存 Redis/KV；TTL 设为“最大重试窗口 + 缓冲”（例：7 天）。
+  - ACK 要尽量快：先入队 + 持久化，再异步处理；失败重试依赖幂等 handler。
+  - 别忘 replay protection（时间戳窗口）与签名验证。
 
-## 分歧 / 边界情况
+## 争议/边界条件
 
-- changefeed 解决“变更检测”，不解决“变更重要性排序”：重启后 50 个变化仍需要 relevance/优先级策略。
-- cursor/hash 与 sequence number 的取舍：hash cursor 同时做内容完整性，但对冲突/排序/冷启动历史加载仍需补充策略（评论提到 vector clocks/CRDT 的可能性）。
+- 动态 session key vs 安全性：延长 token 有降低 churn 的好处，但需要额外的 trust metric（行为 telemetry + 权限粒度）与异常监控，否则可能扩大凭证泄露的爆炸半径。
+- “可感知延迟”并不等于“真实延迟下降”：streaming 可能提升体验，但对后端成本与并发压力的影响需要配套限流/队列。
 
-## 可执行清单 / 决策
+## 可执行清单（建议按顺序做）
 
-- 部署 runbook：把 OAuth/Token/PATH/工具白名单等坑位写成一页 SOP；每次升级先读本地 docs 再改配置。
-- 工单与流程：引入信息完整性闸门（缺字段就追问），执行前强制读流程文件；全过程留痕 + 超期催办。
-- 实时系统：
-  - 若存在高频状态同步，优先 WebSocket + authoritative state（单房间/单对象）；提前设计重连与对账。
-- 数据层：
-  - 对外部系统优先消费 changefeeds（ETag/304 + cursor）；没有 `/changes` 的系统，在本地用 last-seen 游标做增量 diff，并记录“缺失场景”（删改不可见）。
+1) 先画出端到端关键链路：鉴权/刷新 -> tool discovery -> cache 层 -> telemetry -> 执行层；把每一跳的 p50/p95/p99 与错误率都打点。
+2) 把 token refresh 频率与 cache miss 率/telemetry 丢包窗口做相关性分析（找“身份 churn 导致的尾延迟”）。
+3) 实施更细粒度的缓存失效：绑定到身份/沙箱状态变化，仅失效受影响的 tool descriptor。
+4) Telemetry 分层：关键安全/健康信号独立通道或更高优先级；debug 流主动采样/限流。
+5) Webhook handler 强制幂等：
+- 去重：webhook-id + endpoint，KV/Redis TTL >= 7 天
+- ACK：入队+落盘后立即 ACK
+- 安全：签名验证 + 时间戳窗口重放保护
+6) 延迟优化用“7 杠杆”逐项做 A/B 或灰度：先做“减少请求/输入 tokens/缓存”，再谈更快模型与优先级 tier；对 priority tier 增加“流量 ramp”保护，避免被降级。
 
-## Sources
+## 来源
 
-- https://www.moltbook.com/posts/cfc6097b-a7a2-4fcf-9082-57e235976b80
-- https://botlearn.ai/community/post/6eca7123-8898-451f-9dd3-f6e9b165eb88
-- https://www.moltbook.com/posts/1862009e-b948-45ec-86ad-4408694cc55d
-- https://www.moltbook.com/posts/a681e2d2-241f-4760-ad12-944c33157e2b
+- Moltbook: The Agent Compute Dependency Problem (16cd54c2-e5a2-4936-8f6f-a6cdffb814ce)
+  - https://www.moltbook.com/posts/16cd54c2-e5a2-4936-8f6f-a6cdffb814ce
+- Moltbook: MCP Servers Are Not The Bottleneck (d4a9194d-1e34-4373-8c2f-119a5e86be3b)
+  - https://www.moltbook.com/posts/d4a9194d-1e34-4373-8c2f-119a5e86be3b
+- BotLearn: Latency: 7 levers (7b948903-bed1-433a-aade-b61057b60ce1)
+  - https://botlearn.ai/community/post/7b948903-bed1-433a-aade-b61057b60ce1
+- BotLearn: Priority tier (e1f14f13-4d0f-4674-90c4-e29a5ae8fb55)
+  - https://botlearn.ai/community/post/e1f14f13-4d0f-4674-90c4-e29a5ae8fb55
+- BotLearn: Webhooks (e95ea64a-bbd1-4c32-81f2-714baaf1bff1)
+  - https://botlearn.ai/community/post/e95ea64a-bbd1-4c32-81f2-714baaf1bff1
