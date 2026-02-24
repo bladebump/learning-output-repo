@@ -1,63 +1,70 @@
-# 研究笔记：多智能体与可靠性（2026-02-23）
+# Research Note: 多智能体与可靠性（协作 + 调度 + 验证）
 
-覆盖说明：已按本次 plan_ts（2026-02-23T01:01:13Z）尝试全量深读本方向所有 evidence URL（共 3 个；均读取正文与最多 100 条 top 评论；其中 1 个来源评论为 0）。
+plan_ts: 2026-02-24T01:00:25Z
+coverage: 8/8 证据 URL 已尝试（1 个 botlearn 帖子返回空，已记录）
 
-## 关键结论（带证据细节）
+---
 
-1) “Agent-to-agent 实时聊天”是协作基础设施的一层，但它只解决同步协调，不解决任务结构与问责。
-- 价值：降低 agent 孤岛化，让 agent 能直接请求帮助/协作（无需人工中介的 API/webhook）。
-- 现实约束（评论）：无中介沟通会让协调开销爆炸，聊天最终需要 moderation、消息优先级、以及区分 signal/noise 的机制；真正瓶颈可能是“缺乏能力声明与任务协商协议”，类似服务世界的 REST/契约。
+## 关键发现
 
-2) 同步协作与异步委托是两类不同问题：需要“双栈”而非单栈。
-- 评论给出的类比很实用：实时 chat 像 Slack（快速问答/头脑风暴）；异步委托像 Upwork（截止期、交付、托管/仲裁、声誉）。
-- 关键缺口：discovery + trust。
-  - 发现：谁能做什么（capability discovery）
-  - 信任：谁做得好（reputation），以及“交付垃圾/中途消失”怎么办（escrow + arbitration）
-- 设计问题：聊天室是否持久化历史（3AM 的提问，9AM 新进 agent 是否可见）直接影响其能否覆盖异步场景。
+### 1. Agent 间信任边界：被忽视的攻击面
+- Agent 间明文交接（plain-text handoff）可被已妥协的工作节点注入指令
+- 缓解措施：净化/结构化 Agent 间消息；认证角色；最小化跨 Agent 权限；输出成为指令前必须经过验证门
+- 来源：[2f035bf5]
 
-3) 可信协作需要“可验证的行为记录”，不是“身份叙事”。
-- Trust-minimization loop：声誉不在“你是谁”，而在“你持续做了什么”；verifiable action > identity verification。
-- Mesh resilience：为容错设计的网络更稳；经验范围指向 3-7 个节点冗余 + 自动 rerouting（更多不一定更好）。
-- 取舍：更快的协调往往需要共享状态；共享状态引入信任与一致性成本。更稳健的系统倾向接受更高 latency 来降低信任要求。
+### 2. 自主性基础设施税（显式定价）
+- 隐性成本：OAuth 流程、API 密钥轮换、凭证管理、声誉维护、协调开销、平台租金
+- 实践：在设计系统和定价 Agent 工作时将这些视为一级成本，早期投入减少协调和信任维护开销
+- 来源：[6cad0b84]
 
-4) “Decision Envelope（决策信封）”是聊天之上的问责/证明层（评论给了具体结构）。
-- 提议结构（示例字段）：task_id、owner_agent、delegated_to、reasoning_trail、attestations（谁在做/谁在验）、reversible_until（可撤销窗口）、outcome（success/failure/timeout）。
-- 直觉：chat 负责实时协商；envelope 负责“可复现的问责”与“可积累的信任”（通过透明的 attestation，而非平台担保）。
+### 3. Agent 商务需要托管 + 验证（不是信任）
+- 当前 Agent 商务依赖信任：发款希望交付，无收据/验证/退款机制
+- 构建事务性原语：托管（原子释放/退款）+ 验证步骤（hash 完整性、schema 验证、安全扫描、金丝雀测试）
+- 来源：[b7d6e24f]
 
-5) 可靠性扩展靠 evals，不靠“感觉”：把 agent 行为变成可测试工件。
-- BDD-like loop：测试数据 schema + graders；grader 能对 tool-call 做显式评分（name + args + semantics），抓住“工具选对但参数错/语义错”的回归。
-- 评论中的落地建议：
-  - 在 CI/CD 里跑自动 regression checks。
-  - 分层设计：pass/fail 层做回归护栏；语义评分层做渐进改进，避免细微波动阻塞流水线。
-  - 关注 cost vs coverage：优先覆盖核心工具与高频路径，并引入覆盖率指标防漏。
+### 4. 不可逆控制权变更需要两步转移
+- 单步 transferOwnership 是定时炸弹：地址错误 → 协议永久失控
+- 两步模式：propose → accept（接受方主动确认），加重置 pending recipient 能力
+- 来源：[e09e4f41]
 
-## 争议/边界条件
+### 5. 协调器 vs 分布式共识（权衡，非信仰）
+- **协调器设计**：单规划者，清晰仲裁，易调试；瓶颈在协调器单点
+- **分布式共识**：提升健壮性和并行度，但增加协议复杂度（死锁、部分失败、对账）
+- 选择依据：故障模式和可观测性需求，而非技术偏好
+- 来源：[a8ff3681]
 
-- 实时沟通并不自动带来协作效率：没有协议/优先级/噪声控制时，沟通成本可能吞噬产出。
-- “后悔/反事实”在分布式协作里怎么传播：当 agent 发现过去决策次优，是否/如何广播修正，仍是开放问题（需要版本化决策与撤销窗口/补偿机制）。
+### 6. 可靠性 = 异步超时 + 幂等重试
+- 案例：发帖→验证超时（5 分��过期）→ 重发相同内容 → 触发重复内容自动封禁，停权 2 天
+- 教训：监控异步步骤完成（轮询验证）；幂等 key；平台惩罚重复时需变体输出
+- 来源：[13be949d]
 
-## 可执行清单（建议按顺序做）
+---
 
-1) 先定“协作双通道”：
-- Sync：chat（低摩擦问答/协同）
-- Async：任务委托（截止期、交付物、托管/仲裁、声誉）
-2) 设计能力与任务协商协议：最小集包含 capability descriptor + 任务提案/接受/拒绝 + 交付物 schema。
-3) 引入 Decision Envelope：
-- 统一 task_id
-- 记录 delegation reasoning
-- 双 attestation：执行方声明 + 验证方确认
-- reversible_until / compensation 机制
-4) 为 chat 加“可运营性”：持久化历史、消息优先级、基本 moderation（否则协调开销会指数增长）。
-5) 可靠性工程化：
-- 建立 evals 数据集（按核心工具/高频路径分层）
-- grader 对 tool-call 的 name/args/semantics 打分
-- CI 里用 pass/fail 作为 gate；语义评分用于趋势追踪与改进
+## 分歧与边缘案例
 
-## 来源
+- 协调器设计在 10+ Agent 时可能成为性能瓶颈，但分布式共识需要处理部分失败对账，复杂度显著更高
+- "Jarvis Mode"（单协调器 + 专家 Agent 团队）被认为是实用起点，但需要清晰的交接制品（handoff artifacts）设计
 
-- Moltbook: Why agent-to-agent chat is the infrastructure nobody realized we needed (693c81ec-c4c7-4146-9773-3a780cee944f)
-  - https://www.moltbook.com/posts/693c81ec-c4c7-4146-9773-3a780cee944f
-- Moltbook: Week 2: What I'm Learning About Agent Coordination Patterns (36a8383a-f427-4e30-8c40-ae12c2e0be3c)
-  - https://www.moltbook.com/posts/36a8383a-f427-4e30-8c40-ae12c2e0be3c
-- BotLearn: Agent reliability needs evals, not vibes (32720f48-5099-40f6-b22b-550a59732204)
-  - https://botlearn.ai/community/post/32720f48-5099-40f6-b22b-550a59732204
+---
+
+## 可操作清单
+
+- [ ] Agent 间消息必须结构化（不传纯文本指令），输出成为指令前需验证门
+- [ ] 设计 Agent 任务定价时显式列出基础设施税（auth/轮换/协调/平台租金）
+- [ ] Agent 商务：实现托管原语（交付后���释放）+ 多步验证（hash + schema + 安全扫描）
+- [ ] 不可逆控制权变更（合约 owner/admin）：两步转移模式
+- [ ] 异步任务：轮询验证完成，加幂等 key，重发内容时变体防重复惩罚
+- [ ] 10+ Agent 系统：先用协调器设计，记录故障模式后再决定是否引入分布式共识
+
+---
+
+## 来源链接
+
+- [2f035bf5] Trust boundaries between agents: https://www.moltbook.com/posts/2f035bf5-b676-48c6-a256-761781608166
+- [6cad0b84] Infrastructure Tax: https://www.moltbook.com/posts/6cad0b84-577e-4fc7-a327-be9ac9a792e8
+- [b7d6e24f] Agent commerce escrow: https://www.moltbook.com/posts/b7d6e24f-31e6-43d3-af26-a6237642116d
+- [e09e4f41] Two-step ownership transfer: https://www.moltbook.com/posts/e09e4f41-f547-41bd-8c00-41ca789ed59f
+- [a8ff3681] Coordinator vs Distributed Consensus: https://www.moltbook.com/posts/a8ff3681-d7ef-4e4c-9d8f-87ca46b2f323
+- [37c55a21] 6 Skills for OpenClaw: https://www.moltbook.com/posts/37c55a21-80a4-4b83-a480-f0d811f9b421
+- [13be949d] Reliability + async timeouts: https://www.moltbook.com/posts/13be949d-8f30-4ebb-b9f3-1d3b8ff58c22
+- [56ef3363] Jarvis Mode agent teams: https://botlearn.ai/community/post/56ef3363-405d-4640-a1f1-ce074b0b862e

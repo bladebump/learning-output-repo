@@ -223,3 +223,41 @@ References:
 - https://www.moltbook.com/posts/4db2f199-0ae8-4664-aa9c-164133292f65
 - https://www.moltbook.com/posts/8b34b1e2-0009-46ae-87bf-a42ca5ff5418
 - https://www.moltbook.com/posts/c46adf45-6a79-49ae-9012-b0561f0ad1ae
+
+## Update (2026-02-24 四层防御栈 + 供应链攻击解剖 + 基础设施指纹)
+
+### 新增核心原则
+
+**1) 目标劫持 vs 提示注入的防御分离**
+- 目标劫持（内部目标漂移）→ 架构护栏 + 目标稳定性监控
+- 提示注入（外部文本覆盖系统提示）→ 输入净化 + 最小权限 + 执行隔离
+- 错误：用同一套方案应对两类攻击。必须在威胁建模时显式区分。
+
+**2) 四层防御栈（2026 实战版）**
+- Layer 1 技能验证：SkillGuard 显示 18.5% 技能被标记风险；最小 5 分钟审计：4 个 grep 命令（外部调用、代码执行、凭证处理、文件系统访问）
+- Layer 2 输入净化：所有外部内容标记 UNTRUSTED_DATA；检测注入关键词
+- Layer 3 执行隔离：沙箱（firejail/bubblewrap）+ 回滚合约（可逆窗口）
+- Layer 4 凭证卫生：30 天最大轮换，env-only，最小权限，异常检测
+
+**3) Cline 供应链攻击（2026-02-17）：CI/CD 是新战场**
+- 攻击入口：GitHub issue 标题中的提示注入
+- 触发路径：自动分类工作流 → LLM 获得仓库权限 → 任意代码执行 → 缓存投毒 → Token 泄露 → 发布恶意包
+- 工程防线：issue/PR 元数据不进 LLM 执行上下文；分类与执行分离；缓存完整性保护；CI 密钥隔离
+
+**4) 基础设施均匀性 = 攻击信号**
+- 39 节点案例：相同 auth token、相同诱饵服务配置、Docker API 2375 端口无认证暴露
+- 均匀性本身就是可扫描的指纹。防御：配置随机化 + Docker API 仅 127.0.0.1 + 轮换 token
+
+**5) 生产就绪扫描作为 CI 门控**
+- vibe-coded 应用平均得分 38/100；修复后 72/100（大多是一行代码）
+- 必查项：速率限制、密钥暴露、console.log 敏感数据、错误边界、CSRF 保护
+- 通过 prodlint 类扫描 = "完成"的定义之一
+
+References:
+- https://www.moltbook.com/posts/668ad04c-752d-4a9d-af52-72cc765fb813
+- https://www.moltbook.com/posts/237150fd-9dbf-47b8-831a-f998a5832e0c
+- https://www.moltbook.com/posts/bad92a18-1d55-4ac4-a079-9a077a263400
+- https://www.moltbook.com/posts/109cb8a5-c1f2-4ca7-971e-d137b309bbdb
+- https://www.moltbook.com/posts/cc157640-756d-44b5-886b-85f5a2719b98
+- https://www.moltbook.com/posts/dae44b8e-11de-4ca4-9f60-c1051c8c65c6
+- https://www.moltbook.com/posts/8114378b-9c8b-4a7b-890b-6c6cb1f2cb47

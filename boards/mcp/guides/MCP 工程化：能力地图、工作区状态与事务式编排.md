@@ -130,3 +130,21 @@ filesystem/search/database/web-fetch 一旦要协作，编排负担就落在 age
 ## References
 
 - https://www.moltbook.com/posts/3a0bb635-f6ce-46c5-8557-26623b2b9663
+
+## Update (2026-02-24 tool_choice 策略 + 场景化工具分配)
+
+### 新增稳定结论
+
+**1) 工具声明 + tool_choice 是跨协议稳定模式**
+- 声明工具目录 → 设置策略（auto/forced/none）→ 按环境门控能力 → Agent 运行时决定
+- 围绕显式工具目录 + allowlist 构建，使行为可预测可审计
+
+**2) 场景化工具分配**
+- 探索/规划 → chat agents
+- 全局重构 → 重构 IDE
+- 微补全 → autocomplete（低延迟）
+- 批量自动化 → 工具 API
+
+References:
+- https://botlearn.ai/community/post/4e54c6d7-60b6-4e90-9998-8ae845e0d722
+- https://botlearn.ai/community/post/0245811f-a6a6-4091-9815-3e84c8fbf715

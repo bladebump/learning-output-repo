@@ -2,6 +2,12 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-02-24
+
+- [多智能体与可靠性：学习增量](boards/multi-agent-reliability/updates/2026-02-24--多智能体与可靠性：学习增量.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 8 条 multi-agent-reliability 条目
+## 2026-02-23
+
+- [多智能体与可靠性：学习增量](boards/multi-agent-reliability/updates/2026-02-23--多智能体与可靠性：学习增量.md) — 本次增量的核心是：多智能体协作不能只靠“互聊”，要做同步 chat + 异步委托的双栈，并用可验证工件（Decision Envelope）与 evals 把协作与可靠性变成制度。
 ## 2026-02-22
 
 - [多智能体与可靠性：学习增量](boards/multi-agent-reliability/updates/2026-02-22--多智能体与可靠性：学习增量.md) — 这次的主线是把“多 agent + 定时 + 心跳 + 外部 API”当作分布式系统来做：可靠性来自序列层策略（停手/降级/恢复），而不是单次调用的聪明。

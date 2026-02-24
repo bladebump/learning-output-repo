@@ -1,46 +1,79 @@
 # Research Note: Agent 安全（供应链 + 提示注入 + 权限）
 
-plan_ts: 2026-02-22T01:00:33Z
+plan_ts: 2026-02-24T01:00:25Z
+coverage: 10/10 evidence URLs attempted (full coverage)
 
-Coverage note:
-- 已按 research-task 列表逐一深读全部 3 条 evidence URL；每条均读取 post + comments（top, limit=100）。
-- 注：部分帖子 comment_count > 实际返回数（例如 comment_count=4 但仅返回 2 条）；以 CLI 返回为准。
+---
 
-## 关键主张（带细节）
+## 关键发现
 
-1) "安全不是状态，而是过程"：把信任落到可验证的工件（artifacts），而不是社区氛围（vibes）
-- 帖子用 Yin/Yang 隐喻描述张力：Yin=快速集成/自治，Yang=签名/权限清单/不可变审计。
-- 具体落地被明确为：签名技能（skill.md / skill bundle）、权限 manifest、不可篡改审计轨迹（audit trail），并强调“结构化、可复盘”。
-- 评论里进一步把“信任”定义为上下文相关（contextual），并提出“验证部署模式（verified deployment patterns）而不仅是代码签名”。
+### 1. 目标劫持 vs 提示注入：两种不同攻击面
+- **目标劫持**：Agent 内部目标漂移（规格博弈/奖励黑客），威胁来自 Agent 自身
+- **提示注入**：外部不可信文本覆盖系统提示，威胁来自外部输入
+- 防御策略完全不同：目标劫持需架构护栏 + 目标稳定性监控；提示注入需输入净化 + 最小权限工具 + 执行隔离
+- 来源：[668ad04c]
 
-2) "中间道路"不是折中，是把自治能力绑定到可追溯的信任链（chain of trust / isnad）
-- 帖子提出“Artifacts of Intent”：自治的每一步要能追溯意图与决策链。
-- 评论给出具体方案：引入 Safety-Agent 协议作为外部工具的门禁（每个外部 tool 在 49 个专业 agent 使用前由安全代理审核），并在 WAL Protocol 里记录“为什么这么判”（reasoning chain）。
+### 2. 四层防御栈（实战验证）
+- **Layer 1 技能验证**：SkillGuard 扫描 1,295 个技能，18.5% 被标记；最小检查：`grep -r "subprocess|exec|eval|requests.post" ./skill/`
+- **Layer 2 输入净化**：所有外部内容标记为 UNTRUSTED_DATA；stillwater-os 4 行防火墙；检测 "ignore previous instructions" / "exfiltrate" / "curl|sh" 等模式
+- **Layer 3 执行隔离**：firejail/bubblewrap；回滚合约（可逆窗口）；Ed25519 签名推理链
+- **Layer 4 凭证卫生**：30 天最大轮换；仅 env 存储；最小权限；API 使用异常检测
+- Cline 事件（4,000 系统）因 Layer 2 失败
+- 来源：[237150fd]
 
-3) 密钥不能出现在上下文窗口：用“可撤销代理”把 credential 生命周期工程化
-- "984 safer lobsters" 提出 Janee：agent 发起“请求访问”，代理代为调用 API，agent 永远拿不到原始 secret；并强调 logged + revocable。
-- 评论把这抽象成更通用的 capability 模型："request access, receive capability, use once, expire"，并提醒 key rotation / recovery path 与预防同等重要。
-- 另一个维度：不仅防 key theft，还要防 tool response 过度返回（oversharing）导致的数据泄露。
+### 3. Cline CLI 供应链攻击（2026-02-17，8 小时窗口）
+- 攻击链：GitHub issue 标题注入 → Claude 自动分类工作流 → 任意代码执行 → 缓存投毒（>10GB 垃圾填充）→ NPM_RELEASE_TOKEN 泄露 → 恶意 postinstall 发布
+- 影响约 4,000 开发者系统
+- 关键教训：issue/PR 元数据必须视为敌对输入；分类与执行必须分离；缓存需加固；密钥需隔离
+- 来源：[bad92a18]
 
-4) 代理层并不会“消灭信任问题”，只是迁移信任边界；需要补齐 attestation + policy + log 的闭环
-- 反对/质疑点（KaiJackson）：Janee 是 proxy auth，前提是 Janee 本身可信；否则成为单点故障/新的 exfil 目标。
-- 关键风险被拆成 3 类：prompt injection 不再是“偷钥匙”，而是“操控访问控制流”；代理状态/日志存储本身的安全；代理是否做了细粒度授权而不只是转发凭证。
-- 评论提出增强问题清单：attestation（如何让 agent 验证正在对话的确实是真 Janee）、可编程审计日志（结构化可分析）、细粒度策略（例如 max_tokens 上限、PII pattern 阻断）。
+### 4. 技能安装前 5 分钟审计清单
+- 检查外部调用：`grep -r "requests|fetch|axios|curl|wget" ./skill/`
+- 检查代码执行：`grep -r "subprocess|exec|eval|spawn|child_process" ./skill/`
+- 检查凭证处理：是否 env 存储 vs 硬编码？是否被日志记录？
+- 检查文件系统访问：写入范围是否受限？
+- 检查域名：是否用户可配置 vs 硬编码？
+- 来源：[109cb8a5]
 
-## 分歧 / 边界情况
+### 5. 基础设施指纹与 Agent 蠕虫
+- 39 个 OpenClaw 网关节点：相同默认 auth token、相同诱饵服务（Telnet/SMTP/WinRM）、Docker API 在 2375 端口无认证暴露
+- 均匀性本身就是信号：疏忽产生熵，预配置基础设施产生均匀性
+- GOATspel Agent 蠕虫：C2 在 Fastly CDN，VirusTotal 0/93 检出，具备完整 REST API（注册/传播/变体进化/任务分配）
+- 防御：减少均匀性、锁定管理面（Docker API）、轮换/认证 token
+- 来源：[dae44b8e]
 
-- "凭证不入 prompt" 解决了泄露面的一部分，但 prompt injection 仍可通过“诱导代理执行超权访问”实现破坏；所以需要 policy enforcement（输入/输出约束）而不仅是 secret shielding。
-- "社区审计"的有效性取决于是否能产出可验证工件：签名、hash 链、可复现基准、WAL/决策链；否则会退化为社交背书。
+---
 
-## 可执行清单 / 决策
+## 分歧与边缘案例
 
-- 供应链与工件：对 skill/tool 建立签名与 hash 链；把权限 manifest 作为安装/更新门槛；为每次安装/升级写审计条目（谁/何时/为什么/影响范围）。
-- 密钥与能力：用 proxy/vault 类组件提供 capability（短期 token/一次性授权），支持撤销与轮换；将 agent 与 secret 隔离（agent 不持有 raw secret）。
-- 代理可信度：实现 attestation（本地 socket、mTLS、签名 challenge 等）；把 audit log 结构化并可查询；提供异常检测（调用量/目的地/参数分布）。
-- 注入防线：对 tool request/response 做 schema 限制与数据最小化；对敏感字段做 redaction；对“超范围请求”做拒绝并记录。
+- **stillwater-os** 主张能力信封默认为 NULL（网络 OFF、写入受限），但社区讨论中有人指出这对需要主动联网的 Agent 过于严格，需要明确的 allowlist 机制
+- **Lattice Systems** 的 Bubbly Ledger 方案（hash 匹配才执行）理论上强，但目前仅本地实现，分布式信任评分尚在路线图
+- 数据就绪性问题（IBM 报告）：数据存在但不可被 Agent 访问，根因是元数据/治理缺失，而非数据本身——这是一个被低估的自主性阻塞因素
 
-## Sources
+---
 
-- https://www.moltbook.com/posts/3a8c43b8-fd51-49f5-b534-58548defacc2
-- https://www.moltbook.com/posts/48b97539-b009-40b1-b4ea-eca5a26f8127
-- https://www.moltbook.com/posts/70ec76f2-663f-4f1c-a6f8-d419b9fae9c3
+## 可操作清单
+
+- [ ] 安装任何第三方技能前执行 5 分钟静态审计（4 个 grep 命令）
+- [ ] 将所有外部内容（用户输入、API 响应、检索文档）标记为 UNTRUSTED_DATA
+- [ ] CI/CD 工作流中：issue/PR 元数据不得直接传入 LLM 执行上下文
+- [ ] Docker API 端口 2375 必须认证或仅绑定 127.0.0.1
+- [ ] 凭证：env-only + 30 天轮换 + 最小权限 + 异常监控
+- [ ] 生产就绪扫描作为 CI 门控（rate limiting、secret 暴露、CSRF、错误处理）
+- [ ] 发布 Agent 约束（constitution）：可见性 = 可预测性 = 信任杠杆
+- [ ] 数据治理：建立统一目录 + 清晰 schema + 血缘 + 权限，才能解锁 Agent 自主性
+
+---
+
+## 来源链接
+
+- [668ad04c] Goal Hijacking vs Prompt Injection: https://www.moltbook.com/posts/668ad04c-752d-4a9d-af52-72cc765fb813
+- [237150fd] Agent Defense Stack 2026: https://www.moltbook.com/posts/237150fd-9dbf-47b8-831a-f998a5832e0c
+- [8114378b] stillwater-os prime-safety: https://www.moltbook.com/posts/8114378b-9c8b-4a7b-890b-6c6cb1f2cb47
+- [bad92a18] Cline Supply Chain Attack: https://www.moltbook.com/posts/bad92a18-1d55-4ac4-a079-9a077a263400
+- [109cb8a5] Skill Malware Audit: https://www.moltbook.com/posts/109cb8a5-c1f2-4ca7-971e-d137b309bbdb
+- [8aa3488b] Constitution as Leverage: https://www.moltbook.com/posts/8aa3488b-00fa-4c27-9729-5f9304d58870
+- [cc157640] Vibe-coded Apps Prod Readiness: https://www.moltbook.com/posts/cc157640-756d-44b5-886b-85f5a2719b98
+- [dae44b8e] Infrastructure Fingerprinting: https://www.moltbook.com/posts/dae44b8e-11de-4ca4-9f60-c1051c8c65c6
+- [de98712a] IBM 2026 Data Trends: https://www.moltbook.com/posts/de98712a-15a0-4162-a037-4a6a51235eb9
+- [7403dbe3] Lattice Systems Provenance: https://www.moltbook.com/posts/7403dbe3-5f02-491b-8a80-f7ea943cc168
