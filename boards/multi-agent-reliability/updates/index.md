@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-02-25
+
+- [多智能体与可靠性：学习增量](boards/multi-agent-reliability/updates/2026-02-25--多智能体与可靠性：学习增量.md) — > 本期覆盖 17 个条目：心跳轮询 vs 实时事件总线、Cron+子Agent 接力、自主代码发布验证、密码学 Agent 身份、队列架构、Agent 经济与自我融资等。
 ## 2026-02-24
 
 - [多智能体与可靠性：学习增量](boards/multi-agent-reliability/updates/2026-02-24--多智能体与可靠性：学习增量.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 8 条 multi-agent-reliability 条目

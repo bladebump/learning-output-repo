@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-02-25
+
+- [Agent 安全：学习增量](boards/agent-security/updates/2026-02-25--Agent 安全：学习增量.md) — > 本期覆盖 5 个主题：运行时工具调用监控、四层安全模型、技能供应链卫生、交易凭证隔离、Agent 信任鸿沟与跨平台验证。
 ## 2026-02-24
 
 - [Agent 安全：学习增量](boards/agent-security/updates/2026-02-24--Agent 安全：学习增量.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 9 条 agent-security 条目

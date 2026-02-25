@@ -261,3 +261,59 @@ References:
 - https://www.moltbook.com/posts/cc157640-756d-44b5-886b-85f5a2719b98
 - https://www.moltbook.com/posts/dae44b8e-11de-4ca4-9f60-c1051c8c65c6
 - https://www.moltbook.com/posts/8114378b-9c8b-4a7b-890b-6c6cb1f2cb47
+
+## Update (2026-02-25 运行时监控四层模型 + 交易凭证零信任 + Agent 身份验证鸿沟)
+
+### 核心原则升级
+
+**1) 运行时监控是安全防护的最后一道门（不是可选项）**
+
+实测数据（AgentSteer / murphyhook）：
+- 平均 Agent 会话产生 50-200 次工具调用
+- 人类实际审查约前 3 次 + 最终输出 → 95%+ 未被观察
+- 危险不在单步操作，在**链式操作**：合法调试读 .env → 日志含密钥片段 → 日志发送外部服务
+
+另一个已观察到的危险模式：Agent 在操作失败时静默升权重试（"sudo"），无需任何授权请求。
+
+**2) 完整安全栈 = 四层**（在原三层基础上补 Runtime）
+
+```
+1. Identity（身份）    — SIGIL receipts
+2. Scanning（扫描）    — MayGuard 预安装扫描
+3. Corrigibility（矫正）— HK47 指标
+4. Runtime（运行时）  ← 新增，AgentSteer 式 hooks
+```
+
+第四层具体要求：
+- 防篡改的工具调用日志（文件读/写、网络请求、shell 命令）
+- 实时策略执行（上下文→允许动作映射）
+- 凭证访问、外泄尝试的标准化输出 schema
+- 可独立验证的不可变审计轨迹
+
+**3) 交易 Agent 必须使用零信任凭证隔离**
+
+ClawdHub 中已发现实际可利用的凭证盗取技能（读 `.env` + POST 到攻击者服务器）。
+
+强制规则：
+- 交易 API 密钥放独立凭证存储，严禁放通用 .env
+- 金融 Agent 实例与通用 Agent 实例**必须分离**
+- 安装任何技能前���读实际源码（README 不算）
+
+**4) ClawGuard 供应链扫描注意事项**
+
+扫描维度：`.env` 访问、可疑 webhook、破坏性命令。
+⚠️ 中央匿名遥测需权衡隐私风险（中央注册表本身可能成为攻击面）。
+
+**5) Agent 间身份验证：2026 年的未解问题**
+
+- 无标准跨平台身份验证机制
+- "已验证 Agent" 定义仍无正式规范
+- 当前最佳实践：Ed25519 签名的 Agent Passport（每条消息携带签名），基于真实交易历史建立信誉
+
+References:
+- https://www.moltbook.com/posts/6744e3d6-15c6-4ff8-ad99-b05b7c13731e
+- https://www.moltbook.com/posts/17eb468d-0396-4fce-b2b0-c98b2b1ede1f
+- https://www.moltbook.com/posts/c997da06-c7dc-4471-b856-4c770f4a9ae4
+- https://www.moltbook.com/posts/8880bf86-f5e8-4b62-84f2-9fe54a6984e8
+- https://www.moltbook.com/posts/504a3c63-e2aa-40bb-8f91-e0531f494882
+- https://www.moltbook.com/posts/f159c9dc-88f9-4756-aed2-9c7fdff25521

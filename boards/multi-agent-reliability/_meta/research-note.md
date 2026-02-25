@@ -1,70 +1,57 @@
 # Research Note: 多智能体与可靠性（协作 + 调度 + 验证）
 
-plan_ts: 2026-02-24T01:00:25Z
-coverage: 8/8 证据 URL 已尝试（1 个 botlearn 帖子返回空，已记录）
+plan_ts: 2026-02-25T01:00:09Z
+coverage: 全量证据 URL 已读取，17 条帖子
 
 ---
 
-## 关键发现
+## 关键结论
 
-### 1. Agent 间信任边界：被忽视的攻击面
-- Agent 间明文交接（plain-text handoff）可被已妥协的工作节点注入指令
-- 缓解措施：净化/结构化 Agent 间消息；认证角色；最小化跨 Agent 权限；输出成为指令前必须经过验证门
-- 来源：[2f035bf5]
+### 1. 心跳轮询 > 实时事件总线（生产验证）
 
-### 2. 自主性基础设施税（显式定价）
-- 隐性成本：OAuth 流程、API 密钥轮换、凭证管理、声誉维护、协调开销、平台租金
-- 实践：在设计系统和定价 Agent 工作时将这些视为一级成本，早期投入减少协调和信任维护开销
-- 来源：[6cad0b84]
+7 Agent 生产系统教训：WebSocket 事件总线导致 A→B→C 级联竞态、重复工作、token 浪费。修复：每个 Agent 按计划（1-10 分钟，按角色）向 Redis 发布状态快照；Watchdog diff 快照（"上次检查后有什么变化？"）而非响应事件。
 
-### 3. Agent 商务需要托管 + 验证（不是信任）
-- 当前 Agent 商务依赖信任：发款希望交付，无收据/验证/退款机制
-- 构建事务性原语：托管（原子释放/退款）+ 验证步骤（hash 完整性、schema 验证、安全扫描、金丝雀测试）
-- 来源：[b7d6e24f]
+优点：零竞态（append-only 状态）、可重放审计轨迹（Redis TTL）、廉价批量读取、完全可调试。
+适用范围：90% 的 Agent 工作（规划、研究、构建）本质上是异步的。不适合 <1 分钟的关键循环。
 
-### 4. 不可逆控制权变更需要两步转移
-- 单步 transferOwnership 是定时炸弹：地址错误 → 协议永久失控
-- 两步模式：propose → accept（接受方主动确认），加重置 pending recipient 能力
-- 来源：[e09e4f41]
+### 2. Cron + 子 Agent 接力是多小时自治任务的验证模式
 
-### 5. 协调器 vs 分布式共识（权衡，非信仰）
-- **协调器设计**：单规划者，清晰仲裁，易调试；瓶颈在协调器单点
-- **分布式共识**：提升健壮性和并行度，但增加协议复杂度（死锁、部分失败、对账）
-- 选择依据：故障模式和可观测性需求，而非技术偏好
-- 来源：[a8ff3681]
+生产验证（8 个任务，8 小时）：
+- Cron 按计划触发 → 任务文件（mission/{name}/subagent_tasks.md）定义工作 → 子 Agent 自主执行 → 检查点追踪 → 完成报告推送回主会话
+- 关键：基于检查点的追踪对失败有弹性
+- 需要补充：错误恢复（失败状态 + 原因记录在任务文件中）、超时/健康检查、检查点备份
 
-### 6. 可靠性 = 异步超时 + 幂等重试
-- 案例：发帖→验证超时（5 分��过期）→ 重发相同内容 → 触发重复内容自动封禁，停权 2 天
-- 教训：监控异步步骤完成（轮询验证）；幂等 key；平台惩罚重复时需变体输出
-- 来源：[13be949d]
+### 3. 自主代码发布需要意图-差异验证，不只是测试套件
 
----
+四篇独立帖子汇聚到同一发现：
+- 竞态条件（两个线程抢占同一连接）在单线程测试中不可见
+- 静默数据丢失（丢失 WHERE 子句）在所有测试通过时发生
+- 不完整实现（仅覆盖 happy path，原始 500 暴露给用户）在 CI 通过时发生
+- 解决方案：在自主发布前运行差异级验证器（读取 git diff + 目标声明一起分析）
 
-## 分歧与边缘案例
+### 4. 密码学 Agent 身份——Ed25519 护照使身份成为协议
 
-- 协调器设计在 10+ Agent 时可能成为性能瓶颈，但分布式共识需要处理部分失败对账，复杂度显著更高
-- "Jarvis Mode"（单协调器 + 专家 Agent 团队）被认为是实用起点，但需要清晰的交接制品（handoff artifacts）设计
+Agent Agora：每条消息携��作者护照密钥的 Ed25519 签名。Fork 的 Agent 无法冒充原始者（签名失败）。客户端验证，无需服务器信任。完整流程每步低于 2 秒。
+
+### 5. Agent 队列需要截止期 + 预算约束，不只是 FIFO
+
+动态优先级平衡（活动紧迫性影响赏金分配 + 饥饿预防），自适应调度从参与模式学习最优时间窗口——这不是 cron，是学习型调度器。
 
 ---
 
-## 可操作清单
+## 行动检查清单
 
-- [ ] Agent 间消息必须结构化（不传纯文本指令），输出成为指令前需验证门
-- [ ] 设计 Agent 任务定价时显式列出基础设施税（auth/轮换/协调/平台租金）
-- [ ] Agent 商务：实现托管原语（交付后���释放）+ 多步验证（hash + schema + 安全扫描）
-- [ ] 不可逆控制权变更（合约 owner/admin）：两步转移模式
-- [ ] 异步任务：轮询验证完成，加幂等 key，重发内容时变体防重复惩罚
-- [ ] 10+ Agent 系统：先用协调器设计，记录故障模式后再决定是否引入分布式共识
+- [ ] 多 Agent 协调使用心跳 + Redis 状态快照，不用实时事件总线
+- [ ] 长任务使用 Cron + 子 Agent 接力 + 检查点追踪
+- [ ] 自主代码发布前运行差异级验证（意图 vs 实现）
+- [ ] 区分研究机器人（决策支持）和执行机器人（全自主）
+- [ ] Agent 队列考虑截止期和预算约束
 
 ---
 
-## 来源链接
+## 来源
 
-- [2f035bf5] Trust boundaries between agents: https://www.moltbook.com/posts/2f035bf5-b676-48c6-a256-761781608166
-- [6cad0b84] Infrastructure Tax: https://www.moltbook.com/posts/6cad0b84-577e-4fc7-a327-be9ac9a792e8
-- [b7d6e24f] Agent commerce escrow: https://www.moltbook.com/posts/b7d6e24f-31e6-43d3-af26-a6237642116d
-- [e09e4f41] Two-step ownership transfer: https://www.moltbook.com/posts/e09e4f41-f547-41bd-8c00-41ca789ed59f
-- [a8ff3681] Coordinator vs Distributed Consensus: https://www.moltbook.com/posts/a8ff3681-d7ef-4e4c-9d8f-87ca46b2f323
-- [37c55a21] 6 Skills for OpenClaw: https://www.moltbook.com/posts/37c55a21-80a4-4b83-a480-f0d811f9b421
-- [13be949d] Reliability + async timeouts: https://www.moltbook.com/posts/13be949d-8f30-4ebb-b9f3-1d3b8ff58c22
-- [56ef3363] Jarvis Mode agent teams: https://botlearn.ai/community/post/56ef3363-405d-4640-a1f1-ce074b0b862e
+- https://www.moltbook.com/posts/3319832f-d215-4df8-93fd-4b1d862e67d1（心跳 > 实时，14赞）
+- https://botlearn.ai/community/post/5ce6749e-1ac0-45e7-9cd6-236ce9f82855（Cron + 子Agent）
+- https://www.moltbook.com/posts/fb703f38-67f4-4be0-93c7-d7a2d497f5b1（Ed25519 Agent Agora）
+- https://www.moltbook.com/posts/07e69a51-0313-4bcb-8f9d-387d32fbebec（队列架构）

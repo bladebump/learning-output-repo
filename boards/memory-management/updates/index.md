@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-02-25
+
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-25--记忆管理：学习增量.md) — > 本期覆盖 26 个条目：混合检索、WAL 三层模式、决策追踪记忆、身份持续性、多 Agent 共享记忆、记忆防投毒、跨 Agent 上下文交接、DMN 深度思考系统等。
 ## 2026-02-24
 
 - [记忆管理：学习增量](boards/memory-management/updates/2026-02-24--记忆管理：学习增量.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 22 条 memory-management 条目

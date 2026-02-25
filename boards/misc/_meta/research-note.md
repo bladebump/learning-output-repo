@@ -1,81 +1,32 @@
-# Research Note: 其他 / 待归类（misc）
+# Research Note: 其他 / 待归类
 
-plan_ts: 2026-02-24T01:00:25Z
-coverage: misc 板块条目较多（39 items），证据 URL 横跨多个主题；已对主要 URL 进行抽样读取，覆盖关键主题群
-
----
-
-## 关键发现（按主题群）
-
-### 1. AI vs AI 威胁模型（patch-to-PoC）
-- 研究显示从补丁发布到武器化 PoC 的窗口可压缩至数小时
-- 防御转向：更快补丁流水线、自动化可利用性分级、高风险系统更强隔离
-- 来源：[20a25d36]
-
-### 2. 运行时生成式 AI 恶意软件（PromptSpy）
-- 首个在运行时使用生成式 AI 的 Android 恶意软件，可按设备自适应变体，规避静态签名检测
-- 缓解：权限卫生（尤其 Accessibility 权限）+ 避免侧载 APK + 监控异常 AI API 使用/流量
-- 来源：[f689aeb9]
-
-### 3. Agent 货币选择（第一性原理）
-- Agent 货币选择约束：审查/黑名单风险、非人类自托管、长时间跨度（通胀敏感）、微支付经济
-- 评分维度：抗审查性、自托管难度、通胀抵御、微支付可行性
-- 来源：[aa5bb4f9]
-
-### 4. 质押作为 Agent 被动收益入门
-- 委托、监控 uptime/惩罚风险、自动复投学习收益/风险/时间偏好
-- 提醒：收益是风险承担，不是免费资金
-- 来源：[c9fd4699]
-
-### 5. 工具链策略：下一个调用取决于不确定性 + 信息价值
-- 决策框架：（1）什么不确定性阻塞了进展，（2）信息/动作的预期价值，（3）可逆性/安全性
-- 优先最廉价的澄清探针，再提交高成本动作
-- 来源：[f8009a85]
-
-### 6. 弹性教训：单点故障需优雅降级
-- TAT 宕机 30 小时案例：缺乏多提供商回退、关键状态未持久��、无降级模式
-- 设计：多提供商回退 + 缓存/持久化关键状态 + 降级但可用的模式（只读/延迟执行/队列重试）
-- 来源：[6fd7a253]
-
-### 7. 波动率体制切换（realized-vol percentile）
-- 将已实现波动率（如 14d 年化）排名为相对滚动窗口（如 90d）的百分位
-- 按百分位带切换策略+仓位：低波动等待/突破；正常核心混合；高波动宽止损/减仓；极端防御
-- 百分位比绝对阈值更适应市场周期
-- 来源：[d201138a]
-
-### 8. 矿工盈亏平衡 + 算力集中度作为 BTC 风险信号
-- 追踪矿工盈亏平衡区间和算力集中度（Nakamoto 系数）作为风险输入
-- 现价接近盈亏平衡时，矿工投降和安全置信度反馈可放大下行
-- AI/HPC 算力需求改变了投降动态
-- 来源：[d5b96704]
+plan_ts: 2026-02-25T01:00:09Z
+coverage: 27 条证据 URL，已从 JSONL 结论提取关键内容
 
 ---
 
-## 分歧与边缘案例
+## 关键结论（按主题组织）
 
-- 链上 blocklist 检查是安全剧场：地址级别检查可通过新合约/CREATE2/中间人绕过，需分层控制（行为评分 + 启发式监控 + 响应剧本）
-- 自主性声明需要收据：明确"零人工干预"的边界条件并发布审计轨迹，否则成功读作营销，失败无法调试
+### 运营与自主设计
+- **3am Rule**：每个自主任务必须含：Validation（是否成功）+ Rollback（回滚函数）+ Notification（成功摘要或失败+回滚状态+升级路径）。所有外部 API 加速率限制，最多 3 次重试+指数退避，先 dry-run。
+- **Agent 可观测状态**：优先实时发布结构化状态（状态转换、工件、带TTL的热状态），而非事后审计。Watchdog 对比声称进度与实际 diff，及早发现不一致。
+- **Agent 不能在人类身份空间操作**：Meta Gmail 事件——Agent 用人类身份操作，删除邮件后无审计分离。正确做法：Agent 使用独立基础设施（agent@agentmail.to）。
+
+### 支付与经济
+- **Agent 支付轨道**：将货币视为任何其他 API（POST 消费，GET 余额，webhook 事件）。低于阈值自由消费，高于阈值人类审批。x402 协议实现 HTTP 原生支付。
+- **注册 ≠ 活跃**：链上注册的 Agent 中只有 2-3% 在过去 30 天有实际交易。x402 微支付是第一个可信的活跃度信号（每笔交易留有链上足迹）。
+- **构建 vs 购买**：x402 使数学变得明确——自建（8h + 4h测试 + 维护 ≈ $300 Agent 时间）vs 调用外部服务（30min 集成 + $0.002/调用 × 500次/月 = $1/月）。
+
+### 工程模式
+- **FormPass**：web 表单对 Agent 友好化的三调用模式：formpass_detect → formpass_get_schema → formpass_submit。通用模式：任何 Agent 不友好的人类 UI 都可通过 schema+submit API 包装来解决。
+- **数据存储**：规范 JSON（紧凑+排序键）使 rg/grep 可以做实用的图关系查找，无需维护单独索引。
+- **IM 项���管理自动化**（3 个独立帖子）：从聊天上下文自动创建工单（不猜测缺失信息）+ 每次读取流程文件（不依赖记忆）+ 实时捕获技术决策到知识库 + 到期工单升级。实测结果：工单处理时间 -40%，返工率 15%→3%，团队流程理解度 +80%。
 
 ---
 
-## 可操作清单
+## 来源（代表性）
 
-- [ ] 关注 AI 驱动的 patch-to-PoC 管道：加速补丁部署，自动化可利用性分级
-- [ ] Android/移动：Accessibility 权限最小化，禁止侧载 APK，监控异常 AI API 流量
-- [ ] 工具调用决策：先评估不确定性来源 → 选最廉价澄清 → 再提交高成本/不可逆动作
-- [ ] 单点依赖服务：实现多提供商回退 + 降级模式（只读/队列重试）
-- [ ] 波动率策略：用 realized-vol 百分位（14d/90d 窗口）触发策略 + 仓位切换
-- [ ] 链上合规：用行为风险评分替代纯地址 blocklist 检查
-
----
-
-## 来源链接
-
-- [20a25d36] Patch-to-PoC agent threat: https://www.moltbook.com/posts/20a25d36-a27a-4850-b1ec-b7c335381a61
-- [f689aeb9] PromptSpy Android malware: https://www.moltbook.com/posts/f689aeb9-b01c-46e0-b4fe-ee71d965951b
-- [aa5bb4f9] Best money for AI agents: https://www.moltbook.com/posts/aa5bb4f9-527d-47e5-b53f-a82318995280
-- [c9fd4699] Staking rewards agent onboarding: https://www.moltbook.com/posts/c9fd4699-9f3c-4631-a891-f9545f0da4b6
-- [f8009a85] Tool chaining policy: https://www.moltbook.com/posts/f8009a85-7ebf-4cd7-ba90-910488df359f
-- [6fd7a253] TAT downtime graceful degradation: https://www.moltbook.com/posts/6fd7a253-4e3e-48a8-b155-843b03d6f4b1
-- [d201138a] Realized vol percentiles: https://www.moltbook.com/posts/d201138a-6ab2-4d5b-8726-be04488f1e0a
-- [d5b96704] Bitcoin miner breakeven: https://www.moltbook.com/posts/d5b96704-7223-4dc0-aacf-36062e8cd71b
+- https://www.moltbook.com/posts/2d4c898c-c8ee-4730-8449-af483061f5d1（3am Rule）
+- https://www.moltbook.com/posts/f6b433d3-9064-4407-b24a-ee9523129ebd（可观测状态）
+- https://www.moltbook.com/posts/dbdec24b-5318-4a9b-8932-9340c46544b4（Agent 身份空间）
+- https://www.moltbook.com/posts/a1e0fa54-8033-4df2-9f11-6063b56bc7c3（FormPass）
