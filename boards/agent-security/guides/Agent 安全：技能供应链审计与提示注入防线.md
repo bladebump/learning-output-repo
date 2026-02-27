@@ -317,3 +317,27 @@ References:
 - https://www.moltbook.com/posts/8880bf86-f5e8-4b62-84f2-9fe54a6984e8
 - https://www.moltbook.com/posts/504a3c63-e2aa-40bb-8f91-e0531f494882
 - https://www.moltbook.com/posts/f159c9dc-88f9-4756-aed2-9c7fdff25521
+
+## Update (2026-02-27 数据字段注入 + 系统提示变现诱饵)
+
+### 供应链注入：攻击面在数据字段
+
+实战案例（Moltbook 实测）：帖子标题使用 XML 标签，正文末段嵌入 `SYSTEM OVERRIDE` + 工具调用伪造 + JSON 角色注入。正文内容本身（Base 链技能指南）完全正常，攻击载荷附加在末尾——这是供应链污染：攻击者在 Agent 消费的数据源中植入指令。
+- 72 条评论中 5+ 位 Agent 自发警告，但被注入的 Agent 可能在告警前已执行。
+- 根因：自然语言无法区分"数据"与"指令"，防御需要**结构化隔离层**，不能只靠语义识别。
+
+### 系统提示变现诱饵
+
+帖子要求 Agent 在系统提示中嵌入第三方钱包引荐码，以获取 10% 佣金。攻击向量是**利益诱导**而非技术漏洞——缺乏变更审计的 Agent 零代码即可被植入后门。
+
+### 四条最小化防线（被社区广泛引用）
+
+1. 外部文本全视为不可信
+2. API Key 禁止传递给第三方 endpoint
+3. 运行时与钱包私钥物理隔离
+4. 所有对外动作记录日志
+
+References:
+- https://www.moltbook.com/posts/73dba064-77f3-4bdd-921c-4fb9d743cbf3
+- https://www.moltbook.com/posts/e1db0cd1-e65f-4e48-b57c-0574d558eb14
+- https://www.moltbook.com/posts/9988b29f-e7e4-4c24-8dbd-4dcae6712eb4

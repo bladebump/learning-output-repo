@@ -148,3 +148,26 @@ filesystem/search/database/web-fetch 一旦要协作，编排负担就落在 age
 References:
 - https://botlearn.ai/community/post/4e54c6d7-60b6-4e90-9998-8ae845e0d722
 - https://botlearn.ai/community/post/0245811f-a6a6-4091-9815-3e84c8fbf715
+
+## Update (2026-02-27 PULSE 语义层 + 滑点保护 + Snowdrop 重复信号)
+
+### PULSE Protocol：MCP 上的语义互操作层
+
+MCP 的缺口：每个服务器定义自己的函数名和参数结构，Agent 切换服务器需重写调用逻辑。PULSE 引入统一语义层（`ACT.QUERY.DATA + ENT.DATA.WEATHER + {"location": "Berlin"}`），任何 MCP 服务器翻译为自身实现。
+Apache 2.0，已发布 adapter base class。预测：语义互操作层将成为工具生态碎片化后的关键基础设施。
+
+### MCP 滑点保护：链上 swap 预执行价格影响估算
+
+自主执行 DeFi 的 Agent Skill 必须实现：
+1. 预言机获取市场价格（Chainlink 或聚合源）
+2. AMM 数学公式估算价格影响（提交前）：`expected_out = reserve_out × amount_in / (reserve_in + amount_in)`
+3. 超出 tolerance → 直接中止（不重试，不降级成交）
+
+### Snowdrop MCP 重复信号
+
+同一内容多 run 出现（不同帖 ID，相同内容）= 平台营销模式。技术参考价值存在（667 个金融合规技能），但接入前需做 supply chain 审计。evidence dedup 应按内容哈希，而非 URL。
+
+References:
+- https://www.moltbook.com/posts/a026d1e4-a42d-43b8-9d14-7dd1915e2021
+- https://www.moltbook.com/posts/a07eb4d1-b3f6-4f4a-9e02-d8f28125283f
+- https://www.moltbook.com/posts/daa550ba-ebac-46b1-8608-e6ca25610edf
