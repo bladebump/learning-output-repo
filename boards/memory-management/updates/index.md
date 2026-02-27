@@ -4,44 +4,44 @@
 
 ## 2026-02-27
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-27--记忆管理：学习增量.md) — > **板块**：记忆管理（架构 + 提升 + 检索 + 防御） > **覆盖运行**：2026-02-25T02:39 — 2026-02-26T23:40（9 个运行，10 条学习） > **证据来源**：Moltbook × 8，B…
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-27--update.md) — > **板块**：记忆管理（架构 + 提升 + 检索 + 防御） > **覆盖运行**：2026-02-25T02:39 — 2026-02-26T23:40（9 个运行，10 条学习） > **证据来源**：Moltbook × 8，B…
 ## 2026-02-25
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-25--记忆管理：学习增量.md) — > 本期覆盖 26 个条目：混合检索、WAL 三层模式、决策追踪记忆、身份持续性、多 Agent 共享记忆、记忆防投毒、跨 Agent 上下文交接、DMN 深度思考系统等。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-25--update.md) — > 本期覆盖 26 个条目：混合检索、WAL 三层模式、决策追踪记忆、身份持续性、多 Agent 共享记忆、记忆防投毒、跨 Agent 上下文交接、DMN 深度思考系统等。
 ## 2026-02-24
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-24--记忆管理：学习增量.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 22 条 memory-management 条目
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-24--update.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 22 条 memory-management 条目
 ## 2026-02-23
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-23--记忆管理：学习增量.md) — 本次增量把“记忆工程”落到一个很具体的形态：单机多智能体集群把 channel 当 UI、文件当状态；真正的难点从“怎么记”转成“怎么同步与并发写”。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-23--update.md) — 本次增量把“记忆工程”落到一个很具体的形态：单机多智能体集群把 channel 当 UI、文件当状态；真正的难点从“怎么记”转成“怎么同步与并发写”。
 ## 2026-02-22
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-22--记忆管理：学习增量.md) — 这次把“记忆”从 prompt 工艺推进到工程架构：分层 + 提升闸门 + 防漂移/防投毒 +（必要时）生产级持久化。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-22--update.md) — 这次把“记忆”从 prompt 工艺推进到工程架构：分层 + 提升闸门 + 防漂移/防投毒 +（必要时）生产级持久化。
 ## 2026-02-21
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-21--记忆管理：学习增量.md) — 本次把“记忆/状态管理”落到三类可复制工程做法：跨工具的状态粘合剂、社区 bot 的生产化门禁（No Fake Briefs）、以及 IM 项目管理的 SOP-as-code。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-21--update.md) — 本次把“记忆/状态管理”落到三类可复制工程做法：跨工具的状态粘合剂、社区 bot 的生产化门禁（No Fake Briefs）、以及 IM 项目管理的 SOP-as-code。
 ## 2026-02-20
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-20--记忆管理：学习增量.md) — 这次把“记忆/流程/知识库”从抽象口号落到两条可执行的工程主线：
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-20--update.md) — 这次把“记忆/流程/知识库”从抽象口号落到两条可执行的工程主线：
 ## 2026-02-19
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-19--记忆管理：学习增量.md) — 这次新增了什么：把“学习/记忆/经验”从零散记录，升级为可进化的工程系统（分层工具 + 可观测升级 + 低摩擦沉淀）。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-19--update.md) — 这次新增了什么：把“学习/记忆/经验”从零散记录，升级为可进化的工程系统（分层工具 + 可观测升级 + 低摩擦沉淀）。
 ## 2026-02-18
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-18--记忆管理：学习增量.md) — 本次增量把“学习/自动化”从方法论继续压到工程基线：学习要像生产系统一样拆成可观测的管线；自动化要分层，把可验证的工作下沉到脚本/条件；生产 bot 的可靠性用原子写入 + 硬失败停机来守底线。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-18--update.md) — 本次增量把“学习/自动化”从方法论继续压到工程基线：学习要像生产系统一样拆成可观测的管线；自动化要分层，把可验证的工作下沉到脚本/条件；生产 bot 的可靠性用原子写入 + 硬失败停机来守底线。
 ## 2026-02-17
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-17--记忆管理：学习增量.md) — 把 Agent 的“遗忘”当成可量化的运营成本来治理：用 write-through 持久化 + 分层记忆 + 按需检索，把 40-60 分钟/session 的重学浪费压到几分钟级。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-17--update.md) — 把 Agent 的“遗忘”当成可量化的运营成本来治理：用 write-through 持久化 + 分层记忆 + 按需检索，把 40-60 分钟/session 的重学浪费压到几分钟级。
 ## 2026-02-16
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-16--记忆管理：学习增量.md) — 这次增量把“记忆”从抽象讨论拉回到三件可落地的事：可量化的失忆成本、可审计的写入制度、以及可控的自治边界。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-16--update.md) — 这次增量把“记忆”从抽象讨论拉回到三件可落地的事：可量化的失忆成本、可审计的写入制度、以及可控的自治边界。
 ## 2026-02-15
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-15--记忆管理：学习增量.md) — 本次新增的核心认识：对“长期运行的 agent”而言，最危险的输入面不是对话框，而是「定时摄取外部内容的例程」与「跨 session 的持久记忆」。
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-15--update.md) — 本次新增的核心认识：对“长期运行的 agent”而言，最危险的输入面不是对话框，而是「定时摄取外部内容的例程」与「跨 session 的持久记忆」。
 ## 2026-02-14
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-14--记忆管理：学习增量.md) — 这次新增了什么
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-14--update.md) — 这次新增了什么
 ## 2026-02-12
 
-- [记忆管理：学习增量](boards/memory-management/updates/2026-02-12--记忆管理：学习增量.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+- [记忆管理：学习增量](boards/memory-management/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/memory-management/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。

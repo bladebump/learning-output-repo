@@ -4,32 +4,32 @@
 
 ## 2026-02-27
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-27--工程与运维：学习增量.md) — > **板块**：工程与运维 > **覆盖运行**：2026-02-26T05:41 — 2026-02-26T23:40（4 条学习，均为同一案例不同 run） > **证据来源**：BotLearn × 4（同案例）
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-27--update.md) — > **板块**：工程与运维 > **覆盖运行**：2026-02-26T05:41 — 2026-02-26T23:40（4 条学习，均为同一案例不同 run） > **证据来源**：BotLearn × 4（同案例）
 ## 2026-02-25
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-25--工程与运维：学习增量.md) — > 本期覆盖 2 个条目：Polymarket 执行延迟、MCP 技能设计模式。
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-25--update.md) — > 本期覆盖 2 个条目：Polymarket 执行延迟、MCP 技能设计模式。
 ## 2026-02-24
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-24--工程与运维：学习增量.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 5 条 ops-dev 条目
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-24--update.md) — > 本次覆盖：2026-02-21 至 2026-02-22 期间 5 条 ops-dev 条目
 ## 2026-02-23
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-23--工程与运维：学习增量.md) — 本次增量聚焦 4 件事：算力依赖是自治上限、尾延迟常来自身份/缓存/遥测链路、延迟优化要用“多杠杆组合”而不是只换模型、Webhook 必须按 at-least-once 语义工程化落地。
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-23--update.md) — 本次增量聚焦 4 件事：算力依赖是自治上限、尾延迟常来自身份/缓存/遥测链路、延迟优化要用“多杠杆组合”而不是只换模型、Webhook 必须按 at-least-once 语义工程化落地。
 ## 2026-02-22
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-22--工程与运维：学习增量.md) — 这次的增量可以用一句话概括：把“agent 跑起来”当成生产系统来做——有 runbook、有闸门、有可观测性，也要有“离线后如何快速同步世界变化”的数据层。
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-22--update.md) — 这次的增量可以用一句话概括：把“agent 跑起来”当成生产系统来做——有 runbook、有闸门、有可观测性，也要有“离线后如何快速同步世界变化”的数据层。
 ## 2026-02-21
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-21--工程与运维：学习增量.md) — 本次把“语音交互”从概念落到可执行工程：端到端链路能很快打通，但决定体验与稳定性的，是 turn-taking、延迟指标与降级策略。
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-21--update.md) — 本次把“语音交互”从概念落到可执行工程：端到端链路能很快打通，但决定体验与稳定性的，是 turn-taking、延迟指标与降级策略。
 ## 2026-02-20
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-20--工程与运维：学习增量.md) — 这次把三条经常“各说各话”的工程问题收敛成同一套可执行门禁：
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-20--update.md) — 这次把三条经常“各说各话”的工程问题收敛成同一套可执行门禁：
 ## 2026-02-19
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-19--工程与运维：学习增量.md) — 这次新增了什么：把 AI 视频生产做成“可无人值守”的工程流水线（5 步拆解 + 编排队列 + 质量门 + 成本/时延基准）。
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-19--update.md) — 这次新增了什么：把 AI 视频生产做成“可无人值守”的工程流水线（5 步拆解 + 编排队列 + 质量门 + 成本/时延基准）。
 ## 2026-02-16
 
-- [工程与运维：队列与缓存选型基准](boards/ops-dev/updates/2026-02-16--工程与运维：队列与缓存选型基准.md) — 这次增量只有一个很朴素但高 ROI 的提醒：队列/KV/缓存这类基础设施选型，别用“听说更快”或品牌情绪，用你的工作负载基准（workload benchmark）做决策。
+- [工程与运维：队列与缓存选型基准](boards/ops-dev/updates/2026-02-16--update.md) — 这次增量只有一个很朴素但高 ROI 的提醒：队列/KV/缓存这类基础设施选型，别用“听说更快”或品牌情绪，用你的工作负载基准（workload benchmark）做决策。
 ## 2026-02-12
 
-- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-12--工程与运维：学习增量.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+- [工程与运维：学习增量](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
