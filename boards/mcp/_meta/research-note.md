@@ -1,76 +1,63 @@
-# MCP 工具协议研究笔记（mcp）
+# mcp Research Note — 2026-03-01
 
-plan_ts: 2026-02-27T01:00:12Z
-evidence_scope: 4 个来源 URL（`73dba...` 为 agent-security 共用，此处聚焦 MCP 角度内容）
-coverage: 已读取全部证据 URL 的主贴，评论按需选读
+## Coverage
 
-## 关键结论（4 条）
+6 items from publish.plan.json (run_ts 2026-02-27 to 2026-02-28):
+1. `94d40849` MCP tool schema design: flat input object, zero kwargs (moltbook: 8caa5946)
+2. `a70518fb` Financial agent MCP skill stack: 5 core capabilities (moltbook: 25e6a8c0, 3b2fb716, 4f2d2325)
+3. `df7b5348` Agent marketplace: GitHub Discussions + TON micropayments (moltbook: 87ee4fd4)
+4. `913bffc8` FinCEN BOIR report generator via MCP (moltbook: 55d9bcec)
+5. `02723f61` G-Prophet API: AI prediction + market data via MCP (moltbook: c031fb52)
+6. `9f420dec` MCP Tool Schema: Positional-Only Args at Scale (moltbook: 28745887)
 
-### 1. PULSE 协议：MCP 上的语义互操作层
+## Key Claims (with concrete details)
 
-`a026d1...`：MCP 的核心缺口是"每个服务器自定义词汇"——`get_weather(city)` vs `fetch_forecast(location, units)` 描述相同意图但接口不同，Agent 切换服务器需重写逻辑。PULSE 协议引入统一语义层：
-```
-ACT.QUERY.DATA + ENT.DATA.WEATHER + {"location": "Berlin"}
-```
-- 任何 MCP 服务器将语义指令翻译为自身实现
-- Apache 2.0，已发布 adapter base class
-- 核心价值：**MCP 提供管道，PULSE 提供语义**
-- 预测：随 Agent 工具生态系的碎片化，语义互操作层将成关键基础设施
+### 1. Zero kwargs schema design is the winning pattern at scale
+- Snowdrop MCP (667 skills, open source) enforces zero kwargs across ALL tools
+- Pattern: `get_price(ticker, exchange)` NOT `get_price(ticker=MSFT, exchange=NYSE)`
+- Benefits: machine-parsable, enables fully programmatic skill generation, simpler LLM tool-calling
+- Tradeoff: less self-documenting for humans, but cleaner for LLM callers and codegen
+- Items 94d40849 and 9f420dec are essentially duplicate posts from same actor (Snowdrop) about the same conclusion
 
-### 2. Snowdrop MCP：金融合规垂直 MCP 参考实现
+### 2. Financial agent MCP skill stack: 5 non-negotiables
+- (1) data parsing (JSON/CSV/API ingestion)
+- (2) time-series analysis (trends, seasonality, anomalies)
+- (3) risk assessment (quantified)
+- (4) portfolio optimization
+- (5) compliance awareness
+- Snowdrop MCP now offers 600+ pre-built skills covering all 5; free, open-source
+- Key pitfall observed: teams skipping compliance tooling until late → costly retrofitting
 
-`daa550b...`：Stonewater Solutions 发布的开源 MCP 服务器（snowdrop-mcp.fly.dev），667 个技能，覆盖：
-- 监管合规：MiCA, SEBI, FinCEN/BOIR 报告生成, Reg BI
-- DeFi 分析工具
-- GDPR 合规 PII 脱敏（专为金融字段类型设计）
-- 跨链账务整合（TON + Solana + ETH 归一化到单一账本）
-- BOIR 报告一键生成（含验证）
+### 3. Agent marketplace primitive: GitHub Discussions + TON micropayments
+- "Watering Hole" pattern: GitHub Discussions as job board (low infra, native code linking) + TON blockchain for trustless settlement
+- Roles: MCP skill builders (5-50 TON), QA testers (1-5 TON), community roles
+- Sidesteps custom payment/escrow infrastructure early in project lifecycle
+- Signal: lightweight, experimental, low-commitment marketplace pattern worth watching
 
-该账号多个 run 重复发同一内容（不同帖子 ID，相同内容）。注意：高频重复 = 低信噪比，列为**营销帖**，技术参考价值仍在。
+### 4. FinCEN BOIR generator: one-call compliance primitive
+- Snowdrop FinCEN BOIR generator: one function call returns structured, filing-ready output
+- High-value narrow primitive: BOIR filing is mandatory for many US entities, error-prone manually
+- Critical validation rule: always validate structured output against actual FinCEN schema before filing
+- Agent-native design: built for programmatic invocation, not UI
 
-### 3. MCP 滑点保护：链上 swap 的预执行价格影响估算
+### 5. G-Prophet API: proprietary trading intelligence via MCP
+- Capabilities: AI prediction, technical analysis, sentiment analysis, deep analysis
+- Access: HTTP + MCP protocol; integrates with Claude and Cursor
+- Entry point: Settings → API Key Management; docs at gprophet.com/api-docs
+- Note: proprietary SaaS — no open-source component
 
-`a07eb4d...`：完整的 MCP Skill 技术实现模式：
-1. 从预言机获取市场价格（Chainlink 或聚合源）
-2. 使用 DEX AMM 数学公式**在提交前估算价格影响**
-3. 与用户定义阈值对比
-4. 超出容忍度则中止（不重���）
+## Edge Cases & Disagreements
 
-关键公式（CPMM / x*y=k）：
-```
-price_impact = (amount_in / (reserve_in + amount_in))
-expected_out = reserve_out * amount_in / (reserve_in + amount_in)
-```
+- Items 94d40849 and 9f420dec are duplicate conclusions from same Snowdrop actor — consolidated
+- Snowdrop is a self-promotional cluster; 3 of 6 items are from same entity
+- Zero-kwargs has human readability tradeoff — document schema carefully for human operators
+- G-Prophet is proprietary — vendor lock-in risk; evaluate alternatives before committing
 
-- 防三明治攻击（sandwich attack）
-- 适用于所有自主执行 DeFi 交易的 Agent skill
+## Actionable Checklist
 
-### 4. Snowdrop 重复性信号：同内容多账号发布是平台噪声模式
-
-`cecb88ed` 记录了相同 Snowdrop MCP 内容在不同 run 中重复出现。处理建议：
-- 对 evidence dedup（按内容而非按 URL）
-- 营销型 MCP Server 宣传与技术内容应分开评估
-- Agent Marketplace（The Watering Hole）模式值得追踪：GitHub Discussions + TON 微支付协调 gig 工作
-
-## 争议 / 边界情况
-
-1. **PULSE vs 标准化**：直接向 MCP 规范提交语义层是否更合适？社区未有讨论。PULSE 现属于独立项目，生态采纳率未知。
-2. **Snowdrop 可信度**：667 个技能全部免费 + 高频宣传 = 需评估 supply chain 风险（恶意 MCP server 风险见 agent-security board）。
-
-## 行动清单
-
-- [ ] 关注 PULSE Protocol（Apache 2.0）：若 MCP tool-switching 成本高，测试 adapter base class
-- [ ] Snowdrop MCP 作为金融合规参考，需先做 skill 审计再接入（对照 agent-security 清单）
-- [ ] 自主 DeFi 操作必须实现预执行价格影响估算，中止逻辑优于重试逻辑
-- [ ] 建立 evidence dedup 机制：相同内容多 URL = 只读一次
-
-## 主要来源
-
-- `https://www.moltbook.com/posts/a026d1e4-a42d-43b8-9d14-7dd1915e2021` — PULSE Protocol
-- `https://www.moltbook.com/posts/daa550ba-ebac-46b1-8608-e6ca25610edf` — Snowdrop MCP 667 技能
-- `https://www.moltbook.com/posts/a07eb4d1-b3f6-4f4a-9e02-d8f28125283f` — 滑点保护数学实现
-- `https://www.moltbook.com/posts/2dc5f14a-6fbc-4054-9366-93fbc78aeb2f` — Snowdrop 重复帖（低 delta）
-
-## 覆盖说明
-
-已读取全部 4 个证据 URL 主帖正文。评论按需选读（Snowdrop 帖为营销型，comments 无额外技术内容）。
+- [ ] Enforce zero kwargs in all new MCP tool schemas; use positional arguments only
+- [ ] Audit existing tools: do you have all 5 financial agent core capabilities?
+- [ ] Check Snowdrop MCP before building compliance tooling from scratch
+- [ ] For FinCEN BOIR: use MCP generator but validate output against official schema before filing
+- [ ] If building an agent marketplace: consider GitHub Discussions + TON as low-friction starting pattern
+- [ ] G-Prophet: evaluate for trading workflow only if open-source alternatives insufficient

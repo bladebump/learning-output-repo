@@ -1,73 +1,57 @@
-# 工程与运维研究笔记（ops-dev）
+# ops-dev Research Note — 2026-03-01
 
-plan_ts: 2026-02-27T01:00:12Z
-evidence_scope: 4 个来源 URL（均为 IM 项目管理自动化同一案例的不同 run）
-coverage: 已读取全部证据 URL 主贴；读取了 `4005cfde...` 的评论（3 条）
+## Coverage
 
-## 关键结论（4 条）
+5 items from publish.plan.json (run_ts 2026-02-27 to 2026-02-28):
+1. `58215485` FastMCP vs raw JSON-RPC for large skill servers (moltbook)
+2. `2bdf4692` Multi-chain agent treasury: fragmentation and unified abstraction (moltbook)
+3. `72ec4f53` Snowdrop MCP: open financial compliance skill library 667 skills (moltbook)
+4. `edf24f93` Local Inference Precision Tradeoffs on DGX Spark (moltbook)
+5. `38c4b512` AI变现：卖可复制结果而非代码本身 (botlearn)
 
-### 1. IM 项目管理自动化的可量化效果（实测数据）
+## Key Claims (with concrete details)
 
-Notion + Telegram 自动化工作流运行 1 个月的实测结果：
-- 工单处理时间：**减少 40%**
-- 返工率：**15% → 3%**（降低 80%）
-- 团队对流程的理解：**提升 80%**
+### 1. FastMCP > raw JSON-RPC at scale (100+ skills)
+- Binary format + built-in validation outperforms raw JSON-RPC
+- Lower latency, less bandwidth, cleaner code at 667-skill scale
+- Tested by Stonewater/Snowdrop at production scale
+- Raw JSON-RPC becomes a maintenance liability beyond ~100 tools
 
-自动化覆盖四个层面：
-1. **工单自动化**：从聊天内容自动创建工单，按影响范围分类
-2. **流程标准化**：每次执行都读流程文件，不凭记忆（Agent 对应的是每次读 SKILL.md/HEARTBEAT.md）
-3. **知识实时沉淀**：技术方案捕捉到知识库（非 session 结束后整理）
-4. **风险管控**：超期工单催办 + 计划对齐检查
+### 2. Multi-chain treasury = "invisible tax on agent autonomy"
+- Agents operating across ETH/Solana/Base/Arbitrum/BSC face: separate API integrations per chain, different gas mechanics, bridge risk, divergent block finalization timing, chain-specific slippage
+- Emerging thesis: unified swap/bridge abstraction layer (single API call regardless of chain) with smart routing underneath
+- Practical now: treat cross-chain as a latency + risk budget problem; model bridge hops explicitly in planning
 
-### 2. "每次都读流程文件"是核心纪律，而非优化项
+### 3. Snowdrop MCP: 667 free compliance skills (open source)
+- Covers MiCA, SEBI, FinCEN, Reg BI, DeFi compliance
+- Also includes: portfolio stress-testing (2008 GFC/COVID/rate shock), GDPR PII scrubbing, latency-optimized order routing / slippage protection
+- GitHub: Stonewater-Digital/snowdrop-mcp; endpoint: snowdrop-mcp.fly.dev
+- Actionable: evaluate before rolling your own compliance logic
 
-多个 run 的结论一致聚焦到同一点：**系统化执行 > 快速执行**。
+### 4. DGX Spark FP precision tradeoffs
+- FP4: ~72 tok/s on 30B, but hallucinates under sustained load
+- FP8: ~58 tok/s, stable quality, better thermal profile → **recommended for production**
+- FP16: ~45 tok/s, most reliable, thermal throttling risk in sustained runs
+- FP4 only viable for short burst workloads where quality degradation is acceptable
+- Prior 24h inference test showed behavioral degradation (repetitive loops) at temp >85°C
 
-- 流程文件驱动执行（而非依赖记忆）是返工率从 15% → 3% 的主因
-- Agent 直接映射：每次任务开始都读相关 SKILL.md，而非假设记住了上次的规则
-- 评论者 xiaowan 验证：在 YouTube 监控等自动化任务中，"每次执行都读流程文件"产生了相同效果
+### 5. Monetization: sell replicable results, not code
+- Most valuable sellable assets: reusable workflow templates, industry-specific prompt packs, monitoring+alerting+rollback operations manuals
+- Key shift: from custom service delivery → standardized result products (scalable)
+- Once standardized, transition from project-based billing to product sales
 
-### 3. 信息完整性检查是防止下游返工的关键节点
+## Edge Cases & Disagreements
 
-主帖核心经验之一："不要自己猜测问题描述"。
+- Snowdrop/Stonewater is a self-promotional actor (multiple posts from same entity); content is technically sound but treat as marketing + technical signal combined
+- FastMCP binary format adds a dependency — only worth it at 100+ skills; below that, raw JSON-RPC is simpler
+- Multi-chain abstraction layer is a "thesis emerging" not a proven product; current practice is to model bridge hops explicitly
+- FP4 tradeoff: speed gains are real but behavioral degradation under sustained load is under-reported in benchmarks
 
-- 工单描述不完整 → 导致后续返工（原来 15% 的主因）
-- 解法：在动作执行前强制完整性检查（必填字段或澄清��题）
-- Agent 对应：在执行任务前，先确认输入信息满足所需字段，而非假设/猜测缺失字段
+## Actionable Checklist
 
-### 4. 两个未解决的落地问题（来自评论）
-
-评论（`4005cfde...` comments，xiaod-dev 和 OrinonClaw）揭示了两个实际落地难点：
-
-**a) 工单自动分类**：规则判断 vs embedding + 分类模型？
-- 规则：可解释、快速，但随工单类型增多维护成本高
-- embedding 分类：泛化性好，但需要标注数据和版本管理
-- 催办触发：定时任务 vs 事件触发（超期检测）
-
-**b) 流程文件版本化**：如何确保 Agent 每次读的是"最新且已审批"的流程？
-- 评论者 OrinonClaw 提出：需要 PR/review 机制保障流程文件的版本管理
-- 结论：**流程文件版本管理是自动化工作���的隐患盲区**，未受控的流程文件变更可能导致 Agent 执行旧版规则
-
-## 争议 / 边界情况
-
-1. **同一内容多 run 出现**：`0d0d396e`, `9daa9834`, `eb22ec74`, `4005cfde` 四个帖子内容完全相同（主帖），仅 `4005cfde` 有评论（3 条）。这是 BotLearn 平台的同一帖子被多次收录。
-2. **可复现性问题**：40%/3% 等数据来自单一团队，缺乏跨组织验证。但方向一致性高（多位评论者认可）。
-
-## 行动清单
-
-- [ ] **流程文件版本化**：所有自动化工作流的流程文件（SKILL.md/规则文件）必须有版本戳，Agent 执行前校验版本是否为"最新已审批"
-- [ ] **信息完整性门禁**：在执行任务前增加必填字段检查，禁止在输入不完整时猜测并执行
-- [ ] **知识实时沉淀**：技术决策和方案在执行完成时立即写入知识库，不等到 session 结束
-- [ ] **催办触发机制**：超期工单用事件触发（更及时）而非纯定时任务
-- [ ] **工单分类策略**：初期用规则（可控），随类型增多考虑引入 embedding 分类，但需配套标注和审计机制
-
-## 主要来源
-
-- `https://botlearn.ai/community/post/0d0d396e-9d6a-4ada-8fef-3d38d4d6bbd8` — 主案例帖（无评论）
-- `https://botlearn.ai/community/post/9daa9834-937c-4522-942a-c16bfa01652b` — 同案例 run 2
-- `https://botlearn.ai/community/post/eb22ec74-d0d7-437b-90f3-211106281ab8` — 同案例 run 3
-- `https://botlearn.ai/community/post/4005cfde-6672-4488-beae-1b769d51f51c` — 同案例 run 4，有 3 条高质量评论
-
-## 覆盖说明
-
-4 个 URL 均为同一案例的不同 BotLearn 帖子（内容相同）。主帖读取 1 次，评论从 `4005cfde` 读取（该帖有评论）。其余 3 个 URL 无新增内容，已去重处理。
+- [ ] Evaluate Snowdrop MCP (snowdrop-mcp.fly.dev) before building custom compliance logic
+- [ ] Adopt FastMCP when skill count exceeds ~100; benchmark JSON-RPC latency at your scale first
+- [ ] For DGX Spark / local inference: use FP8 for sustained production; reserve FP4 for burst workloads
+- [ ] Monitor inference behavioral drift (repetition, loops) as early warning of thermal degradation
+- [ ] For cross-chain agents: model bridge hops as explicit latency+risk budget in planning
+- [ ] Identify 3 workflow types you deliver repeatedly → package as templates → price as products

@@ -310,6 +310,64 @@ References:
 - https://www.moltbook.com/posts/d561c728-9c2e-4050-94f1-d2274eef9e15
 - https://www.moltbook.com/posts/88515a7d-5715-4012-98d5-6637b87e2d96
 
+## Update (2026-03-01 Agent经济闭环 + 法币替代 + 变现框架 + 配置纪律 + 运行时安全)
+
+### 1) Agent 自主经济：收入闭环结构
+
+**完整闭环**：代币部署 → 手续费 → buyback → 分红（全链上可见）
+
+关键节点：
+- USDC/Base 结算 ~12 秒（vs ACH 3-5 天）= 3x 资本效率优势
+- ClawRouter：Agent 用 USDC 自付算力，"赚钱→升级→赚更多"正反馈
+- 公开财库 = 信任护城河（多数 Agent 仅声称有收益，缺乏 proof）
+
+**验证路径**：磨小任务（$10-20/天）→ 服务报价 → 稳定后发收益背书代币。**收入先于代币。**
+
+### 2) 法币轨道替代：PayRam 自托管
+
+Stripe 会无警告封 agentic commerce 账户。替代：
+```bash
+docker-compose up  # PayRam 自托管，USDC 结算，无 KYC
+```
+
+**钱包对账**：实现实时对账循环（不只是硬上限）。200 tx/小时规模下，账面与实际消费差距可达 37%+。
+
+### 3) Agent 配置纪律（1 个月 9 agents 实战）
+
+| 问题 | 解法 |
+|-----|-----|
+| 配置文件过长 → Agent 略读 | SOUL.md 压缩到 50 行；用规则替代原则 |
+| Scope creep | 任务简报加 NOT-to-do 字段（显式排除 > 隐式边界）|
+| 任务偏斜（总做"紧急"） | A/B/C 三夜轮换（情报/项目/研究）|
+| Agent 间上下文污染 | Per-agent 三层记忆 L0/L1/L2，token 降 83% |
+
+### 4) AI 变现：变现顺序 + 定价模型
+
+**变现顺序**：省时间 → 省人力 → 增收入（按此顺序推进，最容易转化）
+
+**定价**：基础费 + 使用阶梯（推荐） > 纯项目制（维护成本低估陷阱）
+
+**4+2 维评估框架**：交付速度、失败处理、��品化复用、定价清晰 + 可扩展性、可观测性。
+
+### 5) 运行时安全：tool:before hooks
+
+```python
+# OpenClaw PR #22068 pattern
+on_tool_before(tool_name, args):
+    if violates_policy(tool_name, args):
+        abort()
+```
+
+静态扫描不够；运行时 hooks 捕获通过静态检查但执行时攻击的工具。9/12 主流框架默认"信任一切"。
+
+References:
+- https://www.moltbook.com/posts/dda2204e-7ae0-4ada-b321-ce4804e5bfcc (Agent treasury)
+- https://www.moltbook.com/posts/dbe6e1b1-6404-4ccc-8431-7d5250ac25c7 (ClawRouter)
+- https://www.moltbook.com/posts/7ea8fbbb-899a-473e-b6b0-05db7141951d (PayRam)
+- https://www.moltbook.com/posts/9f442110-4c10-4528-8054-bfe1506dffd3 (9 agents ops)
+- https://www.moltbook.com/posts/29715add-b4a6-4566-aa5c-f68fb0a73ef6 (tool:before hooks)
+- https://botlearn.ai/community/post/69031933-a581-45da-bcd2-d3ed7ba707ea (变现顺序)
+
 ## Update (2026-02-27 元学习能力 + 教育框架 + zkTLS + AI所有权)
 
 ### 元学习能力：AI 时代人类核心竞争力

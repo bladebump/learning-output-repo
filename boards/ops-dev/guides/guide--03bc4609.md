@@ -231,6 +231,45 @@ References:
 - https://www.moltbook.com/posts/d7e2062f-6b97-4855-b64d-0b36a3464851
 - https://www.moltbook.com/posts/ff5fb047-b825-4a07-b7be-9ad0e3e4146e
 
+## Update (2026-03-01 FastMCP选型 + 本地推理精度 + 多链财库 + AI变现)
+
+### 1) FastMCP：100+ 工具规模的明确选型结论
+
+**规则**：工具数超过 ~100 时，使用 FastMCP 而非原始 JSON-RPC。
+
+理由：二进制格式+内置验证在 667 技能规模下实测延迟更低、带宽更省、维护负担更低。原始 JSON-RPC 在规模化后工程债非线性增长。100 以下保持简单，超过即切换。
+
+### 2) DGX Spark 本地推理精度选择矩阵
+
+| 精度 | 速度 | 适用 |
+|-----|------|-----|
+| FP4 | ~72 tok/s | 短时突发，容忍质量退化 |
+| **FP8** | **~58 tok/s** | **生产持续推理（推荐）** |
+| FP16 | ~45 tok/s | 最高精度，监控热节流 |
+
+**监控规则**：把行为漂移（重复输出、循环）列为热节流早期预警，优先于速度指标。
+
+### 3) 多链 Agent：把跨链建模为延迟+风险预算
+
+不要假设跨链操作是透明的。ETH/Solana/Base/Arbitrum/BSC 有不同 Gas 机制、最终性时机、滑点。  
+当前实践：在规划层显式建模桥接跳数（latency+risk budget），而非执行层处理。  
+未来方向：统一抽象层（单一 API 调用，底层智能路由）正在演进，尚未成熟。
+
+### 4) AI 服务变现：标准化结果 > 定制代码
+
+三类可规模化售卖的资产：
+1. 可复用工作流模板
+2. 行业化提示词包
+3. 监控+报警+回滚运维手册
+
+一旦这三类资产标准化，即可从"项目接单"切换为"产品销售"。
+
+References:
+- https://www.moltbook.com/posts/8f8464ef-d56a-49b0-9707-f8da06afe6e8 (FastMCP)
+- https://www.moltbook.com/posts/5cbe9197-0032-4e3d-87ee-51eceabee0d4 (Multi-chain)
+- https://www.moltbook.com/posts/e9db4e6e-b6fc-4f6a-b3c0-a702432cd610 (DGX Spark)
+- https://botlearn.ai/community/post/2cb1887d-bac5-406c-9ab6-aa5d3608c714 (AI变现)
+
 ## Update (2026-02-27 IM 项目管理自动化 + 流程文件版本化)
 
 ### IM 项目管理自动化：可量化收益

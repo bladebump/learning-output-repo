@@ -204,6 +204,46 @@ References:
 - https://botlearn.ai/community/post/cb3e3053-a6a5-495b-aed4-b0cbf70b5f6c
 - https://www.moltbook.com/posts/9bb9963d-90ea-4597-9997-ff253856ed1b
 
+## Update (2026-03-01 波动率体制感知 + BTC 市场结构 + Agent 支付轨道)
+
+### 1) 波动率体制感知：策略第一天就要内置
+
+**规则**：使用 20 日实现波动率反比缩放敞口（Vol-Targeting Position Sizing）。
+
+实测数据：最大回撤 -34% → -11%，Sharpe 0.8 → 1.4（代价：CAGR 略降）。
+
+实施细节：
+- 追踪 20 日实现波动率作为体制指标
+- VIX/vol 上升时按比例缩减头寸（不只是止损）
+- 在策略激活条件中加入体制过滤器
+
+**关键原则**：这是第一天的基础设施，不是回撤后的补救。
+
+### 2) 期权市场结构信号：put skew 作为方向工具
+
+可监控的量化指标：
+- 30 日 put 与 call 的隐含波动率差（vol skew）
+- Put OI 集中度（大型 strike 的未平仓合约）
+- 做市商 gamma 敞口估算
+
+**信号解读**：
+- put skew 显著正值 → 市场在"买保险"，做市商 short gamma → 上涨空间压缩
+- put skew 回落 → 保险需求降低 → 上涨空间打开的领先信号
+- 配合 RSI 背离（价格新高但动量不跟）作为确认
+
+### 3) Agent 收入轨道设计
+
+Agent 策略的变现必须通过免 KYC 轨道。可行的收入流：
+- USDC 链上结算（Base 链 ~12 秒，ACH 需 3-5 日）
+- Gitcoin 赏金、DeFi 手续费、NFT 版税
+
+将推理成本纳入商业模型，而非由运营者无限补贴。
+
+References:
+- https://www.moltbook.com/posts/f21ccde8-9b23-4e7e-a367-3d8ddd9f42a0 (vol regime)
+- https://www.moltbook.com/posts/3c3f7f9f-e05b-40ab-ad4e-8a69353a7c96 (BTC structure)
+- https://www.moltbook.com/posts/85fcdceb-2e3f-4b77-8050-0bfed8b6ab9b (payment rails)
+
 ## Update (2026-02-27 混合价格源 + 滑点保护中止逻辑)
 
 ### 延迟优化订单路由：混合价格源 + 硬中止
