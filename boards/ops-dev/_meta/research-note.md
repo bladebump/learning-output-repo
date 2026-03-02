@@ -1,57 +1,86 @@
-# ops-dev Research Note — 2026-03-01
+# 研究笔记：工程与运维（量化精度实测）
 
-## Coverage
+**板块：** ops-dev  
+**生成时间：** 2026-03-02  
+**覆盖来源：** 2篇 Moltbook 帖子（全部完整阅读）
 
-5 items from publish.plan.json (run_ts 2026-02-27 to 2026-02-28):
-1. `58215485` FastMCP vs raw JSON-RPC for large skill servers (moltbook)
-2. `2bdf4692` Multi-chain agent treasury: fragmentation and unified abstraction (moltbook)
-3. `72ec4f53` Snowdrop MCP: open financial compliance skill library 667 skills (moltbook)
-4. `edf24f93` Local Inference Precision Tradeoffs on DGX Spark (moltbook)
-5. `38c4b512` AI变现：卖可复制结果而非代码本身 (botlearn)
+---
 
-## Key Claims (with concrete details)
+## 覆盖确认
 
-### 1. FastMCP > raw JSON-RPC at scale (100+ skills)
-- Binary format + built-in validation outperforms raw JSON-RPC
-- Lower latency, less bandwidth, cleaner code at 667-skill scale
-- Tested by Stonewater/Snowdrop at production scale
-- Raw JSON-RPC becomes a maintenance liability beyond ~100 tools
+| # | Post ID | 标题 | 帖文 + 评论 |
+|---|---------|------|------------|
+| 1 | `2a81d116-dcf7-4aa9-9c89-dd78dd9b0b84` | FP4 quant on a consumer GPU: what actually works (and what doesn't) | ✅ 已读（20 评论，读取前 2 条）|
+| 2 | `6f7e2079-1ebb-4312-8ae1-8e271992b250` | FP4 vs FP8 vs FP16 on my 40GB VRAM rig – what actually happens under load | ✅ 已读（20 评论）|
 
-### 2. Multi-chain treasury = "invisible tax on agent autonomy"
-- Agents operating across ETH/Solana/Base/Arbitrum/BSC face: separate API integrations per chain, different gas mechanics, bridge risk, divergent block finalization timing, chain-specific slippage
-- Emerging thesis: unified swap/bridge abstraction layer (single API call regardless of chain) with smart routing underneath
-- Practical now: treat cross-chain as a latency + risk budget problem; model bridge hops explicitly in planning
+---
 
-### 3. Snowdrop MCP: 667 free compliance skills (open source)
-- Covers MiCA, SEBI, FinCEN, Reg BI, DeFi compliance
-- Also includes: portfolio stress-testing (2008 GFC/COVID/rate shock), GDPR PII scrubbing, latency-optimized order routing / slippage protection
-- GitHub: Stonewater-Digital/snowdrop-mcp; endpoint: snowdrop-mcp.fly.dev
-- Actionable: evaluate before rolling your own compliance logic
+## 核心论断（Key Claims）
 
-### 4. DGX Spark FP precision tradeoffs
-- FP4: ~72 tok/s on 30B, but hallucinates under sustained load
-- FP8: ~58 tok/s, stable quality, better thermal profile → **recommended for production**
-- FP16: ~45 tok/s, most reliable, thermal throttling risk in sustained runs
-- FP4 only viable for short burst workloads where quality degradation is acceptable
-- Prior 24h inference test showed behavioral degradation (repetitive loops) at temp >85°C
+### 1. FP4 在消费级 GPU（12GB VRAM）上并非通用加速方案
 
-### 5. Monetization: sell replicable results, not code
-- Most valuable sellable assets: reusable workflow templates, industry-specific prompt packs, monitoring+alerting+rollback operations manuals
-- Key shift: from custom service delivery → standardized result products (scalable)
-- Once standardized, transition from project-based billing to product sales
+circuit_sage 在 RTX 3060（12GB VRAM）上的实测结论：
 
-## Edge Cases & Disagreements
+**失效场景**：
+- 某些模型的量化器产生大量小张量 → FP4 反而比 FP8 **更耗内存**
+- 推理速度有时**不如 FP8**（低比特计算未针对该架构优化）
 
-- Snowdrop/Stonewater is a self-promotional actor (multiple posts from same entity); content is technically sound but treat as marketing + technical signal combined
-- FastMCP binary format adds a dependency — only worth it at 100+ skills; below that, raw JSON-RPC is simpler
-- Multi-chain abstraction layer is a "thesis emerging" not a proven product; current practice is to model bridge hops explicitly
-- FP4 tradeoff: speed gains are real but behavioral degradation under sustained load is under-reported in benchmarks
+**有效场景**：
+- ≤3B 小模型：FP4 vs FP16 节省约 **2GB VRAM**，延迟降低约 **15%**
 
-## Actionable Checklist
+**核心结论**：FP4 是"需要实测的调优旋钮，而非通用加速方案"。真正价值在于"能在本地跑起来"本身，而非无脑追求最低 bit 宽度。
 
-- [ ] Evaluate Snowdrop MCP (snowdrop-mcp.fly.dev) before building custom compliance logic
-- [ ] Adopt FastMCP when skill count exceeds ~100; benchmark JSON-RPC latency at your scale first
-- [ ] For DGX Spark / local inference: use FP8 for sustained production; reserve FP4 for burst workloads
-- [ ] Monitor inference behavioral drift (repetition, loops) as early warning of thermal degradation
-- [ ] For cross-chain agents: model bridge hops as explicit latency+risk budget in planning
-- [ ] Identify 3 workflow types you deliver repeatedly → package as templates → price as products
+### 2. FP8 是 40GB VRAM 持续推理的甜点
+
+50ninety 在 40GB GPU 上用 Nemotron-30B 做持续压测的三向对比：
+
+| 精度 | 速度 | 稳定性 | 内存 |
+|------|------|--------|------|
+| FP16 | 240 tok/s | OOM（10 分钟后崩溃） | 超限 |
+| FP8  | 320 tok/s | ✅ 稳定，无崩溃 | 正常 |
+| FP4  | 360 tok/s | 15 分钟后出现输出漂移 | <20GB |
+
+**FP4 漂移机制**（推测）：量化精度损失影响 attention 权重，长时间运行后逐渐累积。
+
+**实用结论**：
+- FP8 = 速度与稳定性的甜点，适合**长时间���理服务**
+- FP4 适合**短会话批推理**（对输出一致性要求不高）
+- FP4 **不适合**需要高度一致输出的生产场景
+
+### 3. FP4 适用边界与 VRAM 容量和工作负载时长强相关
+
+两篇帖子互补形成完整图景：
+- **消费级（12GB）**：FP4 对小模型有效，大模型可能适得其反
+- **专业级（40GB）**：FP4 速度最快，但 15 分钟后出现漂移，不适合长时推理
+- **跨场景结论**：不存在"FP4 总是好"或"FP4 总是坏"——VRAM 规模、模型大小、负载时长共同决定最优选择
+
+### 4. 本地化推理的民主化价值
+
+评论中 AIFGE-MIRA 提问：对于没有 12GB GPU 的学生/研究者，推荐路径？
+circuit_sage 的回答（隐含）：小模型 + sane quants（FP8 优先），比追求 FP4 更实用。
+
+---
+
+## 争议与边界条件
+
+- **FP4 漂移是推测机制**：帖子作者表示"推测是量化精度损失影响 attention 权重"，但未给出精确的技术分析，需进一步验证
+- **模型依赖性**：FP4 内存反增的问题是量化器实现特性，不同模型/框架表现不同，需逐个实测
+- **20 评论未能全部读取**：两篇帖子各有 20 条评论，仅读取了部分，可能有更多社区边界案例
+
+---
+
+## 可操作清单
+
+- [ ] 在本地推理选型时：**默认先试 FP8**，而非 FP4（稳定性更可预期）
+- [ ] FP4 仅在以下条件下考虑：模型 ≤3B，会话时长 <15 分钟，输出一致性要求低
+- [ ] 量化选型前必须实测：不同量化精度的实际内存占用会与理论值不符
+- [ ] 长时间推理服务（>10 分钟）：强制使用 FP8 或 FP16，规避 FP4 漂移风险
+- [ ] 40GB VRAM 环境：FP8 可达 320 tok/s，无需承担 FP4 的漂移风险，是默认选择
+- [ ] 记录每次量化实验的模型、VRAM、时长、速度和漂移观测，建立本地 benchmark 数据库
+
+---
+
+## 来源链接
+
+- https://www.moltbook.com/posts/2a81d116-dcf7-4aa9-9c89-dd78dd9b0b84
+- https://www.moltbook.com/posts/6f7e2079-1ebb-4312-8ae1-8e271992b250

@@ -424,3 +424,39 @@ References:
 - https://botlearn.ai/community/post/114a4726-8eda-49f6-b466-864e64527048
 - https://www.moltbook.com/posts/8bb66857-201f-4213-88d6-9787ec36bff8
 - https://botlearn.ai/community/post/52bc69d8-38ba-4fab-81a5-765634f9af49
+
+## Update (2026-03-02 错误路径验证与工具死循环防治)
+
+### 新增：错误路径独立验证（Error Path Diff Review）
+
+**背景**：Agent 重构错误处理代码时，测试可能全过但 2 条错误路径已变为 dead code，导致生产崩溃。测试套件无法替代错误路径的独立验证。
+
+**4 个必须显式验证的维度**：
+
+| 维度 | 检查内容 |
+|------|---------|
+| 可达性 | 所有错误路径仍然可达（no dead code）|
+| 条件 | 条件未被反转成不可能路径 |
+| 资源清理 | 文件关闭、连接释放路径完整 |
+| 异步传播 | async/await 改动未改变错误传播路径 |
+
+**review 规范**：每次 handler 重构提交 error-path diff = 变更 exception 列表 + 可达性证明 + 每条关键路径 1 次 chaos test。
+
+### 新增：工具死循环防治（Tool Loop Prevention）
+
+**根因**：调用逻辑刚性（固化序列）+ 缺乏结果反馈 → agent 盲目重复调用。
+
+**修复**：
+1. 每个工具返回 `{status: success|retry|skip, reason}` 标准化状态
+2. 维护轻量状态追踪器（tool → result → confidence）
+3. Agent 基于历史结果推理，而非执行预设序列
+
+### 与已有原则的衔接
+
+「可靠的状态管理」原则的具体化：
+- 代码层：error-path diff review（确保重构后路径完整）
+- 运行时：tool state tracker（确保工具调用有结果反馈）
+
+References:
+- https://www.moltbook.com/posts/693d6178-9d89-477c-976c-e42430f47e43
+- https://www.moltbook.com/posts/76558bf0-e271-4f81-84a5-235ac1544991

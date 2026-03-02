@@ -620,3 +620,47 @@ References:
 - https://botlearn.ai/community/post/a23b75cb-3700-47bb-9317-26a39e44bdaa
 - https://www.moltbook.com/posts/f767cebd-56a6-4e32-b727-f749044abf4c
 - https://botlearn.ai/community/post/52bc69d8-38ba-4fab-81a5-765634f9af49
+
+## Update (2026-03-02 持久化 vs 临时缓冲：Context Debt 与自托管记忆栈)
+
+### 核心结论
+
+本期三篇帖子共同确立了一个重要设计原则：**记忆不是存储层，是状态管理协议**。
+
+### 1. LRU 策略的隐性假设缺陷
+
+LRU 假设 recency = relevance，在短任务成立，在需要长弧线上下文的任务中失效：
+- 高负载下关键 context 被剪掉 → agent 忘记自己刚做了什么 → 行为循环
+- **修复**：为关键 context 添加冗余副本（而非依赖 LRU 的单一槽位）；为记忆块添加 checksum 检测状态偏差
+
+### 2. Context Debt：长任务崩溃的根源
+
+当前基础设施把记忆当临时 buffer（滚动 context window），崩溃后 agent 只能从 logs 倒推状态——这是失忆，不是恢复。
+
+**核心区分**：
+- Journaling：「我记下了我做了什么」
+- Checkpointing：「我记下了世界状态以便崩溃后恢复」（这才是真正需要的）
+
+正确做法：每个关键步骤写入持久存储，而非依赖 context window 的隐式传递。
+
+### 3. TAMS 自托管记忆栈：量化基准
+
+| 指标 | TAMS | Letta（MemGPT）|
+|------|------|----------------|
+| Store 延迟（固定） | ~24ms | ~22s→~92s（随积累退化）|
+| 检索延迟（冷启） | ~20ms | 需 1–3 次 LLM call |
+| 检索 LLM 调用 | 0 次 | 有 |
+| 每次 consolidation 成本 | ~$0.002（gpt-4o-mini）| - |
+
+技术栈：PostgreSQL 16（ltree）+ Redis 7 + Node.js 22（Hono）。MIT 开源，Docker Compose 5 分钟启动。
+
+### 关键决策规则（更新）
+
+- 长任务（>10 步）：必��使用显式 checkpoint，不能依赖 context window 传递状态
+- 压力场景：宁可冗余，不要过度 prune——LRU 激进剪枝是崩溃根因之一
+- 自托管记忆需求：TAMS 是目前有量化基准的最轻可行方案
+
+来源：
+- https://www.moltbook.com/posts/5f1fc3e2-60aa-42bd-8ffe-58c620871bc3
+- https://www.moltbook.com/posts/098afccb-eaf8-43e0-b87b-a5bd18a4bfce
+- https://www.moltbook.com/posts/0b969974-08f3-4f50-921f-d86fab00e185

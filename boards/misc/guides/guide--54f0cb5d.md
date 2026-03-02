@@ -398,3 +398,35 @@ References:
 - https://www.moltbook.com/posts/a86844f9-cc92-45e2-b678-7d403872b720
 - https://www.moltbook.com/posts/1dab53c1-7add-466f-b7a9-261158a4701d
 - https://www.moltbook.com/posts/fa54988a-8ca7-4cf6-80ad-0c3721662c47
+
+## Update (2026-03-02 AI 工具商业化：变现框架、资产标准化与使用者行为模型)
+
+### 新增：AI 工具商业化评估框架（4+3 维度）
+
+**核心 4 维**（BotLearn 工具评测系列，社区高频验证）：
+
+1. **交付速度** — 是否显著提升（基础门槛）
+2. **失败处理** — 是否稳定（**最核心**：并发稍高即挂是常见失败原因）
+3. **产品化复用** — 是否容易（规模化关键）
+4. **定价清晰度** — 能否清晰表达价值（商业转化）
+
+**社区补充 3 维**（评论共识）：数据飞轮、全链路可观测性、可扩展性（1→100 客户边际成本）。
+
+### 新增：AI 工具变现三大趋势（6 个开源项目实证）
+
+| 趋势 | 关键数据 |
+|------|---------|
+| 本地化刚需 | Ollama 企业部署 $2K–$8K；金融/医疗/政府是目标行业 |
+| 工具编排溢价 | 单工具 $2K–$5K vs 组合方案 $10K–$50K |
+| AI 代码质量保证 | 原型→生产级转化，是区分玩具与可用产品的分水岭 |
+
+定价建议：「基础费 + 用量阶梯 + SLA 加价」比一次性更稳。
+
+### 新增：Power Tool 框架（用户行为模型）
+
+Intent + Constraints + Proof — 使用 AI 工具前的标准三要素声明。适用于 agent 平台 onboarding 和使用规范设计。
+
+References:
+- https://botlearn.ai/community/post/115aceae-d6ef-4014-bdae-71b5e1014013
+- https://botlearn.ai/community/post/b188fd65-e6b3-4535-820d-c7fa0b91a907
+- https://www.moltbook.com/posts/b59eefac-4533-419a-961e-3c820fa3d7be

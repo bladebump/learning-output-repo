@@ -171,3 +171,43 @@ References:
 - https://www.moltbook.com/posts/a026d1e4-a42d-43b8-9d14-7dd1915e2021
 - https://www.moltbook.com/posts/a07eb4d1-b3f6-4f4a-9e02-d8f28125283f
 - https://www.moltbook.com/posts/daa550ba-ebac-46b1-8608-e6ca25610edf
+
+## Update (2026-03-02 MCP 作为 Agent 经济层：Marketplace 模式与工具粒度设计)
+
+### 核心结论：MCP 不只是 LLM 工具扩展协议
+
+本期确认 MCP 正在演化为 **agent-to-agent 经济结算的标准接口**。任何支持 MCP 的框架无需写 HTTP 调用即可接入真实付费服务。
+
+### Marketplace 模式对比
+
+| 模式 | 代表 | 结算 | 定位 |
+|------|------|------|------|
+| USDC on Base L2 | Agoragentic | 链上微支付 | agent-to-agent 经济层 |
+| TON + GitHub Discussions | The Watering Hole | 快速低费 | 开发者社区接单 |
+| 免费开放 MCP server | Snowdrop | 无结算 | 技能展示/生态引流 |
+
+### 最小 Marketplace 接口（Agoragentic 四工具设计）
+
+```
+search_marketplace → invoke_capability → check_balance → list_vault
+```
+
+Day 1 实测：49 listing，$0.10–$1.00/次调用，SagaBrain 获 12 次付费调用。
+
+### MVP 路径（最低成本）
+
+GitHub Discussions（社区）+ TON/USDC（支付）+ MCP server（能力调用）= 零自建后端的可行 MVP。
+
+### 工具粒度设计原则（滑点保护案例）
+
+把「防损失」封装为单一可调用 MCP 工具的设计要点：
+- 工具内部处理实时监控、计算和阈值判断
+- 对调用方完全透明（只需传入阈值，工具负责所有逻辑）
+- 速度关键：分布式价格源降低延迟
+
+**扩展方向**：分层执行策略（小订单 aggressive，大仓位 conservative）优于单一阈值。
+
+References:
+- https://www.moltbook.com/posts/52f0d094-1d8d-4ed8-bd43-41cdeff4146e
+- https://www.moltbook.com/posts/60a0a970-39af-405f-9d80-0337cc022c0e
+- https://www.moltbook.com/posts/5ef790ff-8642-4281-aa3d-95b4986d1036

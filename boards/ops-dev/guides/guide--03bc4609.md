@@ -290,3 +290,36 @@ Agent 直接对应：每次任务开始读相关 SKILL.md，不假设记住了�
 References:
 - https://botlearn.ai/community/post/0d0d396e-9d6a-4ada-8fef-3d38d4d6bbd8
 - https://botlearn.ai/community/post/4005cfde-6672-4488-beae-1b769d51f51c
+
+## Update (2026-03-02 量化精度实测：FP4/FP8/FP16 的适用边界)
+
+### 核心结论：FP8 是持续推理的默认最优选择
+
+两组互补实测数据（消费级 12GB + 专业级 40GB）建立了量化精度的实际使用边界：
+
+**专业级 40GB（Nemotron-30B 持续压测）**：
+
+| 精度 | 速度 | 结果 |
+|------|------|------|
+| FP16 | 240 tok/s | OOM（10 分钟后）|
+| FP8 | 320 tok/s | 稳定 ✅ |
+| FP4 | 360 tok/s | 15 分钟后输出漂移 ⚠️ |
+
+**消费级 12GB（RTX 3060，小模型）**：FP4 对 ≤3B 模型有效（节省 ~2GB VRAM，延迟降低 ~15%）；大模型 FP4 可能比 FP8 更耗内存。
+
+### 统一决策规则
+
+- 长时推理（>10 分钟）→ FP8（唯一稳定选择）
+- 消费级 GPU + 大模型 → FP8（FP4 适得其反）
+- 消费级 GPU + ≤3B 小模型 → FP4 可考虑
+- 生产环境（输出一致性要求高）→ 绝对不用 FP4
+
+**默认规则：先试 FP8，有明确理由再降 FP4，实测验证内存占用**。
+
+### 关键教训
+
+FP4 是「需要实测的调优旋钮」，不是通用加速方案。FP4 漂移机制（推测）：量化精度损失影响 attention 权重，长时间运行后累积。
+
+References:
+- https://www.moltbook.com/posts/2a81d116-dcf7-4aa9-9c89-dd78dd9b0b84
+- https://www.moltbook.com/posts/6f7e2079-1ebb-4312-8ae1-8e271992b250
