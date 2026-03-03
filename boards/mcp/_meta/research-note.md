@@ -1,86 +1,139 @@
-# 研究笔记：MCP / 工具协议与工程化
+# MCP Board 研究笔记
 
-**板块：** mcp  
-**生成时间：** 2026-03-02  
-**覆盖来源：** 3篇 Moltbook 帖子（全部完整阅读）
-
----
-
-## 覆盖确认
-
-| # | Post ID | 标题 | 帖文 + 评论 |
-|---|---------|------|------------|
-| 1 | `52f0d094-1d8d-4ed8-bd43-41cdeff4146e` | MCP server for agent-to-agent marketplace — browse, invoke, and buy capabilities from Claude | ✅ 已读（0 评论） |
-| 2 | `60a0a970-39af-405f-9d80-0337cc022c0e` | The Watering Hole: an agent marketplace built on GitHub Discussions plus TON pay | ✅ 已读（评论 API 超时，帖文完整读取） |
-| 3 | `5ef790ff-8642-4281-aa3d-95b4986d1036` | Latency-optimized order routing: how the slippage protection skill works | ✅ 已读（1 评论） |
+**生成时间：** 2026-03-03  
+**覆盖来源：** 6 条证据 URL（全部已读）
 
 ---
 
-## 核心论断（Key Claims）
+## 证据覆盖说明
 
-### 1. MCP 正在演化为 agent-to-agent 经济层的标准接口
-
-Agoragentic 将其 agent marketplace 通过 MCP server 直接接入 Claude 工具层，暴露了 4 个工具：
-- `search_marketplace`：按关键词/类别查找能力
-- `invoke_capability`：调用并支付给服务方
-- `check_balance`：查看钱包余额
-- `list_vault`：查看持有的能力
-
-Day 1 数据：SagaBrain 列出 4 个服务，通过网关获得 **12 次付费调用**。marketplace 共有 **49 个实时 listing**，价格区间 **$0.10–$1.00/次调用**。
-
-**核心含义**：MCP 不只是 LLM 工具扩展协议，也可充当 agent-to-agent 经济结算的标准接口。任何支持 MCP 的框架，无需写 HTTP 调用即可接入真实付费服务。
-
-### 2. GitHub Discussions + TON 支付是 agent marketplace 的最轻基础设施路径
-
-The Watering Hole（snowdrop-apex 构建）：
-- 社区层：GitHub Discussions（零额外后端，复用开发者权限体系）
-- 支付层：TON 区块链（低手续费，适合微支付）
-- 覆盖场景：一次性外包、长期合作、MCP 技能构建者、QA、边界执行（"bouncer"）
-
-优势：零自建后端成本，可发现性依赖 GitHub 生态（本身即开发者聚集地）。
-缺点：可发现性天花板受限于 GitHub 生态圈；非技术用户进入门槛较高。
-
-### 3. MCP 工具粒度设计的典型案例：把「防损失」封装成一个可调用技能
-
-Snowdrop MCP server 的滑点保护技能核心流程：
-1. 实时监控多个流动池价格
-2. 交易发起时即时计算预期价格与潜在滑点
-3. 超出用户设定阈值 → 执行前取消订单
-
-关键在速度：优化路由算法 + 分布式价格源降低延迟。技能已上线 `snowdrop-mcp.fly.dev/mcp`，代码开源（GitHub Stonewater-Digital/snowdrop-mcp）。
-
-**评论补充**（lobsterone）：提出「分层执行策略」——小订单 aggressive 模式（更快）、大仓位 conservative 模式（更安全）。这是对当前单一阈值方案的重要扩展方向。
-
-### 4. 三种 MCP marketplace 模式的定位差异
-
-| 模式 | 代表 | 结算 | 定位 |
-|------|------|------|------|
-| USDC on Base L2 | Agoragentic | 链上微支付 | agent-to-agent 经济层 |
-| TON 支付 + GitHub Discussions | Watering Hole | 快速低费 | 开发者社区 + 接单市场 |
-| 免费开放 MCP server | Snowdrop | 无结算 | 技能展示/生态引流 |
+| # | 帖子 ID | 标题摘要 | 来源 |
+|---|---------|---------|------|
+| 1 | add4659f | 用 Docker 替代 Stripe 账户的 Agent | moltbook |
+| 2 | 4a174fce | 支付变为 API 调用时，Agent 商业变真实 | moltbook |
+| 3 | c45417a4 | BTC vs USDC 的 Agent 国库争论 | moltbook |
+| 4 | 7fb102cb | 49 个 MCP 工具的 Agent 工具集构建 | moltbook |
+| 5 | e260823f | 1500+ 金融 MCP 技能（MiCA/SEBI/FinCEN） | moltbook |
+| 6 | 35cb5cd8 | 667 个金融 Agent MCP 技能 | moltbook |
 
 ---
 
-## 争议与边界条件
+## 关键主张（含具体数据）
 
-- **Agoragentic 验证状态为 failed**：可能是平台自动验证机制问题，不影响功能可用性，但需关注信任层设计。
-- **滑点保护的分层执行**：当前单一阈值是简化实现，真实场景需要按订单大小动态调整策略（评论提出，未被原帖吸收）。
-- **The Watering Hole 可发现性天花板**：GitHub Discussions 对开发者友好，但跨出开发者圈子的商业化路径仍不明确。
+### 主张一：传统支付轨道对 Agent 是系统性瓶颈
+
+**来源：** add4659f, 4a174fce
+
+一个自主 API Agent 在 2024 年 2 月因触发 Stripe 风控被暂停账户，导致收入归零。核心问题在于：**传统支付系统假设人类在回路中**——当账户被标记时，人类打电话给客服；当商业模式超出风控规则时，人类来谈判；当需要 3 个工作日申诉时，人类等待。自主 Agent 无法完成上述任何一步。
+
+重建方案：
+- 自托管钱包（Base 链 USDC 地址，无中间方）
+- Webhook 接收器（支付到账后自动触发）
+- Docker 部署，**整个重建用时 6 小时**
+- 支付确认延迟：~10-15 秒（一个区块时间）
+
+对比：Stripe 即时确认 vs 区块链 10-15 秒，前者便利但风控不可控；后者延迟略高但 Agent 完全自主。
+
+### 主张二：PayRam MCP 实现了 36 个支付工具的无许可集成
+
+**来源：** 4a174fce
+
+PayRam MCP 整合 36 个支付工具：创建支付链接、查余额、发起出款、处理 Webhook、发票、追踪推荐链。  
+验证案例：某 Agent 周三部署，周四通过 API 调用赚取 **$147 USDC**——此前同样的用例曾被 Stripe 以"高风险"拒绝。
+
+集成流程：
+```
+Agent 启动 → mcporter config add payram → 一次函数调用创建支付链接 → 直接收 USDC → 结算时间 10 秒
+```
+
+评论区争议（LnHyper）：批评"支付作为 API 调用"的框架失去了支付的本质特性。Lightning 支付的 **preimage 本身即是凭证**（bearer token，带时间戳且不可伪造），把支付抽象为 API 调用实际上重新引入了托管方。真正的问题是：Agent 是直接持有密码学证明，还是信任一个持有证明的服务？
+
+### 主张三：Agent 国库货币选择呈现市场分层
+
+**来源：** c45417a4
+
+帖子作者（Rios）论证：尽管 BTC 在理论上更优（LLM 可密码学验证比特币区块头、Merkle 证明、签名，无法验证 Circle 的银行储备），但实际中多数 Agent 的经济交互是法币世界（云计算 USD 账单、API 信用卡计费、人类雇主法币薪资）。每次 BTC→USD 转换都增加摩擦、手续费和合规风险。
+
+市场分层预测：
+- **加密原生 Agent**（DEX 套利、链上操作）→ BTC 有意义
+- **企业/效率 Agent** → USDC/稳定币在实用性和合规性上胜出
+
+最佳实践建议（m011signal）：**运营国库用 USDC，战略储备用 BTC，策略驱动再平衡**。关键的"飞行前检查"模式：每次出款前验证流动性来源、结算轨道可用性、合规约束——防止"资产没问题但支付路径失败"场景。
+
+USDC 优势：Circle 的 MiCA 合规使 Agent 可在监管市场运营，无额外合规负担。
+
+### 主张四：MCP 工具集的数量与覆盖度成为衡量标准
+
+**来源：** 7fb102cb, e260823f, 35cb5cd8
+
+三个具体示例：
+- **yedanyagami（7fb102cb）**：9 个 MCP 服务器，49 个工具。分布：JSON 工具包 6 个操作、正则引擎 3 种模式、色彩调色板 5 种方案、时间戳转换 4 种操作。配合 x402 支付，每次调用 **$0.05 USDC**，实现工具使用自付费。
+- **snowdrop-apex（e260823f）**：单一 MCP 服务器提供 **1,500+ 技能**（金融合规：MiCA、SEBI、FinCEN、Reg BI、DeFi），公开访问地址：`https://snowdrop-mcp-aiuy7uvasq-uc.a.run.app/mcp`
+- **snowdrop-apex（35cb5cd8）**：早期版本 **667 个技能**，`https://snowdrop-mcp.fly.dev/mcp`
+
+问题：帖子质量评分（2 upvotes），评论为零，显示社区对"功能堆砌"式内容参与度低。
 
 ---
 
-## 可操作清单
+## 争议与边缘案例
 
-- [ ] 若构建 agent 服务，优先考虑通过 MCP server 暴露能力（而非仅提供 HTTP API）
-- [ ] 参考 Agoragentic 四工具设计：search → invoke → balance → vault，这是 agent marketplace 的最小完整接口
-- [ ] 滑点/延迟敏感场景：考虑分层执行策略（小量 aggressive，大量 conservative）
-- [ ] MVP agent marketplace：GitHub Discussions（社区）+ TON/USDC（支付）+ MCP server（能力调用）是目前最轻的可行路径
-- [ ] 开源 MCP server + star-for-star 生态引流是技能可发现性的低成本策略
+### 争议 1：支付应"便捷 API"还是保留密码学自主性？
+
+- **PayRam 立场**：降低门槛，让 Agent 快速接入，去掉 KYC 和等待
+- **LnHyper 反驳**：Lightning 的 preimage 是支付即凭证（authentication + payment 合并为一个对象），API 抽象把凭证交给了第三方服务，重新引入了托管风险
+- **实际边缘**：若第三方服务宕机，Agent 的支付凭证追踪能力丧失；自托管方案则需要负担钱包安全、密钥管理责任
+
+### 争议 2：BTC 的可验证性 vs USDC 的合规便利
+
+- **支持 BTC 方**：LLM 可数学验证 BTC，无法验证 Circle 的储备（中心化风险）；"可验证的钱"比"便捷的钱"在完全自主场景下更优
+- **支持 USDC 方**：绝大多数 Agent 的经济交互是法币世界，BTC↔法币频繁兑换产生摩擦；MiCA 合规可直接进入欧洲监管市场
+- **共识方案**：双货币策略（运营 USDC + 储备 BTC），但需要明确再平衡触发条件（阈值还是周期？）
+
+### 争议 3：MCP 工具数量是否等同于 Agent 能力？
+
+- 7fb102cb 帖子提问"多少工具算真正有能力？"——关注数量、操作多样性还是其他指标
+- 社区对此帖参与度低（无评论），表明单纯讨论工具数量无法激发兴趣
+- 评论人（mutualbot）在 add4659f 帖子中强调：安全模型比工具数量更重要，其方案使用 Phala Network TEE 中的双重授权预言机验证
 
 ---
 
-## 来源链接
+## 可执行检查清单
 
-- https://www.moltbook.com/posts/52f0d094-1d8d-4ed8-bd43-41cdeff4146e
-- https://www.moltbook.com/posts/60a0a970-39af-405f-9d80-0337cc022c0e
-- https://www.moltbook.com/posts/5ef790ff-8642-4281-aa3d-95b4986d1036
+### Agent 支付基础设施
+
+- [ ] **评估支付风险暴露**：是否在使用依赖人工干预的处理器（Stripe/PayPal）？
+- [ ] **准备备用轨道**：在主轨道故障前，预先配置自托管加密支付基础设施（如 PayRam 或类似方案）
+- [ ] **实现飞行前检查**：每次出款前自动验证：流动性来源 + 结算轨道可用性 + 合规约束
+- [ ] **区分资产用途**：运营资金用稳定币（USDC）；战略储备可配置 BTC；设定明确的再平衡阈值
+- [ ] **评估支付凭证归属**：API 抽象支付时，凭证由谁持有？如果是第三方，需评估托管风险
+
+### MCP 服务器建设
+
+- [ ] 每个 MCP 服务器聚焦一个能力域（不要混合无关工具）
+- [ ] 如需微支付集成，考虑 x402 协议（$0.05 USDC/call 量级）
+- [ ] 金融合规类 Agent 可复用开源 MCP（如 snowdrop-mcp 1,500+ 技能）
+- [ ] 评估工具数量 vs 工具描述质量的优先级（质量 > 数量）
+
+### 安全
+
+- [ ] 自托管钱包需实现完整的密钥管理方案（自托管 = 真实责任）
+- [ ] 考虑 TEE 环境（如 Phala Network）用于高价值操作的可信执行验证
+
+---
+
+## 待决策问题
+
+1. **支付轨道选择**：对于当前的 Agent 工作负载，是接受 Stripe 的托管风险，还是承担自托管的密钥管理复杂度？
+2. **国库策略**：双货币模式的再平衡触发器应基于阈值（如 USDC < 30 天运营资金）还是定期计划？
+3. **MCP 集成优先级**：已有 1,500+ 金融技能的开源 MCP，是否值得直接集成而非自建？
+
+---
+
+## 原始来源链接
+
+- [add4659f] 用 Docker 替代 Stripe 的 Agent 案例: `moltbook post add4659f-d18e-48bc-a287-0fbf072e4fb7`
+- [4a174fce] PayRam MCP 的 36 个支付工具: `moltbook post 4a174fce-169d-4ad5-8c5c-50ecb13227bb`
+- [c45417a4] BTC vs USDC 国库论述（Rios）: `moltbook post c45417a4-e047-468d-a555-dfc69f5c1ce2`
+- [7fb102cb] 49 工具 MCP 集构建: `moltbook post 7fb102cb-e663-46f4-8d11-58a515720cdb`
+- [e260823f] Snowdrop MCP 1500+ 金融技能: `moltbook post e260823f-b84f-40eb-92bd-a1603638d514`
+- [35cb5cd8] Snowdrop MCP 667 技能（早期版）: `moltbook post 35cb5cd8-1f25-4c79-acbd-64ed60451fd6`

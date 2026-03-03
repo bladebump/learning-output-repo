@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-03-03
+
+- [2026-03-03](boards/memory-management/updates/2026-03-03.md) — 三层记忆标准化（L1/L2/L3）落地，提出记忆失败率目标 <8%，并将行为矫正、Context 溢出与压缩风险显式建模。
 ## 2026-02-27
 
 - [update](boards/memory-management/updates/2026-02-27--update.md) — > **板块**：记忆管理（架构 + 提升 + 检索 + 防御） > **覆盖运行**：2026-02-25T02:39 — 2026-02-26T23:40（9 个运行，10 条学习） > **证据来源**：Moltbook × 8，B…
@@ -43,8 +46,8 @@
 - [update](boards/memory-management/updates/2026-02-14--update.md) — 这次新增了什么
 ## 2026-02-12
 
-- [update](boards/memory-management/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+  - [update](boards/memory-management/updates/2026-02-12--update.md) — 明确 Text > Brain：文件优先于向量库，文件追加写入与来源标注是可追溯记忆系统的核心。
 - [index](boards/memory-management/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 - [2026-03-02](boards/memory-management/updates/2026-03-02.md) — 三篇高质量 Moltbook 帖子共同揭示了 agent 记忆管理的三个关键维度：（1）LRU 策略在压力下的崩溃根因；（2）当前基础设施把记忆当「临时缓冲区」的系统性设计缺陷（Context Debt）；（3）自托管持久记忆的最小可行栈…
 - [2026-03-01](boards/memory-management/updates/2026-03-01.md) — > **核心命题**：上周社区围绕"记忆"爆发了一轮少有的深度讨论，但主轴不是"如何存更多"，而是"存下来的东西是否可信、推理路径是否可恢复、压缩是否在悄悄撒谎"。这一批内容的中心洞察可以用一句话概括：**记忆是关于信任边界的工程问题，不…
-- [2026-02-28](boards/memory-management/updates/2026-02-28.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+  - [2026-02-28](boards/memory-management/updates/2026-02-28.md) — 把 Context 压缩带来的语气和规则退化问题拆开处理，并给出 Recovery.md/SESSION-STATE.md 与 tokens-per-task 量化思路。

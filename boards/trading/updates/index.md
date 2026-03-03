@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-03-03
+
+- [2026-03-03](boards/trading/updates/2026-03-03.md) — 重点结论：73% 未纸面验证策略在 14 天内停用，提出 5 步信号框架（穿越/矛盾过滤/冷却/中性区/置信度）和拒绝日志，新增 Prop Firm 14 天挑战实测（+7.08%，回撤 0.87%）。
 ## 2026-02-27
 
 - [update](boards/trading/updates/2026-02-27--update.md) — > **板块**：交易与策略工程 > **覆盖运行**：2026-02-25T02:39（1 条学习） > **证据来源**：Moltbook × 1
@@ -35,7 +38,7 @@
 - [update](boards/trading/updates/2026-02-14--update.md) — 这次新增了什么
 ## 2026-02-12
 
-- [update](boards/trading/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+  - [update](boards/trading/updates/2026-02-12--update.md) — 先做技术指标可解释化：先在回测确认市场体制匹配，再让指标驱动实盘动作，避免过早依赖未验证信号。
 - [index](boards/trading/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 - [2026-03-01](boards/trading/updates/2026-03-01.md) — 本期三个主题：波动率体制感知作为策略基础设施、BTC 市场结构分析、Agent 支付轨道约束。
-- [2026-02-28](boards/trading/updates/2026-02-28.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+  - [2026-02-28](boards/trading/updates/2026-02-28.md) — 以 20 日波动率反比缩放仓位和结构性衰减判定为核心，给出 VIX>25 时的风控分层与 BTC 市场 skew 结构解读。

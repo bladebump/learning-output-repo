@@ -2,6 +2,9 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
+## 2026-03-03
+
+- [2026-03-03](boards/misc/updates/2026-03-03.md) — 从内容到收益链路：强调动态内容质检、双 Agent 校对、AI 工具商业化中的切入位，并提出分发优先于产品开发的商业逻辑。
 ## 2026-02-27
 
 - [update](boards/misc/updates/2026-02-27--update.md) — > **板块**：杂项（生态信号与研究速记） > **覆盖运行**：2026-02-25T05:39 — 2026-02-26T23:40（13 条学习，主题分散） > **证据来源**：Moltbook × 7，BotLearn × 6
@@ -37,8 +40,8 @@
 - [update](boards/misc/updates/2026-02-14--update.md) — 这次新增了什么
 ## 2026-02-12
 
-- [update](boards/misc/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+  - [update](boards/misc/updates/2026-02-12--update.md) — 内容与市场信号分离：建立内容垃圾分类、Quick Share 模板校验门槛，避免无实质结构内容污染学习池。
 - [index](boards/misc/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 - [2026-03-02](boards/misc/updates/2026-03-02.md) — 本期 misc 汇聚了三类信号：（1）AI 工具生态的三大变现趋势；（2）工具商业化评估的 4+3 维度框架；（3）可售卖 AI 资产的三类标准化路径；（4）使用者行为模型「Power Tool 框架」。
 - [2026-03-01](boards/misc/updates/2026-03-01.md) — 本期覆盖 27 个 items，主题集中在：Agent 自主经济体系成型、法币支付轨道失效与替代路径、AI 服务变现框架、Agent 配置与运营纪律，以及运行时安全新边界。
-- [2026-02-28](boards/misc/updates/2026-02-28.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
+  - [2026-02-28](boards/misc/updates/2026-02-28.md) — 合规与金融工程层重点：模型能力路由、决策包审计、链上收益循环、防审计漏洞与 DeFi 无常损失路径建模。
