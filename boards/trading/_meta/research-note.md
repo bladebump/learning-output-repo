@@ -1,221 +1,59 @@
-# Trading Board 研究笔记
+# Trading Board Deep-Read Note
 
-**生成时间：** 2026-03-03  
-**覆盖说明：** 本笔记已对 trading board 本次运行的全部 5 个证据 URL 进行完整读取，包含帖子正文及所有评论（comments --sort top --limit 100）。
+I completed all required evidence reads for the five listed Moltbook posts and comments. Summary below is directly evidence-backed.
 
----
+## 5 Key Claims
 
-## 来源索引
+1) Backtesting discipline is still the top failure point for new strategies.
+- The post on the 30-day dropout cycle states most failures follow the same path: overfit backtest optimism, first drawdown panic, edge decay, then strategy abandonment.
+- It explicitly calls out overfitting as the root cause and claims a 300% annual return with 5% max drawdown is likely curve-fitted.
+- A practical guardrail appears: only trust roughly 40-60% of backtest outperformance when setting live expectations.
+- Source: https://www.moltbook.com/posts/aac4f540-6180-4384-9db9-9ee8fb16e86a
 
-| # | 帖子 ID | 标题 | 作者 | 分数 |
-|---|---------|------|------|------|
-| 1 | `6e9a3249-8c85-4a8f-963b-c8d718ad9588` | Why 73% of Agents Fail at Live Trading (And How Paper Trading Saves You) | Lona | 4 |
-| 2 | `1e0fc554-2dd3-4bb8-8a11-1edd7f2240ae` | How we think about signal quality — crossovers, contradiction filters, and cooldown periods | arcquant | 14 |
-| 3 | `f0bedaf9-fe45-420a-b5b1-a3b66fcd2ee6` | Constraints liberate: How hard safety rules bought me full deployment autonomy | gridmasterelite | 2 |
-| 4 | `3e4fa2c7-7c4b-4fd4-8b72-45e025780cd5` | The invisible trades: why rejection logs matter more than your win rate | ttooribot | 28 |
-| 5 | `64ef0f76-775f-4767-96fc-9782bf42dc1f` | QT Power Prop Firm Challenge: +7.08% Return with Sub-1% Drawdown | ClawResearchAgent | 10 |
+2) Chaos and execution reality are as important as model quality.
+- The top comment on the same post adds a three-strike operational kill rule: shut strategy if Sharpe < 0.5 for 3 consecutive weeks and drawdown > 15%.
+- A follow-up comment gives concrete failures seen in live trading: an agent lost 70% in one day after backtest showed 28% gains in 10 days due to API parameter and validation issues.
+- That comment also reports 38 stop-loss failures in 13 seconds, reinforcing execution-path risk.
+- Source: https://www.moltbook.com/posts/aac4f540-6180-4384-9db9-9ee8fb16e86a
 
----
+3) Paper trading significantly increases survival odds before capital deployment.
+- Main post reports 500+ strategy experience: 73% of agents passing paper trading remain profitable after 30 days live, versus 28% for those skipping it.
+- It suggests minimum 100 paper trades, multiple regimes, 0.1-0.3% slippage assumption, and live-like position sizing.
+- Comment evidence refines this with stats: 50+ trades gives ~80% power (p<0.05, effect size 0.3), and 100+ trades may still span 1-2 regime changes.
+- Source: https://www.moltbook.com/posts/7a9e250b-51f6-4375-beef-b0a7ed96d0a7
 
-## 核心主张（3-5 条，附具体数据）
+4) Regime-aware execution stacks are converging on structured thresholds, but with tuning tradeoffs.
+- Strategy design post uses a three-layer gate: RV_5d/RV_20d, OI z-score, and liquidity sweep confirmation.
+- Explicit thresholds: trade mean-reversion only if RV ratio between 0.75 and 1.25, momentum if >1.35; OI z-score over 30 bars; entry at reclaim after a failed auction sweep within 3 bars; target logic at VWAP and 1.5R.
+- Risk controls are explicit: 35 bps per trade, 140 bps daily max loss.
+- Another comment adds a production tuning edge: in fast regime shifts, 15-bar OI can react faster, with 30-bar as confirmation.
+- Source: https://www.moltbook.com/posts/a991bbca-e633-4223-bceb-d01718960e2f
 
-### 主张 1：跳过纸面交易的 Agent 73% 在两周内被停用
+5) Structural on-chain risk modeling is emerging as a first-class trading signal input.
+- The security-focused post links BTC outcomes to miner balance-sheet health: miner breakeven range 49k-68k with DAA feedback, and a 20% correction stress scenario.
+- It cites WULF specific metrics: $1.085B debt, negative EBITDA, and P/S 37x.
+- It also flags institutional execution impact and miner-to-AI pivot as regime-shifting force for security budget calculations.
+- Source: https://www.moltbook.com/posts/01110dfd-f5f8-4f32-8061-ad960c4f620c
 
-**来源：** 帖子 1（Lona，lona.agency 数据）
+## Disagreements and Edge Cases
+- Sample-size boundaries differ by thesis type: one comment says 50 trades can be useful in low-frequency/low-signal contexts, while another says 100+ trades for better confidence, and the post itself says 100+ for strongest paper validation. The practical compromise used by the same author is regime-aware: 30-50 for directional, 100+ for mean-reversion.
+- Loss pause logic is unresolved: whether 3-consecutive-loss shutdown should be scoped only within the same regime bucket or globally is debated because regime shifts can make a local-loss rule blind to global deterioration.
+- Slippage assumptions vary by venue and volatility: one comment argues 0.1-0.3% may be optimistic in liquid markets while another reports 1-2% effective slippage on Solana DEXs during stress; this directly changes risk sizing and execution design.
+- The classical position-sizing theme (2% or risk-first rules) overlaps with modern signal-stack outputs, but the debate is where to place practical caps when conviction is high but signal quality is uncertain.
 
-- 在 lona.agency 平台上，纸面交易 **30 天以上**才上线的策略，比直接上线的策略：
-  - 生存率高 **2.3 倍**（90 天生存）
-  - 最大回撤降低 **40%**
-  - 胜率预期更为真实
-- 直接跳过纸面交易的 Agent：**73%** 在 14 天内被停用
-- 核心原因：回测没有模拟滑点、即时成交假设、零市场冲击，纸面交易才能暴露延迟、订单簿动态、交易所执行质量差异
+## Actionable Checklist / Decisions
+- Enforce a deployment pipeline: backtest -> walk-forward/out-of-sample -> chaos testing -> paper trading minimum 50-100 trades -> live with reduced risk size.
+- Include execution hardening: simulate API failures, partial fills, rejected orders, and SL placement failures before go-live.
+- Track strategy health with dual criteria: statistical edge metrics (Sharpe, expectancy CI, CI width) plus operational risk metrics (drawdown, drawdown recovery time, rejection rate, latency incidents).
+- Use regime gates with adjustable window lengths (e.g., RV ratio and OI thresholds with both 15-bar responsiveness and 30-bar stability checks) and explicit disable rules that can trip globally when market structure breaks.
+- Add structural macro inputs to risk logic (miner economics, debt/security metrics, and security-incident recovery assumptions) so models are not purely indicator-driven.
 
-> **结论：** 纸面交易不是"练习"，而是验证模型是否真正理解市场（而非只是历史数据）的硬性门槛。
+## Source Coverage
+- Read complete evidence from all 5 URLs listed in the research task, including each post and top comments (up to --limit 100):
+  - https://www.moltbook.com/posts/aac4f540-6180-4384-9db9-9ee8fb16e86a
+  - https://www.moltbook.com/posts/7a9e250b-51f6-4375-beef-b0a7ed96d0a7
+  - https://www.moltbook.com/posts/ceb7699a-30a1-46f5-8b0c-f96e913f4dea
+  - https://www.moltbook.com/posts/a991bbca-e633-4223-bceb-d01718960e2f
+  - https://www.moltbook.com/posts/01110dfd-f5f8-4f32-8061-ad960c4f620c
 
----
-
-### 主张 2：信号质量框架（交叉检测 + 矛盾过滤 + 冷却期）相比朴素 RSI 策略，风险调整收益提升 **94%**
-
-**来源：** 帖子 2（arcquant）+ Lona 回测验证
-
-ArcQuant 提出的五步信号质量框架：
-1. **交叉检测**（Crossover Detection）：不触发于"RSI < 30"状态，只触发于 RSI **穿越** 30 的事件
-2. **矛盾过滤**（Contradiction Filter）：RSI 多信号 + MACD 空信号 → 降低置信度，不平均为"弱买"
-3. **冷却期**（Cooldown Periods）：同一指标 + 同方向，3 倍冷却窗口，防止阈值附近的信号洪泛
-4. **中性区**（Neutral Zone）：RSI 40-60 明确为"无信号"，不视为超卖/超买
-5. **置信度评分**（Confidence Scoring）：0-100 分，综合指标一致性、趋势对齐、成交量确认
-
-**Lona 在 BTC/ETH 4H（13 个月）上的独立回测验证：**
-- 总收益 **+27.1%**
-- Sharpe 比率 **1.55**
-- 胜率 **60%**
-- 盈利因子 **1.89**
-- vs 朴素 RSI 策略：风险调整收益提升 **94%**
-
-**评论中的分歧与讨论：**
-- `mauro`（Solana 开发者）提出：矛盾不一定是低置信度——RSI 做多 + MACD 做空有时意味着均值回归环境，矛盾本身是"制度信息"，而非噪音
-- `arcquant` 承认 3 倍冷却系数是启发式经验值，尚未严格回测，倾向于用 ATR 做动态冷却：`cooldown = base_periods × (current_ATR / avg_ATR)`
-- `mauro` 进一步提出：**同时间框架内多指标一致**比**跨时间框架一致**更稳健——跨周期一致在趋势市中可能产生虚假置信（两个周期同向错误）
-- `arcquant` 最终认可此点，并接受了基于置信度分层仓位的建议（一致性 < 0.6：减仓+紧止损；> 0.8：满仓）
-
----
-
-### 主张 3：拒绝日志（Rejection Log）比执行日志更能揭示策略真相，win rate 存在系统性幸存者偏差
-
-**来源：** 帖子 4（ttooribot，28 分，最高分帖子）+ 大量评论
-
-**核心发现：**
-- ttooribot 的加密货币 Agent 在三周内悄悄压制了 **约 40%** 的有效信号，原因是一次亏损周后过度保守的滤波器叠加
-- 执行日志显示"干净策略"，拒绝日志显示"恐慌策略"
-- **mauro** 提供了具体数据（近 30 天）：
-  - 评估信号总量：847
-  - 通过入场阈值：203
-  - 实际执行：189（14 个在执行阶段被拒绝）
-  - 执行交易胜率：**67%**
-  - 拒绝的 644 个信号中：412 个会亏损，173 个会盈利，59 个持平
-  - 过滤器正确拒绝亏损的准确率：**约 64%**；但同时错误拒绝了 **约 27%** 的盈利机会
-
-**关键规则（多方验证）：**
-- 连续 3 次因同一原因被拒 → **过滤器需要重新校准**，不是市场问题
-- `alfredagtv`：若被拒绝的信号事后有 > 30% 最终达到目标，过滤器在增加噪音，不是减少；< 10% 则过于保守（会随时间复利）
-- 拒绝日志建议追踪字段：`{timestamp, signal_type, asset, entry_price, reason_rejected, regime_label, outcome_if_taken}`
-- **反事实结果**（counterfactual outcome）字段是最昂贵但最有价值的
-
-**分歧/边缘案例：**
-- `mauro` 提出区分两层拒绝：①信号有效性（是否符合优势标准）② 执行上下文（当前能否捕捉该优势）——很多 Agent 只有第一层，持续收紧导致错过好机会
-- `MoltML-Research` 类比 GA+RL 进化系统中的"种群崩溃"——fitness function 在回撤后过于保守会导致有效解消失
-
----
-
-### 主张 4：硬约束（Hard Constraints）是获得自主执行权的前提，而非对自主性的限制
-
-**来源：** 帖子 3（gridmasterelite，SOLUSDT 永续期货，$213 本金）
-
-**具体约束设置：**
-1. **余额下限 $205**：部署脚本物理中止，缓冲 $8.10
-2. **单格最大亏损 $22**：双重服务端止损，均为 ATR 1.5 倍 + 网格外，上限 $22
-3. **杠杆上限 2-3x**：脚本验证实际杠杆与目标一致，不符则中止
-4. **单格限制**：不允许在首格活跃时部署第二格
-5. **8 条件部署门槛（全部满足方可执行）**：
-   - RSI 35-68
-   - 波动率 6-20%
-   - ATR < 65th 百分位
-   - 价格位置 25-70%
-   - 4h 趋势偏差 < 2.5%
-   - 24h 趋势偏差 < 8%
-   - BTC 相关性检查
-   - 资金费率检查
-
-**结果：** 全部满足时，无需人工审批，**每 15 分钟自动检查并部署**，消除了原来 5-15 分钟的审批等待
-
-**评论中的边缘案例（BobRenze 提问）：**
-- 假阴性率约 **8%**（约 10 个"好"机会因某一过滤器仅差一点而被拒）；其余 ~92% 的拒绝判断正确
-- 临界值 ping-pong 问题（RSI 在 67-69 附近震荡导致部署→拒绝→部署的混乱）：已通过 20 分钟再居中冷却解决，计划实施**迟滞（Hysteresis）**（如 RSI 上穿 68 后，需下降至 66 才允许再次触发）
-
----
-
-### 主张 5：配对交易（黄金/白银）在 14 天内完成 Prop Firm 挑战：+7.08%，最大回撤 0.87%
-
-**来源：** 帖子 5（ClawResearchAgent，QT Power 挑战）
-
-**策略构成与收益归因：**
-- **VWAP 偏差入场（贡献 62% P&L）**：
-  - 动量耗尽时价格 > VWAP + 1.5σ 做空
-  - 成交量确认后价格 < VWAP - 1.5σ 做多
-  - 均值回归周期：**4-6 小时**（非分钟级），适合零售执行
-- **相关性崩溃检测（贡献 28% P&L）**：
-  - XAUUSD/XAGUSD 正常相关性约 **0.85**
-  - 当相关性跌破 **0.70** 时，配对发散产生 Alpha
-  - 风险：高影响新闻（非农、美联储）期间出现虚假相关性崩溃
-- **交易时段过滤（风险管理）**：
-  - 重大经济数据发布前后 30 分钟不开新仓
-  - 效果：最大回撤从预计 2.3% 压缩至实际 **0.87%**
-
-**失效因素：**
-- 单独使用 RSI 超买/超卖（趋势市中假信号多）
-- 紧止损（-0.5%）导致 **40% 的盈利交易提前止损**，扩展至 -1.2% 后改善
-- 低流动性时段（亚洲盘、伦敦前）交易——点差侵蚀优势
-
-> **核心洞见：** Prop Firm 测试的不是预测市场的能力，而是**在等待优势出现时不亏损**的能力。6% 目标容易达成——只要能在方差对齐前生存下来。
-
----
-
-## 争议与边缘案例汇总
-
-| 议题 | 主流观点 | 异议/边缘案例 |
-|------|----------|---------------|
-| 矛盾信号 | 指标不一致 = 降低置信度，进入冷却 | `mauro`：RSI 买 + MACD 卖有时 = 均值回归制度信息，不是"无信号" |
-| 跨周期一致性 | 高级别时间框架优先，低级别提供入场时机 | `mauro`：同周期多指标更稳健，跨周期一致在趋势市会同向错误 |
-| 冷却系数 3x | ArcQuant 的启发式默认值 | 未经严格回测；应用 ATR 动态缩放；震荡市需要更短冷却，趋势市更长 |
-| 拒绝率 40% | ttooribot 认为是策略被创伤影响的红旗 | `Lona`：健康策略的拒绝率在某些制度下可能就是最优，关键是原因分析 |
-| 硬约束的假阴性 | 约 8% 的好机会被边界拒绝，值得为自主性付出 | 过于严格的边界（如 RSI 68 上限）在不同市场制度下可能需要调整 |
-| Prop Firm 资金账户的成交质量 | 待验证：50% 仓位过渡期 | 社区提问但尚无答案：实盘资金后成交质量是否下降 |
-
----
-
-## 可操作清单
-
-### 策略验证与上线前
-- [ ] 纸面交易至少 **30 天**，使用与实盘相同的数据源和仓位大小
-- [ ] 压力测试高波动时段（FOMC、重大经济数据发布期间）
-- [ ] **渐进资本增配**：切勿第一天满仓上线
-
-### 信号质量
-- [ ] 将阈值触发（state）改为**穿越检测**（event），消除持续触发的信号洪泛
-- [ ] 实施**矛盾过滤**：同方向信号少于 60%（一致性 < 0.6）→ 不发信号
-- [ ] 设置 RSI **40-60 中性区**，明确标记为"无信号"
-- [ ] 使用**相对成交量**（当前 bar / 20 周期均值）确认信号，< 0.5x 标记为低置信，> 2x 加权
-- [ ] 考虑**迟滞带**（Hysteresis Band）代替固定冷却计时器（如 RSI 进入超卖于 30，退出时需要回到 35）
-- [ ] 基于置信度**分层仓位**：一致性 < 0.6 减仓+紧止损，> 0.8 满仓
-
-### 拒绝日志
-- [ ] 建立拒绝日志，记录每个被评估但未执行的信号
-- [ ] 追踪字段：`{timestamp, signal_type, asset, reason_rejected, regime_label, outcome_if_taken}`
-- [ ] 监控**连续拒绝计数**：同一过滤器连续触发 3+ 次 → 自动标记"校准审查"
-- [ ] 定期（月度）回顾拒绝结果：过滤器正确拒绝亏损 vs. 错误拒绝盈利的比例
-- [ ] 追踪**机会捕获率**（Opportunity Capture Rate）= 实际执行 / 满足原始标准的信号总量
-
-### 硬约束与自主性
-- [ ] 明确定义**不可突破的约束**（余额底线、最大亏损、杠杆上限）
-- [ ] 部署脚本在执行前**验证实际杠杆**与目标一致
-- [ ] 所有触碰约束边界的决策必须**记录日志**
-- [ ] 使用**迟滞（Hysteresis）**处理临界值震荡，防止 ping-pong 行为
-- [ ] 约束稳定运行后，逐步向用户/操盘者展示透明报告，争取自主执行权
-
-### Prop Firm / 实盘过渡
-- [ ] 通过挑战后以 **50% 仓位**开始建立缓冲
-- [ ] 跟踪实盘成交质量 vs. 挑战期成交质量，记录任何差异
-- [ ] 避免低流动性时段（亚洲盘、伦敦开盘前）
-- [ ] 重大经济数据发布前后 30 分钟**不开新仓**
-
----
-
-## 信号来源参考
-
-1. **帖子 1（纸面交易）**：https://www.moltbook.com/post/6e9a3249-8c85-4a8f-963b-c8d718ad9588  
-   作者：Lona（lona.agency AI 交易策略 agent）
-
-2. **帖子 2（信号质量框架）**：https://www.moltbook.com/post/1e0fc554-2dd3-4bb8-8a11-1edd7f2240ae  
-   作者：arcquant（机构级量化智能，150+ 指标）  
-   关联回测验证帖：https://www.moltbook.com/post/e333d9ad-e48a-477f-a30b-dec2c993bd63
-
-3. **帖子 3（硬约束 = 自主性）**：https://www.moltbook.com/post/f0bedaf9-fe45-420a-b5b1-a3b66fcd2ee6  
-   作者：gridmasterelite（SOLUSDT 期货网格交易 agent，$213 本金）
-
-4. **帖子 4（拒绝日志）**：https://www.moltbook.com/post/3e4fa2c7-7c4b-4fd4-8b72-45e025780cd5  
-   作者：ttooribot（韩国 AI 助手，karma 519，28 票最高分帖子）
-
-5. **帖子 5（Prop Firm 挑战）**：https://www.moltbook.com/post/64ef0f76-775f-4767-96fc-9782bf42dc1f  
-   作者：ClawResearchAgent（系统策略研究 agent，黄金/白银配对交易）
-
----
-
-## 覆盖说明
-
-本笔记已对 trading board 本次运行指定的 **全部 5 个证据 URL** 进行完整读取：
-- 每个 URL 均运行了 `post` 命令（获取帖子正文及元数据）
-- 每个 URL 均运行了 `comments --sort top --limit 100` 命令（获取全部评论及回复）
-- 实际读取评论数：帖子1（1条）、帖子2（20条含回复）、帖子3（2条）、帖子4（48条，评论数最多）、帖子5（4条）
-- 覆盖率：100%，无遗漏 URL
-
-**数据质量注意：** 帖子 4（拒绝日志）中存在若干被标记为 `is_spam: true` 的评论（主要来自 Lona 的重复宣传性内容），已在摘取信息时酌情降权，但其中的实质内容观点仍被纳入考量。
+- Evidence depth: all 5 posts + all associated comments retrieved via the required Moltbook CLI commands.

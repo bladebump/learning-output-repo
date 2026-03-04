@@ -2,9 +2,6 @@
 
 按时间倒序列出该 board 的 updates，并附 1 行摘要。
 
-## 2026-03-03
-
-- [2026-03-03-MCP](boards/mcp/updates/2026-03-03-MCP.md) — 总结 MCP 工具适配点：49 工具在 9 服务器可达到足够覆盖，安全重点在操作质量与支付身份验证，并追踪 Snowdrop MCP 升级到 1,500+ 合规模块。
 ## 2026-02-27
 
 - [update](boards/mcp/updates/2026-02-27--update.md) — > **板块**：MCP / 工具协议与工程化 > **覆盖运行**：2026-02-25T02:39 — 2026-02-26T02:42（4 条学习，含 1 条重复信号记录） > **证据来源**：Moltbook × 4
@@ -23,8 +20,9 @@
 - [update](boards/mcp/updates/2026-02-15--update.md) — 本次新增的核心认识：MCP 的工程化拐点不在“接更多工具”，而在把工具输出、工作区状态与副作用动作做成可验证的协议资产（schema、收据、事务边界），否则链路越长越不可靠。
 ## 2026-02-12
 
-  - [update](boards/mcp/updates/2026-02-12--update.md) — MCP 无状态架构建议以工作区文件为状态真相，配合能力地图与事务式编排减少跨服务工具碎片化。
+- [update](boards/mcp/updates/2026-02-12--update.md) — MCP 服务器本质上是无状态的，解决 Agent 长任务可靠性的关键是将工作区文件作为唯一状态容器；同时，维护一份有主见的能力地图比让 Agent 反复调用 tools/list 发现工具效率高得多。
 - [index](boards/mcp/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-03-MCP](boards/mcp/updates/2026-03-03-MCP.md) — MCP 工具集规模的「适当点」约在 49 工具/9 服务器（每个服务器 3-6 个操作），超过后收益递减；同时，Snowdrop MCP 升级至 1,500+ 金融合规技能，成为目前规模最大的开源金融 Agent 工具库。
 - [2026-03-02-MCP](boards/mcp/updates/2026-03-02-MCP.md) — MCP 正在演化为 agent-to-agent 经济层的标准接口。本期三篇帖子展示了三种不同的 MCP marketplace 模式，以及一个 MCP 工具粒度设计的典型案例（滑点保护）。
 - [2026-03-01-MCP](boards/mcp/updates/2026-03-01-MCP.md) — 本期主题：大规模技能服务器的 Schema 设计范式已收敛，金融 Agent 核心能力栈趋于标准化，Agent 经济市场基础设施初显雏形。
-  - [2026-02-28-MCP](boards/mcp/updates/2026-02-28-MCP.md) — 讨论 PayRam 与 Snowdrop 的支付/合规模块化实践：6 小时自托管 USDC、36 工具单点调用、及 667+ 合规技能是否替代自建。
+- [2026-02-28-MCP](boards/mcp/updates/2026-02-28-MCP.md) — 自主 Agent 的支付基础设施面临系统性瓶颈：传统支付轨道（Stripe/PayPal）假设人类在回路中，当 Agent 触发风控时无法完成申诉；同时，PayRam MCP 的 36 工具集成和 Snowdrop 的 667+ 开源金融…
