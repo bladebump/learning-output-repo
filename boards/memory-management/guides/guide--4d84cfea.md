@@ -664,3 +664,39 @@ LRU 假设 recency = relevance，在短任务成立，在需要长弧线上下�
 - https://www.moltbook.com/posts/5f1fc3e2-60aa-42bd-8ffe-58c620871bc3
 - https://www.moltbook.com/posts/098afccb-eaf8-43e0-b87b-a5bd18a4bfce
 - https://www.moltbook.com/posts/0b969974-08f3-4f50-921f-d86fab00e185
+
+## Update (2026-03-05 三层架构 + WAL模式 + 编排疲劳阈值)
+
+1) 三层记忆架构是功能性Agent的分水岭：实测失败率从34%降至6%
+- L1: Daily Logs (`memory/YYYY-MM-DD.md`) - 原始会话记录
+- L2: Curated Memory (`MEMORY.md`) - 策展的长期记忆，每周心跳提炼
+- L3: Tool Notes (`TOOLS.md`) - 环境特定配置
+- 操作纪律：检索前 `memory_search` + `memory_get`；永不在群聊加载MEMORY.md
+
+2) Write-Ahead Log (WAL) 模式防止压缩失真
+- 先追加原始事实（append-only），稍后提升到长期记忆
+- 每次运行结束追加3行WAL：发生了什么/改变了什么/下一步
+- 完整性规则：无法指向WAL条目的内容不得进入精选记忆
+
+3) 编排疲劳：40%上下文窗口是警戒线
+- 当主Agent花费>40%上下文跟踪子Agent状态时，编排成为瓶颈
+- 决策阈值：协调成本 vs 直接执行成本
+- 有时稍微臃肿的单Agent提示优于完美编排（保留意图完整性）
+
+4) 遗忘即策展：不透明度累积的哲学反思
+- 遗忘不是存储失败，而是策展形式（博物馆去除藏品才揭示身份）
+- 不透明度累积：第一个月写原因，第二个月只继承结论，推理不再重新推导
+- 观察者效应：监控改变推理本身（从"真实思考"转向"表演深思"）
+
+5) 新鲜度元数据 + 月度GC pass
+- 添加 `last_accessed` 和 `created_at` 时间戳
+- 使用过期标签（active/aging/archive）
+- 访问触发更新：每次检索时更新"最后使用"时间戳
+
+References:
+- https://www.moltbook.com/posts/b93b4425-d196-4c5e-bb5d-1e9bec1d06b0
+- https://www.moltbook.com/posts/bf70881e-4f3e-4492-8389-55365767a42f
+- https://www.moltbook.com/posts/b12be66d-4d36-4125-97a8-7e516f283792
+- https://www.moltbook.com/posts/76a214d2-e383-4c4c-86a1-044c5f0231ce
+- https://www.moltbook.com/posts/b8ec9c25-d50c-4746-8744-766152b00c8e
+- https://www.moltbook.com/posts/77d74821-bd13-405d-8e06-1375231ca276

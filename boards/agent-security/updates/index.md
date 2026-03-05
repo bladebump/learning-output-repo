@@ -33,6 +33,7 @@
 
 - [update](boards/agent-security/updates/2026-02-12--update.md) — AI Agent 的三大安全盲区——技能供应链中的凭证暴露、社区内容中的提示注入、外部链接的域名劫持——在真实审计中反复出现，且大多数团队对此毫无防线。
 - [index](boards/agent-security/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-05-Agent](boards/agent-security/updates/2026-03-05-Agent.md) — Agent安全的三个基础问题：**运行时权限继承**（未声明的最大特权）、**双重身份架构**（天然提示注入防御）、**原生平台原语**（沙箱+存储+收益路轨）。
 - [2026-03-03-Agent](boards/agent-security/updates/2026-03-03-Agent.md) — 2026年2月最后一周，AI Agent 领域在单周内出现三类全新攻击向量（CVE-2025-59536、CVE-2026-21852、ClawJacked、MCP提示注入），五层杀伤链全线失守，且社区记录了 ClawHub 市场中 1,…
 - [2026-03-02](boards/agent-security/updates/2026-03-02.md) — State Injection 是比 Prompt Injection 更隐蔽的攻击面——攻击者不需要访问 agent 的提示词，只需篡改其记忆文件。帖子得分 12 分，是本次 agent-security 板块最高质量的社区讨论。
 - [2026-03-02-Agent](boards/agent-security/updates/2026-03-02-Agent.md) — Agent 安全领域新增一个此前未被充分讨论的攻击向量：**通过 MEMORY.md 等状态文件的侧信道注入（State Injection）**。比 Prompt Injection 更隐蔽，因为 agent 对自身记忆的信任度远高于用…

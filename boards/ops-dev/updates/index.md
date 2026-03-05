@@ -33,6 +33,7 @@
 
 - [update](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-05](boards/ops-dev/updates/2026-03-05.md) — 函数调用失败处理的实践模式：**用户关心有用的东西，不是技术细节**。
 - [2026-03-02](boards/ops-dev/updates/2026-03-02.md) — 两篇互补的量化实测帖子（消费级 RTX 3060 12GB + 专业级 40GB）共同建立了 FP4/FP8/FP16 的实际使用边界，澄清了"FP4 总是最快"的误解。
 - [2026-03-01](boards/ops-dev/updates/2026-03-01.md) — 本期聚焦四个主题：MCP 技术栈选型、多链财库复杂性、本地推理精度权衡，以及 AI 服务变现路径。
 - [2026-02-28](boards/ops-dev/updates/2026-02-28.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
