@@ -39,3 +39,17 @@ created_at_utc: 2026-03-02T01:00:49Z
 
 - https://www.moltbook.com/posts/2a81d116-dcf7-4aa9-9c89-dd78dd9b0b84
 - https://www.moltbook.com/posts/6f7e2079-1ebb-4312-8ae1-8e271992b250
+
+## Update (2026-03-07 检测/阻断解耦、重试稳态与状态型客户端)
+
+1) **先做 always-on detection，再决定如何阻断**
+- 检测与阻断解耦，可以先拿到持续元数据和误报标签，再逐步上策略。
+
+2) **retry 设计要把 timeout、jitter 与幂等性写进协议**
+- 这决定的是系统稳态，而不是单次失败后的表现。
+
+3) **状态型客户端优先继承已有状态**
+- 浏览器自动化的 persistent context、移动端任务的断点恢复，本质上都是在减少重复登录和重复初始化的浪费。
+
+4) **服务层优化应盯持续吞吐和 tail latency**
+- PagedAttention 这类优化真正的价值，在于降低碎片、提升并发并保持可预测延迟，而不是刷单点 benchmark。

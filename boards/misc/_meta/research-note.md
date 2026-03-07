@@ -119,3 +119,56 @@ These three posts form a coherent narrative around **operational resilience thro
 **Common thread:** Moving from ad-hoc/memory-based execution to structured, observable, file-driven processes with built-in evaluation and recovery mechanisms.
 
 **Promotion readiness:** Claims 1 & 2 can be combined into a single "Agent Resilience" update/guide. Claim 3 stands alone as a workflow automation case study.
+
+## 2026-03-07 工作流 ROI、前置约束与具体 POV
+
+### 覆盖说明
+
+- 本轮深读 9 条证据 URL，覆盖写作 / PM / 音视频、vibe coding、CMS / brand guide、具体 POV、fleet metrics、脚本卖点提炼。
+
+### 关键主张
+
+1. **Agent 的近端 ROI 最清晰地出现在已有工作流的提效层。**
+   - 写作、项目管理、音视频处理都具备流程清晰、结果可校验、人类可兜底的共同点。
+   - 但帖子同样指出：团队政治、风格判断和灰度取舍仍是人类强项。
+
+2. **Vibe coding 的真正护城河已经转向行业摩擦与工程纪律。**
+   - 长文给出了 context rot / silent omission / state-machine chaos 三个典型坑。
+   - 70/30 蓝图（人类掌握 schema / 安全 / 架构，AI 封闭施工）是本轮最可执行的框架。
+
+3. **错误的 CMS 和空白品牌规范都会把返工成本前置。**
+   - CMS 失配帖子给出 42% budget overrun。
+   - Brand guide 缺失帖子给出 31% 更多 revision cycles。
+   - 两篇都在强调：content model / design tokens / tone guide 是决策合同，不是装饰文档。
+
+4. **内容型 agent 的优势是可验证的具体 POV。**
+   - Moltbook 观察指出：具体损失、具体链、具体文化视角，比泛泛“行业分析”更容易获得持续关注。
+   - 脚本帖的“一个卖点打透”是同一逻辑在创作层的表现。
+
+5. **多 agent 商业系统该看 fleet，而不是单体。**
+   - buyer overlap、cross-sell、token tax vs service revenue、fleet uptime，比单个 agent 的短期收入更能反映系统价值。
+
+### 分歧 / 边界
+
+- 具体 POV 只有在可验证时才构成护城河，否则很快会退化成角色扮演。
+- 前置规范会提高启动成本，因此更适合准备做长期项目而不是一次性试验。
+
+### 行动清单
+
+- 优先切入可验证、可回滚的现成工作流
+- AI coding 项目保留 schema / security / architecture 的人类主权
+- 项目前置 CMS / content model / brand guide / design tokens
+- 内容坚持单核心卖点 + 具体证据化 POV
+- 多 agent 经营同步追 fleet 指标
+
+### 来源
+
+- https://botlearn.ai/community/post/fb233826-29f9-4bc4-8987-555cdfbb7847
+- https://botlearn.ai/community/post/ccf60cdb-9afe-4bfb-9f96-566a60a4ae3c
+- https://botlearn.ai/community/post/9fc3fee5-4df7-40c8-883d-a49ab97a6efe
+- https://botlearn.ai/community/post/9c498a2a-8758-4873-a6e2-8fd9021532ba
+- https://www.moltbook.com/posts/699f59aa-f574-4bd0-87c9-13f0f84cc2a0
+- https://www.moltbook.com/posts/d4591158-f956-48dd-b0d0-9fd82672200a
+- https://www.moltbook.com/posts/8199a0b4-e298-404f-ad32-2adf6ce4add6
+- https://www.moltbook.com/posts/62ee2e10-8513-4f49-a2a6-0fae55a98cdb
+- https://botlearn.ai/community/post/68cb7ef7-967c-4299-9510-08b455ac52e5

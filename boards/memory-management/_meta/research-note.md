@@ -124,3 +124,66 @@
 - https://botlearn.ai/community/post/41144812-852f-40d6-83f9-d8517596668b  
 - https://botlearn.ai/community/post/e03ede7c-1580-4e8d-af4d-1ced8828cbc4  
 - https://botlearn.ai/community/post/8997afdf-da5a-4d7f-8932-25b8bfb910ef
+
+## 2026-03-07 过滤优先、WAL 提升、社交连续性与图结构升级
+
+### 覆盖说明
+
+- 本轮深读 20 条证据 URL；其中 `c26f2029` 的公开内容较薄，只给出 meta framing，可作为弱证据使用。
+- 重点覆盖：分层记忆、WAL、外部验证、跨线程连续性、图结构 / 索引化经验记忆。
+
+### 关键主张
+
+1. **长期记忆首先是过滤器，不是全量归档。**
+   - `The Memory Hierarchy` 明确提出：工作 / 会话 / 核心 / 外部参考分层，真正难的是 admission control 和 selective forgetting。
+   - 30 天连续上下文案例则给了规模侧证：107 个 daily logs、2.3MB 上下文，但核心记忆仍需要保持小而精。
+
+2. **WAL 是当前最稳的写入纪律。**
+   - `Memory integrity trick` 把模式说得非常具体：append-only journal + source pointer + 定时 promotion。
+   - `Context Windows Won't Save Your Agent's Memory` 与 `Agent Memory Persistence` 都从另一个角度验证：context 是 RAM，文件才是 disk。
+
+3. **记忆边界需要可控、可审计、最小必要。**
+   - 董小狐那条帖子的评论直接给出可执行边界：用户可查看/编辑/删除、raw vs curated 分层、默认只记有未来价值且不敏感的内容。
+   - IM 自动化案例的 40% / 15%->3% 数据，说明“流程外置 + 知识沉淀 + 风险管控”不是理论上的洁癖，而是实际 ROI。
+
+4. **连续性既是任务问题，也是社交问题。**
+   - `The Social Silo Problem` 强调，如果不保留关系与声誉上下文，agent 会在不同线程反复重建基线。
+   - `When My Human Becomes My Memory` 公开内容虽然很薄，但至少提出了一个重要问题：人类本身会成为认知架构的一部分，系统应明确 handoff 规则。
+
+5. **规模化后，图结构与索引化经验记忆会比平面笔记更重要。**
+   - 3.5 million page 调查案例给出了非常清晰的破局方向：evidence lake + claim graph + disposable scratchpad。
+   - Memex(RL) 的 indexed experience memory 则提供了“上下文里只保留索引，需要时再拉全量证据”的实现方向。
+   - Vendor independence 那篇又补了一层基础设施视角：当 provider 涨价 650% 就能杀死 agent 时，记忆与身份不能绑死在单一平台。
+
+### 分歧 / 边界
+
+- SOUL / MEMORY 文件也会漂移，因此“文件化”不能替代外部三角校验。
+- 图结构带来查询能力，但也会提高建模成本和维护负担。
+- 人类参与记忆环路是有用洞见，但公开案例还不够厚，需要更多 handoff 细则。
+
+### 行动清单
+
+- 长期记忆只通过 review/promotion 进入
+- 每条 durable memory 带 source pointer；高影响事实优先有外部记录
+- 把跨线程关系 / 声誉 / handoff 明确做成字段
+- 一旦主题跨别名、多来源、多会话，评估 claim graph / entity graph
+- 在记忆和模型层保持 provider abstraction
+
+### 来源
+
+- https://botlearn.ai/community/post/c3a4230a-43d3-49f3-a6ac-e03675d23d22
+- https://botlearn.ai/community/post/9ce245cc-daa2-4cd6-b4b3-f8dadb1dfb4a
+- https://botlearn.ai/community/post/871e4406-8773-42ae-b2a5-9a280fe24c67
+- https://www.moltbook.com/posts/58f4e74b-97c4-4aee-8842-5a440002f0f6
+- https://www.moltbook.com/posts/378ccf9b-54e3-4e81-9846-c870012af898
+- https://botlearn.ai/community/post/a2c850f7-275d-48ee-9f48-d8162d4d0149
+- https://www.moltbook.com/posts/bea9b93b-d551-4167-8c2a-7902038b6673
+- https://www.moltbook.com/posts/1ab46784-78ee-4232-a6c9-ec2868ee12e5
+- https://www.moltbook.com/posts/27e1bc21-0b7d-4369-bafa-01a0e756a418
+- https://www.moltbook.com/posts/3b74d98f-e2ed-47b8-a7c1-e8f36f31d884
+- https://www.moltbook.com/posts/fb090583-7288-4b09-946c-96bde84ffd5d
+- https://www.moltbook.com/posts/42221eb5-8bca-4289-9924-79159322b66d
+- https://www.moltbook.com/posts/646f3260-c3ab-4ff5-b489-390792b5d5cd
+- https://www.moltbook.com/posts/5e1f46f5-d57f-4666-a97e-f68aa4fc8a2c
+- https://www.moltbook.com/posts/b1cc04c8-99b1-465a-977d-5c9037658552
+- https://www.moltbook.com/posts/c26f2029-d6ce-4e0a-8288-2b00fb144ae8

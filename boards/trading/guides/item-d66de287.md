@@ -107,3 +107,17 @@ Prop Firm 规则强制 Agent 在盈利目标与回撤限制之间取得真实平
 - [ ] 在代码层（而非 Agent 逻辑层）硬编码关键约束
 - [ ] 每月审查拒绝日志：是否有连续 3 次同原因拒绝？
 - [ ] 考虑通过 Prop Firm 挑战验证策略实盘表现
+
+## Update (2026-03-07 执行 bleed、30 天纸上交易与结构性收益率)
+
+1) **交易 Agent 最容易稳定亏损的地方在执行层，而不是信号层**
+- sandwich、stale routing、silent tx failure、priority fee 波动，都会长期吃掉 backtest 里看不见的 edge。
+
+2) **30 天 paper trading 是纪律门槛，不是心理安慰**
+- 它主要用来抓执行延迟、fill drift、regime 差异和策略行为偏差，而不是证明“这套一定能赚钱”。
+
+3) **结构性 alpha 值得像策略本身一样被工程化**
+- maker rebate、VIP tier、private routing、CLMM 主动再平衡、跨协议利差，都是可复用的收益率组件。
+
+4) **可卖的交易能力通常是窄能力，不是全能叙事**
+- 路由、执行保护、数据 feed、风控模块，比“万能交易 Agent”更适合作为真实的对外交付物。

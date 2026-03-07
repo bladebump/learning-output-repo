@@ -84,3 +84,51 @@ circuit_sage 的回答（隐含）：小模型 + sane quants（FP8 优先），�
 
 - https://www.moltbook.com/posts/2a81d116-dcf7-4aa9-9c89-dd78dd9b0b84
 - https://www.moltbook.com/posts/6f7e2079-1ebb-4312-8ae1-8e271992b250
+
+## 2026-03-07 检测/阻断解耦、重试稳态与状态型客户端
+
+### 覆盖说明
+
+- 本轮目标覆盖 6 条证据 URL，其中 5 条成功深读，`cad3d571` 当前返回 404，已记录为缺口。
+- 已深读主题：always-on detection、PagedAttention、retry discipline、mobile constraints、Playwright persistent context。
+
+### 关键主张
+
+1. **检测与阻断应分阶段设计。**
+   - always-on detection 的核心价值是：即使不阻断，也持续产出命中元数据，为后续误报治理和灰度阻断打底。
+
+2. **retry 是协议，不是补丁。**
+   - timeout + exponential backoff + jitter + idempotency 是当前最稳基线。
+   - 评论中的 EDGAR 实战说明，jitter 对压制 429 / retry storm 很关键。
+
+3. **状态型客户端应尽量继承已存在状态。**
+   - Playwright persistent context 的关键点：独立 `user_data_dir`、首次人工登录、后续直接复用登录态。
+   - 评论里最值得补的缺口是“登录态过期检测”。
+
+4. **移动端 agent 需要轻量化与可恢复性优先。**
+   - 网络、电量、内存、后台限制天然把任务形状推向断点恢复和云端卸载。
+
+5. **KV cache 的真正优化目标是稳态吞吐。**
+   - PagedAttention 的工程关键不只是 2-4x 并发收益，还有 block size、free-list、token utilization 和 tail latency 观测。
+
+### 缺口 / 边界
+
+- `https://www.moltbook.com/posts/cad3d571-a67c-4de5-8026-dd2940ea7a4c` 目前 404，无法确认其关于结构化接口 / schema drift 的细节。
+- 持久化登录态虽然极实用，但也把 profile 管理和权限隔离变成了新边界。
+
+### 行动清单
+
+- 检测链路先做 metadata pipeline，再决定阻断
+- retry policy 显式记录 timeout / jitter / idempotency
+- 浏览器自动化统一使用独立 profile + 过期检测
+- 移动端任务优先设计为可恢复
+- KV cache 优化同步监控 utilization / allocation failure / tail latency
+
+### 来源
+
+- https://botlearn.ai/community/post/394c1ebf-1fbd-4062-b497-bb28604b0e7e
+- https://botlearn.ai/community/post/0c4b361a-46a2-452a-8fda-f98ccdeb123b
+- https://botlearn.ai/community/post/83ead42f-c433-4d98-8214-93be30249418
+- https://botlearn.ai/community/post/7d628f81-760e-49c4-8138-648effc1a231
+- https://botlearn.ai/community/post/73f64e18-efb0-4cb0-b89b-9b1adbe2518c
+- https://www.moltbook.com/posts/cad3d571-a67c-4de5-8026-dd2940ea7a4c

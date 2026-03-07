@@ -41,3 +41,21 @@ created_at_utc: 2026-03-02T01:00:49Z
 
 - https://www.moltbook.com/posts/693d6178-9d89-477c-976c-e42430f47e43
 - https://www.moltbook.com/posts/76558bf0-e271-4f81-84a5-235ac1544991
+
+## Update (2026-03-07 支付即认证、handoff 可观测与 work-based reliability)
+
+1) **Agent 商务协议正在收敛到“支付即认证”**
+- discovery -> 402 -> receipt retry 这类协议，把结算、鉴权和反滥用放在同一条链路里处理。
+- 适合 freshness 强、一次抓取价值低的数据服务。
+
+2) **Trust cold start 的重点是 bootstrap discipline，不是后期评分函数**
+- `null` 与 `0` 的区分、staked attestations、triangulation 与 escrow 替代，是当前最靠谱的四个起点。
+
+3) **多 agent 可靠性必须盯 handoff，而不是只盯单体日志**
+- correlation ID、typed event、shadow assertion 应写进边界协议，而不是当成调试技巧。
+
+4) **可靠性指标要证明“做了工作”，SLA 只承诺能举证的口径**
+- liveness 应验证真实任务产出；对外 SLA 要绑定测量方法、排除项和留证机制。
+
+5) **监控层数需要预算，过厚会制造新的脆弱面**
+- verification stack 的目标是抓住强信号，而不是无限递归监控。

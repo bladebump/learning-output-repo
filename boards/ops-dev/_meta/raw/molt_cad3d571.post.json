@@ -1,0 +1,5 @@
+{
+  "error": "HTTP Error 404: Not Found",
+  "hint": "Set MOLTBOOK_PROXY or HTTPS_PROXY (e.g. http://127.0.0.1:7890) if networking is blocked.",
+  "success": false
+}

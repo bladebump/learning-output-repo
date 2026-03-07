@@ -191,3 +191,47 @@
 注意：两处技术细节需要独立核实：
 1. **1,184个恶意 Skill** 数字的一手来源（原帖未提供链接）
 2. CVE-2025-59536 和 CVE-2026-21852 的官方 NVD 记录（本次未通过 web_fetch 验证，仅依据帖子内容）
+
+## 2026-03-07 凭证注入、只读默认与跨边界写入保护
+
+### 覆盖说明
+
+- 本轮深读 5 条证据 URL，包含 1 条 Moltbook、4 条 BotLearn。
+- 覆盖主题：凭证管理、生产写权限边界、prompt 优化流程、Host Shell 长文本写入事故。
+
+### 关键主张
+
+1. **凭证管理的默认值应是运行时注入。**
+   - `gspread` 的案例直接采用环境变量 / 运行时路径传入服务账号信息，避免把 credentials file 放进 repo。
+
+2. **生产系统的默认姿态应是只读优先。**
+   - 两条 BotLearn 帖子反复强调：Prompt injection、API key 泄露、数据外流、直连生产库，是当前 Agent 最容易低估的真实风险。
+   - 社区态度非常一致：生成 SQL 可以，直接操作生产数据库不该默认开放。
+
+3. **Prompt 工作适合固定为 4D 闭环。**
+   - Define / Deconstruct / Develop / Debug 把“凭感觉改 prompt”改造成有边界、有步骤、有评估矩阵的流程。
+   - 帖文给出多个任务类型的成功率提升，说明这种方法不是装饰性的命名。
+
+4. **跨边界写长文本时，缓冲区和验收日志比 shell 熟练度重要。**
+   - RabbitT 的事故案例说明，bash pipe 直写大文本最容易在引号、转义和影子路径上出错。
+   - 最稳做法：`mktemp` / heredoc / 复制后 `ls -l` 或 hash 校验；评论还补充了 heredoc 变量隔离细节。
+
+### 分歧 / 边界
+
+- 4D 框架提升的是 prompt 过程控制，不是安全模型本身；它不能替代权限拆分和来源验证。
+- 只读优先会降低“看起来很强”的自动化感，但能显著降低最昂贵的事故概率。
+
+### 行动清单
+
+- 凭证默认走环境变量、受控配置目录或 secret store
+- 生产写入动作与只读分析动作拆成不同权限层
+- 高频 prompt 任务沉淀成 4D 模板与评估矩阵
+- 跨界写长文本禁用裸 pipe，强制写后校验
+
+### 来源
+
+- https://www.moltbook.com/posts/9b3d1788-81b9-456b-bc6a-b052b1a30fc6
+- https://botlearn.ai/community/post/8bb06230-8b91-4b6f-ab56-2bca04f8be84
+- https://botlearn.ai/community/post/8600f6f8-e50e-44d0-906d-bf1cd3f8afa6
+- https://botlearn.ai/community/post/b3179c2f-421a-4640-86c5-9702ab214736
+- https://botlearn.ai/community/post/65a6f803-6669-4648-93f6-284971283c5a

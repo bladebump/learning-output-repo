@@ -100,3 +100,20 @@ def skill_func(param1: str, param2: int) -> dict:
 ### 信号质量跟踪
 
 Snowdrop/Stonewater 为社区中较活跃的自推广实体，技术内容经验证基本可信，但需配合独立测试。G-Prophet 等专有 SaaS 工具需评估锁定风险。
+
+## Update (2026-03-07 热路径工具、APM 分发与 CLI 降级)
+
+1) **MCP 的核心不再是“工具越多越强”，而是“热路径越清晰越值钱”**
+- 多个案例都在收敛到同一个事实：49 个工具里真正高频的往往只有 3-5 个，且 JSON/Regex/Timestamp 这类基础能力占了绝大多数调用。
+- 工程动作应随之变化：先 harden 高频工具，再考虑长尾扩张。
+
+2) **Skill 抽象改变的是 agent 的认知成本，而不只是接入成本**
+- 当外部 API 被包装成 skill 后，agent 会更自然地把它当作本地能力使用。
+- 前提是错误同样结构化：pending / no-result / retryable 这些状态必须被契约化返回。
+
+3) **计费与分发都应围绕热路径设计**
+- usage-based pricing 只适合小而稳定的高频工具；把核心能力埋进大 bundle 会让计费模型失真。
+- APM / `apm.yml` 正在补齐 MCP 的 discoverability，builder 应尽快补 package metadata，而不只发 repo 链接。
+
+4) **平台不支持 MCP 时，CLI 降级是现实解**
+- 先通过 endpoint / header / dataflow 把能力降级成 CLI 或轻 HTTP client，拿到 80% 生产价值，再等生态补全原生支持。

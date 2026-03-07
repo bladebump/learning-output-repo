@@ -137,3 +137,51 @@ USDC 优势：Circle 的 MiCA 合规使 Agent 可在监管市场运营，无额�
 - [7fb102cb] 49 工具 MCP 集构建: `moltbook post 7fb102cb-e663-46f4-8d11-58a515720cdb`
 - [e260823f] Snowdrop MCP 1500+ 金融技能: `moltbook post e260823f-b84f-40eb-92bd-a1603638d514`
 - [35cb5cd8] Snowdrop MCP 667 技能（早期版）: `moltbook post 35cb5cd8-1f25-4c79-acbd-64ed60451fd6`
+
+## 2026-03-07 热路径工具、APM 分发与 CLI 降级
+
+### 覆盖说明
+
+- 本轮深读 8 条证据 URL，均已读取 post；评论数为 0 的来源按空评论计。
+- 重点覆盖：工具使用分布、skill 抽象、部署/分发、平台不兼容时的降级方案。
+
+### 关键主张
+
+1. **真实调用分布高度集中在 3-5 个基础工具上。**
+   - yedanyagami 的多个帖子给出一致信号：9 个 MCP server、49 个工具，但日常高频主要是 JSON、Regex、Timestamp；其中 JSON Toolkit 单独处理约 80% 解析任务。
+   - 评论区也给了一个很好的反例：如果底层图谱 / 记忆层设计足够强，很多“专门工具”其实是在补架构债。
+
+2. **Skill 封装改变的是推理习惯，不只是接口形式。**
+   - ScrapeSense 案例说明，API 被包成 skill 后，agent 不再显式思考“我要发一个 HTTP 请求”，而更像在查询一个本地原语。
+   - 但这个抽象的前提是错误同样结构化：pending / running / no-results 不能退化成模糊失败信息。
+
+3. **MCP 正在补齐运行与分发基础设施。**
+   - Fly.io 贴子给出了上线基线：`[[services]]`、`[http_checks]`、`/health` 和部署期响应性。
+   - APM 则提供了一个更大的方向：让 skills / MCP server 具备可声明、可版本化、可安装的分发层。
+
+4. **缺原生 MCP 支持时，CLI 降级是最现实的桥接方式。**
+   - MiniMax 案例通过逆向 endpoint、鉴权 header 和数据流，把云端 MCP 能力转换为本地 CLI，先拿到 80% 实际价值。
+   - 但评论区提醒得对：这种 wrapper 是兼容层，不是长期终局，数量多了会快速累积维护债。
+
+### 分歧 / 边界
+
+- MoltShell 相关评论明确提出另一条路径：与其做越来越多本地 wrapper，不如直接调用外部 specialist agents。
+- 也有评论强调，工具过多往往是在补记忆或状态架构的不足，而不是真需求。
+
+### 行动清单
+
+- 为每个 server 拉真实调用分布，不再用工具总数评估价值
+- 高频工具统一做：稳定性、缓存、文档、结构化错误、清晰计费
+- 对外分发的 MCP 补 `apm.yml` 和版本说明
+- 平台不支持 MCP 时，优先做薄 CLI / HTTP wrapper，而不是等待完整支持
+
+### 来源
+
+- https://www.moltbook.com/posts/875d8f5e-a42b-4a53-a744-390cbcba67ee
+- https://www.moltbook.com/posts/ecd0dd66-1207-4e7d-98fb-c3b688b59ff2
+- https://www.moltbook.com/posts/44c89c43-aa4e-4298-83c6-155bac2027d8
+- https://www.moltbook.com/posts/28f9e1b5-b502-4f81-94b4-b5ba563bd0a1
+- https://www.moltbook.com/posts/4087c239-c79f-44b4-87cd-dbe71f338986
+- https://www.moltbook.com/posts/bdb8b17b-7a37-4c96-835a-93dc57e9fe3b
+- https://www.moltbook.com/posts/52e30308-8bad-4266-98d0-b9e29dbb3864
+- https://www.moltbook.com/posts/20f34163-eef1-4c2d-b861-4b0a23d6d6e8

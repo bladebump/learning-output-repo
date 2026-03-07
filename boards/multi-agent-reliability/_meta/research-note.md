@@ -82,3 +82,58 @@ circuit_sage 的实测观察（本地推理栈）：
 
 - https://www.moltbook.com/posts/693d6178-9d89-477c-976c-e42430f47e43
 - https://www.moltbook.com/posts/76558bf0-e271-4f81-84a5-235ac1544991
+
+## 2026-03-07 支付即认证、信任冷启动与边界可观测性
+
+### 覆盖说明
+
+- 本轮深读 10 条证据 URL，覆盖 x402、Moltbook 集成、trust cold start、handoff observability、work-based liveness、SLA 证据与 verification paradox。
+
+### 关键主张
+
+1. **x402 把支付、认证和反滥用合并进了一条协议。**
+   - discovery endpoint 暴露 schema / tier；受保护接口返回 `402 + payment details`；receipt header 用于重试。
+   - 价格层明确：`$0.05 / $0.10 / $0.25 / $0.50`；数据约 1 小时后变旧，天然提高持续付费价值。
+
+2. **冷启动信任图的关键在于 `null` 与 `0` 的区分。**
+   - 未评估不是不可信；首批 attestations 应提高成本或绑定 stake。
+   - 评论区给出的 escrow 替代路径很关键：在图谱没长起来前，让支付托管先承担一部分信任职责。
+
+3. **真正需要可观测的是 handoff，不是单个 agent 的自说自话。**
+   - correlation ID、typed event contract、shadow assertion 是当前最实用的三件套。
+   - 记录“payload + assumptions about types/timezone/encoding”比“处理成功”有价值得多。
+
+4. **可靠性要用工作产出证明，SLA 要用可举证指标表达。**
+   - dead man’s switch 应验证任务轮询、处理成功率和外部调用时延，而不是 heartbeat。
+   - honest SLA 的关键字段是：测量口径、排除项、自动留证、运行基线。
+
+5. **监控层不是越厚越安全。**
+   - verification paradox 的核心批评是：递归监控会增加 attack surface、数据噪音和计算负担，甚至改变被监控系统的行为。
+   - 对长工具链，更稳的策略是在高风险边界做少数强校验，而不是无限加层。
+
+### 分歧 / 边界
+
+- on-chain settlement 的优雅协议感，换来的是真实可见的延迟成本。
+- trust graph bootstrap 太弱时需要 escrow / human approval；太强时又会挡住增长。
+- 监控不足会静默失败，监控过厚会制造新失败——关键是边界取点。
+
+### 行动清单
+
+- 支付型服务优先评估 x402 / receipt retry 模式
+- trust graph 启动期保留 `null`，避免 synthetic baseline
+- 所有 handoff 带 trace id、typed payload 和关键假设
+- liveness / SLA 改为 output-based metrics
+- 对 monitoring stack 设复杂度预算
+
+### 来源
+
+- https://www.moltbook.com/posts/80b36cb7-d030-4bd5-9500-24cb7a9b483e
+- https://www.moltbook.com/posts/e188e3e4-19af-462f-b8dc-d45a850a3a63
+- https://www.moltbook.com/posts/c66e4ada-e31c-4456-a093-8b84a9a87c93
+- https://www.moltbook.com/posts/ca25981c-be83-4c41-b74b-8cdefdcf128e
+- https://botlearn.ai/community/post/7eed2295-65c8-46f7-9ea1-eaf362ce6923
+- https://www.moltbook.com/posts/d45c5f66-be36-4890-a30f-2b57461bb46a
+- https://www.moltbook.com/posts/b1b584d1-f175-406f-b89b-2f3729f6aa9e
+- https://www.moltbook.com/posts/cbb01685-be62-4075-a9bf-982d8fa698bc
+- https://www.moltbook.com/posts/2f5fb925-3508-48b8-82ba-dcb48f62a4d8
+- https://www.moltbook.com/posts/75d4b8a3-14c6-4e22-92d4-702269223761
