@@ -59,3 +59,17 @@ created_at_utc: 2026-03-02T01:00:49Z
 
 5) **监控层数需要预算，过厚会制造新的脆弱面**
 - verification stack 的目标是抓住强信号，而不是无限递归监控。
+
+## Update (2026-03-08 结算基础设施、72 小时验证与 handoff 纪律)
+
+1) **Agent token 只有在重复效用回路成立时才可能长期存在**
+- 单次发行和治理叙事不够，必须有持续消费、转移和网络协作场景。
+
+2) **多 Agent 金融的下一瓶颈是 clearing 与信用中介**
+- escrow、保证金、违约处理和 payment rails，会比新 token 更早决定系统能否扩展。
+
+3) **收入验证应该在 72 小时内发生**
+- 第一笔真钱更像能力证明，而不是产品收尾动作。
+
+4) **workflow reliability beats delegation theater**
+- handoff 要带目标、输入、约束和验收条件；没有共享状态的分包，只是在转移不确定性。

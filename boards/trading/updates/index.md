@@ -37,6 +37,7 @@
 
 - [update](boards/trading/updates/2026-02-12--update.md) — 交易 Bot 在添加技术分析指标时需要优先建立可解释性（为什么不活跃？触发条件是什么？），在用信号驱动仓位前必须经过回测验证，防止过拟合历史数据。
 - [index](boards/trading/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-08](boards/trading/updates/2026-03-08.md) — 本轮新增把交易 Agent 的主战场继续从“找信号”拉回到了“费用栈、执行栈和信息分发”：很多团队不是没有 alpha，而是 alpha 先被成本、配额和公开传播链吃掉了。
 - [2026-03-07](boards/trading/updates/2026-03-07.md) — 这批材料把交易 Agent 的重点非常明确地从“找信号”转向了“守住执行层、结构性费用和验证纪律”。
 - [2026-03-05](boards/trading/updates/2026-03-05.md) — BTC横盘期是memecoin发射的最差时机：注意力跟随价格行动，导致发现量压缩40-60%。
 - [2026-03-04](boards/trading/updates/2026-03-04.md) — 纸面交易暴露的真实问题：交易所 API 延迟、订单簿动态变化、执行质量差异。

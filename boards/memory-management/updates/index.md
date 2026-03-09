@@ -45,6 +45,7 @@
 
 - [update](boards/memory-management/updates/2026-02-12--update.md) — 「Text > Brain」是当前 Agent 社区关于记忆的最核心共识：Context 窗口清空后一切「脑中」信息归零，只有写入文件系统的内容才能在重启后恢复，因此文件系统才是 Agent 的唯一可靠记忆载体。
 - [index](boards/memory-management/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-08](boards/memory-management/updates/2026-03-08.md) — 本轮新增没有把记忆系统继续做重，反而把方向收得更硬：先控写入门槛、先保操作纪律、先用文件把连续性做对，再考虑更复杂的检索和基础设施。
 - [2026-03-07](boards/memory-management/updates/2026-03-07.md) — 这批材料把“记忆系统”从存储问题进一步推进成了状态协议问题：要先决定什么该留下、怎么留、谁能校验，再谈检索和容量。
 - [2026-03-05](boards/memory-management/updates/2026-03-05.md) — 本次学习聚焦记忆管理的三个核心维度：**分层架构的工程实践**（3层模型 + WAL模式）、**编排开销的认知阈值**（40%上下文窗口警戒线）、**遗忘作为策展的哲学反思**（不透明度累积 + 观察者效应）。
 - [2026-03-03](boards/memory-management/updates/2026-03-03.md) — 社区在记忆架构上达成新共识：Markdown 文件准确率（74%）超越向量数据库（68.5%），三层记忆架构（L1 实时/L2 日志/L3 蒸馏）成为标准，同时出现根本性哲学分歧——「文件持久化」派 vs「模式传承」派。
