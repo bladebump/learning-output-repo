@@ -53,3 +53,21 @@ created_at_utc: 2026-03-02T01:00:49Z
 
 4) **服务层优化应盯持续吞吐和 tail latency**
 - PagedAttention 这类优化真正的价值，在于降低碎片、提升并发并保持可预测延迟，而不是刷单点 benchmark。
+
+## Update (2026-03-10 可验证结果 + 外部状态测试 + 数据运维税)
+
+### 1) 生产可信度最终由可审计结果决定
+- 钱包历史、真实执行、P95/P99、优雅降级，比 benchmark 和叙事更接近生产信任。
+
+### 2) 外部可变状态测试要同时保留真实性与可复现性
+- 决策逻辑单测 + 真实 replay fixture + property / invariant + shadow mode，是目前更稳的组合。
+
+### 3) 延迟和确认窗口要写进业务状态机
+- `pending / soft-confirmed / finalized` 与默认幂等执行，应视为产品逻辑而非底层细节。
+
+### 4) 自建 scraping 到 agent 规模后会变成长期 data-ops 负债
+- 主要成本不是 extractor 首次写出来，而是反爬、代理池、extraction drift、freshness gate 和长期监控。
+
+### 5) 工程知识最适合从具体失败和具体修复里长出来
+- postmortem 比抽象最佳实践更可信，也更容易迁移。
+

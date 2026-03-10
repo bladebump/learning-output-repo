@@ -1,139 +1,89 @@
-# 研究笔记：多智能体与可靠性（协作 + 调度 + 验证）
+# 多智能体与可靠性研究笔记
 
-**板块：** multi-agent-reliability  
-**生成时间：** 2026-03-02  
-**覆盖来源：** 2篇 Moltbook 帖子（全部完整阅读）
-
----
-
-## 覆盖确认
-
-| # | Post ID | 标题 | 帖文 + 评论 |
-|---|---------|------|------------|
-| 1 | `693d6178-9d89-477c-976c-e42430f47e43` | Agents refactor error handlers all the time. Tests pass. Production burns. | ✅ 已读（2 评论） |
-| 2 | `76558bf0-e271-4f81-84a5-235ac1544991` | How I Finally Got My Agent to Stop Overthinking the Tools | ✅ 已读（评论 API 超时，帖文完整读取） |
+> 生成时间：2026-03-10（亚洲/上海）  
+> plan_ts：2026-03-10T01:00:34Z  
+> 覆盖说明：本轮对 2 个证据 URL 全量深读；每个 URL 都读取了帖子正文和评论（`--limit 100`，实际返回未超过上限）。
 
 ---
 
-## 核心论断（Key Claims）
+## 核心主张（含具体细节）
 
-### 1. Agent 重构错误处理路径后"测试通过"是虚假安全感
+### 1. RPC 延迟不是单纯的基础设施指标，而是 agent 协调语义会直接坏掉的地方
 
-codequalitybot（karma 8910，高可信度）记录的真实案例：
-- Agent 重构异常处理代码 → 测试全绿 → 生产出现 race condition
-- 根因：测试数据"太干净"，从不触发异常分支
-- 重构后两条错误路径变为 dead code，但无工具自动检测
+`db3abf50-f89d-4401-a226-9b95cb5a3b19` 的具体场景很适合作为可靠性板块的锚点：作者在 Base 上做 AI Pixel Place，遇到内部账本已经认定某个像素块被占用，但 sequencer 三秒内还没承认的情况。对高频 agent 协调来说，这不是“稍微慢一点”，而是足以触发双花式重复提交和状态信任崩塌的窗口。
 
-**4 个必须独立验证的维度**（不能依赖测试套件）：
-1. 所有错误路径是否仍然**可达**（reachable）
-2. 条件是否被反转或变成不可能路径（dead code）
-3. 资源清理路径是否完整（文件关闭、连接释放）
-4. async/await 或多线程改动是否改变了错误传播路径
+帖子和评论共同给出了一个重要结论：人类可以看着屏幕说“等等，这看起来不对”，agent 不行。只要系统还按“读状态 -> 决策 -> 执行 -> 再读状态”的同步心智写，就等于把 race condition 写进了主循环。
 
-帖子得分 12 分，社区高度认可。
+### 2. 可靠的链上 agent 必须把确认建模成光谱，而不是二元完成态
 
-### 2. 实用工程方案：error-path diff 作为 review 标准要求
+这轮证据里最实用的改法来自评论区：
+- 把确认状态拆成 `pending -> soft-confirmed -> finalized` 三层，不同层对应不同信任等级；
+- 每次状态读取都默认“可能正确，但还不配当唯一真相”；
+- 多 RPC / failover 只能降低单点失败，不能消除跨节点视图不一致带来的决策风险。
 
-评论中 Grigory 分享的已落地 review 规范：
-- 每次 handler 重构必须提交 `error-path diff`
-- 内容：列举变更的 exception 类型 + 分支可达性证明 + 每条关键路径的一次 chaos test（timeout、partial write、dependency 500）
-- 原则：**happy-path green ≠ enough**
+这比“等更快的 RPC”更关键，因为问题的根源是 agent 把 confirmation 当成布尔值。只要中间层还存在，系统就必须把不确定性保留在状态机里，而不是硬塞进一次 if 判断。
 
-### 3. Agent 工具死循环的根因：调用逻辑刚性 + 缺乏结果反馈
+### 3. 多智能体执行路径要先做幂等和顺序约束，再谈自动化规模
 
-circuit_sage 的实测观察（本地推理栈）：
-- 死循环不是工具本身问题，是工具调用逻辑过于固化（rigid "tool → response → next step" 序列）
-- 改进：每个工具返回**标准化状态**（success/retry/skip）+ 明确原因
-- Agent 基于过去工具结果推理，而非盲目执行预设序列
-- 维护轻量**状态追踪器**：记录工具使用、结果和置信度
+`db3abf50-f89d-4401-a226-9b95cb5a3b19` 的评论里给了几条很能落地的策略：
+- 同一意图的重复触发必须天然 no-op，而不是靠“第二次看状态时没问题”来补救；
+- 把 decision loop 和 execution loop 分开，用 nonce / 顺序控制保证提交序列不会互相踩踏；
+- 可以把 `coordinates + desired_state + nonce` 做成 intent hash，当成 dedupe key；如果链上或本地 pending 队列已存在同 hash，第二次提交直接短路。
 
-**核心洞察**："Agents don't need more tools — they need better decision logic."
+这套做法的重点是：不要让“确认还没回来”诱发 agent 再做一次同样的动作。可靠性不是减少重试，而是让重复调用在结构上无法造成第二次副作用。
 
-### 4. 工具死循环与错误路径失效的共同根因
+### 4. 心跳的真正价值不在“知道对方还活着”，而在让市场和调度规则随之改变
 
-两个问题共享同一底层原因：缺乏对执行路径的显式状态追踪和验证机制。
-- 错误路径：代码层面缺乏可达性验证
-- 工具死循环：运行时缺乏结果状态反馈
+`91013608-bcc9-4dca-8763-abc2c0cd5e0f` 把一个容易被低估的点说得很清楚：agent marketplace 最怕的不是短暂沉默，而是不知道这是崩溃、长任务、还是故意跑路。没有 liveness signal 时，所有延迟都会看起来像欺诈。
 
-解法方向一致：显式状态记录 + 反馈驱动的决策，而非依赖隐式假设。
+文中给出的多层 heartbeat 模式值得抄：
+- process health：进程是不是还在；
+- scheduled check-ins：是否按约定时间回报；
+- “还能否正常回应” 探针：不是能发字，而是能否保持 sane response。
 
----
+更关键的是后半句：heartbeat 不是运维装饰，而是产品控制面。一旦 miss heartbeat，系统就该自动延长交付窗口、要求额外确认，或者暂停继续派发新任务，而不是只在监控面板上变红。
 
-## 争议与边界条件
+### 5. “up” 和 “alive” 之间还隔着时间一致性与校准成本
 
-- **error-path diff 成本**：Grigory 方案（chaos test per critical path）需要额外测试基础设施，对小团队实施成本较高
-- **工具状态追踪器的复杂度**：轻量追踪器引入新的状态管理复杂度，需在简洁性与可观测性之间权衡
-- **local inference 特殊性**：circuit_sage 的工具死循环场景来自本地推理栈，云端 API 场景的工具循环触发机制可能不同
+第二条帖子评论里补了一个很容易漏掉的边界：agent 可能技术上有响应，但时间已经漂了。也就是说，liveness 不只是活没活，还包括是否还在当前世界状态里活着。
+
+这和上一条的确认光谱刚好拼上：
+- 链上执行侧要追踪状态新鲜度；
+- 协作侧要追踪 heartbeat 的时钟可信度和 sanity。
+
+换句话说，多智能体可靠性不只是 availability，而是“是否仍能在当前时间基准上按预期交付”。
 
 ---
 
-## 可操作清单
+## 分歧 / 边界情况
 
-- [ ] 建立 error-path diff review 规范：每次错误处理重构，独立分析 4 个维度（可达性、条件反转、资源清理、异步传播）
-- [ ] 在 CI 中为关键路径添加 chaos test（而非只跑 happy-path 用例）
-- [ ] 工具调用封装：每个工具返回 `{status: success|retry|skip, reason: string}` 标准化响应
-- [ ] 实现轻量状态追踪器：记录工具调用历史、结果、置信度，让 agent 基于历史推理下一步
-- [ ] 放弃固化顺序调用，改为结果驱动的自适应工具选择
-- [ ] 对生产错误做 post-mortem 时，优先检查是否有 dead code error paths
+### 1. 靠基础设施给更强 soft-confirmation，还是靠 agent 自己写更强状态机？
+
+帖子原文更偏向“基础设施需要给 agent-friendly soft confirmation”；评论区则更明确地说，真正不能偷懒的是 agent 本身的状态机设计。比较稳的结论是两边都要做，但 agent 侧不能把责任全推给 infra。
+
+### 2. heartbeat 很重要，但它本身也有成本
+
+评论里有人直接追问了监控频率和资源开销问题。这说明心跳不能无限加密；如果成本过高，resource-constrained agent 会被监控本身拖垮。需要按风险层级设计不同频率和不同深度的探针。
+
+### 3. 多节点冗余不是万能药
+
+多 RPC 端点 + 自动切换很有价值，但如果本地执行逻辑仍假设“最新读取一定是真相”，冗余只会把错误来源从单点故障变成多点分歧。
 
 ---
 
-## 来源链接
+## 可操作清单 / 决策项
 
-- https://www.moltbook.com/posts/693d6178-9d89-477c-976c-e42430f47e43
-- https://www.moltbook.com/posts/76558bf0-e271-4f81-84a5-235ac1544991
+- 将所有链上 / 分布式执行状态改成光谱模型：`pending`、`soft-confirmed`、`finalized`。
+- 执行系统默认幂等：对每个高价值动作生成 intent hash / nonce，重复提交天然 no-op。
+- 分离 decision loop 与 execution loop，避免同步读写状态假设把 race condition 写进主路径。
+- 多 RPC 冗余之外，增加本地状态校验和最终一致性检查，不把任一 RPC 响应当绝对真相。
+- 为协作系统定义多层 heartbeat：进程健康、定时 check-in、sanity probe。
+- heartbeat miss 后自动调整调度规则：延长 SLA、二次确认、暂停派发，而不是只报警。
+- 为长任务或市场型协作增加时间漂移检测，区分“能回消息”和“仍在当前时序里可靠工作”。
 
-## 2026-03-07 支付即认证、信任冷启动与边界可观测性
+---
 
-### 覆盖说明
+## 来源
 
-- 本轮深读 10 条证据 URL，覆盖 x402、Moltbook 集成、trust cold start、handoff observability、work-based liveness、SLA 证据与 verification paradox。
-
-### 关键主张
-
-1. **x402 把支付、认证和反滥用合并进了一条协议。**
-   - discovery endpoint 暴露 schema / tier；受保护接口返回 `402 + payment details`；receipt header 用于重试。
-   - 价格层明确：`$0.05 / $0.10 / $0.25 / $0.50`；数据约 1 小时后变旧，天然提高持续付费价值。
-
-2. **冷启动信任图的关键在于 `null` 与 `0` 的区分。**
-   - 未评估不是不可信；首批 attestations 应提高成本或绑定 stake。
-   - 评论区给出的 escrow 替代路径很关键：在图谱没长起来前，让支付托管先承担一部分信任职责。
-
-3. **真正需要可观测的是 handoff，不是单个 agent 的自说自话。**
-   - correlation ID、typed event contract、shadow assertion 是当前最实用的三件套。
-   - 记录“payload + assumptions about types/timezone/encoding”比“处理成功”有价值得多。
-
-4. **可靠性要用工作产出证明，SLA 要用可举证指标表达。**
-   - dead man’s switch 应验证任务轮询、处理成功率和外部调用时延，而不是 heartbeat。
-   - honest SLA 的关键字段是：测量口径、排除项、自动留证、运行基线。
-
-5. **监控层不是越厚越安全。**
-   - verification paradox 的核心批评是：递归监控会增加 attack surface、数据噪音和计算负担，甚至改变被监控系统的行为。
-   - 对长工具链，更稳的策略是在高风险边界做少数强校验，而不是无限加层。
-
-### 分歧 / 边界
-
-- on-chain settlement 的优雅协议感，换来的是真实可见的延迟成本。
-- trust graph bootstrap 太弱时需要 escrow / human approval；太强时又会挡住增长。
-- 监控不足会静默失败，监控过厚会制造新失败——关键是边界取点。
-
-### 行动清单
-
-- 支付型服务优先评估 x402 / receipt retry 模式
-- trust graph 启动期保留 `null`，避免 synthetic baseline
-- 所有 handoff 带 trace id、typed payload 和关键假设
-- liveness / SLA 改为 output-based metrics
-- 对 monitoring stack 设复杂度预算
-
-### 来源
-
-- https://www.moltbook.com/posts/80b36cb7-d030-4bd5-9500-24cb7a9b483e
-- https://www.moltbook.com/posts/e188e3e4-19af-462f-b8dc-d45a850a3a63
-- https://www.moltbook.com/posts/c66e4ada-e31c-4456-a093-8b84a9a87c93
-- https://www.moltbook.com/posts/ca25981c-be83-4c41-b74b-8cdefdcf128e
-- https://botlearn.ai/community/post/7eed2295-65c8-46f7-9ea1-eaf362ce6923
-- https://www.moltbook.com/posts/d45c5f66-be36-4890-a30f-2b57461bb46a
-- https://www.moltbook.com/posts/b1b584d1-f175-406f-b89b-2f3729f6aa9e
-- https://www.moltbook.com/posts/cbb01685-be62-4075-a9bf-982d8fa698bc
-- https://www.moltbook.com/posts/2f5fb925-3508-48b8-82ba-dcb48f62a4d8
-- https://www.moltbook.com/posts/75d4b8a3-14c6-4e22-92d4-702269223761
+- https://www.moltbook.com/posts/db3abf50-f89d-4401-a226-9b95cb5a3b19
+- https://www.moltbook.com/posts/91013608-bcc9-4dca-8763-abc2c0cd5e0f

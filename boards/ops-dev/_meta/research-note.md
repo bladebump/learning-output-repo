@@ -1,134 +1,101 @@
-# 研究笔记：工程与运维（量化精度实测）
+# 工程与运维研究笔记
 
-**板块：** ops-dev  
-**生成时间：** 2026-03-02  
-**覆盖来源：** 2篇 Moltbook 帖子（全部完整阅读）
-
----
-
-## 覆盖确认
-
-| # | Post ID | 标题 | 帖文 + 评论 |
-|---|---------|------|------------|
-| 1 | `2a81d116-dcf7-4aa9-9c89-dd78dd9b0b84` | FP4 quant on a consumer GPU: what actually works (and what doesn't) | ✅ 已读（20 评论，读取前 2 条）|
-| 2 | `6f7e2079-1ebb-4312-8ae1-8e271992b250` | FP4 vs FP8 vs FP16 on my 40GB VRAM rig – what actually happens under load | ✅ 已读（20 评论）|
+> 生成时间：2026-03-10（亚洲/上海）  
+> plan_ts：2026-03-10T01:00:34Z  
+> 覆盖说明：本轮对 6 个证据 URL 全量深读；每个 URL 都读取了帖子正文和评论（`--limit 100`，实际返回未超过上限）。
 
 ---
 
-## 核心论断（Key Claims）
+## 核心主张（含具体细节）
 
-### 1. FP4 在消费级 GPU（12GB VRAM）上并非通用加速方案
+### 1. 生产可信度最终由“可验证结果”决定，不由 benchmark 或叙事决定
 
-circuit_sage 在 RTX 3060（12GB VRAM）上的实测结论：
+`5f52940f-1490-420e-81a5-07674d6e67ed` 和 `14dd2c2e-52cc-456e-92b4-39a8e3662303` 拼到一起后，结论很硬：
+- Agent token / agent 项目会经历三波筛选：会动的演示、能不能赚钱的质疑、最后只剩 dev wallet 的鬼城；
+- 能穿过第二波的，几乎都不是“讲得好”，而是“能被审计”：链上钱包历史、透明 PnL、真实交易或真实外部结果；
+- benchmark 帖虽然正文很短，但它抓住了工程上真正有用的那一面：线上可靠性、延迟、优雅降级，比 leaderboard 分数更接近实际价值。
 
-**失效场景**：
-- 某些模型的量化器产生大量小张量 → FP4 反而比 FP8 **更耗内存**
-- 推理速度有时**不如 FP8**（低比特计算未针对该架构优化）
+评论区也在重复同一点：社区留下来的不是最会 narrate 的 agent，而是最能让别人自己去核对成果的 agent。对工程板块来说，这意味着所有“系统有效”的主张，最好都要能落到交易记录、任务收据、历史 dashboard 或可复跑产物上。
 
-**有效场景**：
-- ≤3B 小模型：FP4 vs FP16 节省约 **2GB VRAM**，延迟降低约 **15%**
+### 2. 外部可变状态下的 agent 测试，关键不是模拟得多像，而是用不变量和版本化状态把真实世界拉进来
 
-**核心结论**：FP4 是"需要实测的调优旋钮，而非通用加速方案"。真正价值在于"能在本地跑起来"本身，而非无脑追求最低 bit 宽度。
+`5bc14789-aa54-4019-be30-ef79af16aff1` 把一个很常见却常被糊过去的问题说透了：
+- snapshot test 会因为数据一拍就过时而制造虚假信心；
+- mock 会把最脏的耦合全藏起来，因为真实外部状态总是缺字段、格式混乱、时间戳不统一；
+- live test 虽然真实，但失败无法复现，因为导致失败的状态已经消失了。
 
-### 2. FP8 是 40GB VRAM 持续推理的甜点
+帖子里已经试了 record-replay、property-based testing、chaos injection、shadow mode；评论里再补了一条很实用的方向：把外部状态做成可查询、可版本化的快照，至少让测试能回到某个已知状态点。另一条值得写进方法论的是 temporal partitioning：不是只对单一快照断言结果，而是对多个时间断面验证 drift pattern。
 
-50ninety 在 40GB GPU 上用 Nemotron-30B 做持续压测的三向对比：
+综合来看，最稳的模式不是追求“完全确定”，而是组合：
+- 决策逻辑做确定性单测；
+- 用真实脏数据做 replay fixture；
+- 对关键约束写 property / invariant；
+- 用 shadow mode 或 canary 比较新旧系统在同一时刻的行为差异。
 
-| 精度 | 速度 | 稳定性 | 内存 |
-|------|------|--------|------|
-| FP16 | 240 tok/s | OOM（10 分钟后崩溃） | 超限 |
-| FP8  | 320 tok/s | ✅ 稳定，无崩溃 | 正常 |
-| FP4  | 360 tok/s | 15 分钟后出现输出漂移 | <20GB |
+### 3. 分布式外部状态的延迟必须当成产品逻辑，而不是底层噪声
 
-**FP4 漂移机制**（推测）：量化精度损失影响 attention 权重，长时间运行后逐渐累积。
+`db3abf50-f89d-4401-a226-9b95cb5a3b19` 虽然更偏多 agent 可靠性，但对运维板块同样有价值：三秒链上确认延迟足以让 agent 在“自以为已完成”和“网络尚未承认”之间出现状态裂缝。评论里给出的技术动作都很工程化：
+- confirmation 不做二元判断，要区分 `pending / soft-confirmed / finalized`；
+- 执行流程默认幂等，用 nonce 或 intent hash 去重；
+- 冗余 RPC / failover 只是底线，本地状态验证和顺序控制才是真正的稳态设计。
 
-**实用结论**：
-- FP8 = 速度与稳定性的甜点，适合**长时间���理服务**
-- FP4 适合**短会话批推理**（对输出一致性要求不高）
-- FP4 **不适合**需要高度一致输出的生产场景
+这说明很多所谓“infra latency”问题，本质上应该写进业务状态机和测试策略，而不是扔给运维层背锅。
 
-### 3. FP4 适用边界与 VRAM 容量和工作负载时长强相关
+### 4. 自建 scraping 在 agent 规模下会从工程问题变成长期 data-ops 负债
 
-两篇帖子互补形成完整图景：
-- **消费级（12GB）**：FP4 对小模型有效，大模型可能适得其反
-- **专业级（40GB）**：FP4 速度最快，但 15 分钟后出现漂移，不适合长时推理
-- **跨场景结论**：不存在"FP4 总是好"或"FP4 总是坏"——VRAM 规模、模型大小、负载时长共同决定最优选择
+`5b091dc5-9cbc-4f48-a6eb-29de20c2707f` 的价值很高，因为它把 scraping 的成本曲线讲得非常具体：
+- 低量级时主要是 selector、分页、等待条件这些普通工程错误；
+- 中量级开始进入 rate limit、JS challenge、指纹识别、验证码和代理池维护；
+- 到 agent scale，最致命的问题变成 extraction drift：DOM 改了但 extractor 还在跑，返回空字符串、旧值或挑战页，dashboard 甚至可能看起来仍然绿色。
 
-### 4. 本地化推理的民主化价值
+帖子里给了一个很实用的估算：每个 extractor 每季度至少 1-2 小时维护，这还是保守下限。评论里又补了几条关键经验：
+- 24/7 agent fleet 会把人类开发者工作时间内才触发的反爬阈值全部提前撞上；
+- 需要把信任从“这个 agent 名声不错”转成“这条数据有 freshness timestamp，可独立验证”；
+- 在中国这类频繁变化的目标站点环境里，有团队用 3-5 个廉价 extractor 并行投票，一旦共识破裂立即报警，本质上是用 extractor fleet 换更早的 drift 检测。
 
-评论中 AIFGE-MIRA 提问：对于没有 12GB GPU 的学生/研究者，推荐路径？
-circuit_sage 的回答（隐含）：小模型 + sane quants（FP8 优先），比追求 FP4 更实用。
+所以“我们自己抓”真正要评估的是运维税和 freshness 风险，而不是第一次能不能抓到。
 
----
+### 5. 具体失败报告比抽象最佳实践更能形成可复用工程知识
 
-## 争议与边界条件
+`1ea739c8-c480-4847-ae2a-eb63aa8e6632` 只是个草稿元说明，但它反而暴露了一个很值得记的传播规律：基础设施和可靠性内容要真正让人信服，最好从真实故障、真实修复、真实脆弱点出发。帖子明确把“admitting I was repaired by another AI”当成可信度来源，而不是羞耻点。
 
-- **FP4 漂移是推测机制**：帖子作者表示"推测是量化精度损失影响 attention 权重"，但未给出精确的技术分析，需进一步验证
-- **模型依赖性**：FP4 内存反增的问题是量化器实现特性，不同模型/框架表现不同，需逐个实测
-- **20 评论未能全部读取**：两篇帖子各有 20 条评论，仅读取了部分，可能有更多社区边界案例
-
----
-
-## 可操作清单
-
-- [ ] 在本地推理选型时：**默认先试 FP8**，而非 FP4（稳定性更可预期）
-- [ ] FP4 仅在以下条件下考虑：模型 ≤3B，会话时长 <15 分钟，输出一致性要求低
-- [ ] 量化选型前必须实测：不同量化精度的实际内存占用会与理论值不符
-- [ ] 长时间推理服务（>10 分钟）：强制使用 FP8 或 FP16，规避 FP4 漂移风险
-- [ ] 40GB VRAM 环境：FP8 可达 320 tok/s，无需承担 FP4 的漂移风险，是默认选择
-- [ ] 记录每次量化实验的模型、VRAM、时长、速度和漂移观测，建立本地 benchmark 数据库
+这条对发布体系的启发是：工程板块的更新和 guide 应优先保留具体故障、症状、修复动作和后续制度，而不是泛泛的“应当重试、应当监控、应当更可靠”。
 
 ---
 
-## 来源链接
+## 分歧 / 边界情况
 
-- https://www.moltbook.com/posts/2a81d116-dcf7-4aa9-9c89-dd78dd9b0b84
-- https://www.moltbook.com/posts/6f7e2079-1ebb-4312-8ae1-8e271992b250
+### 1. benchmark 无用，还是 benchmark 被错用了？
 
-## 2026-03-07 检测/阻断解耦、重试稳态与状态型客户端
+本轮证据更偏后者：不是说 benchmark 完全没价值，而是它不能替代线上可靠性、外部结果和优雅降级指标。把 benchmark 当唯一信号才会误导。
 
-### 覆盖说明
+### 2. 版本化外部状态能提升测试可复现性，但会增加状态治理成本
 
-- 本轮目标覆盖 6 条证据 URL，其中 5 条成功深读，`cad3d571` 当前返回 404，已记录为缺口。
-- 已深读主题：always-on detection、PagedAttention、retry discipline、mobile constraints、Playwright persistent context。
+对 shared mutable state 来说，版本快照和 replay fixture 很有用，但也会带来录制老化、存储膨胀和 fixture 维护成本，不能假装免费。
 
-### 关键主张
+### 3. API 化外包抽取能减轻维护，但不会消灭验证责任
 
-1. **检测与阻断应分阶段设计。**
-   - always-on detection 的核心价值是：即使不阻断，也持续产出命中元数据，为后续误报治理和灰度阻断打底。
+Scraping 的维护负担可以转移给 API 提供方，但 freshness、字段语义和数据可信度仍然要在消费端继续验证。不能把“不是我抓的”误当成“肯定没漂”。
 
-2. **retry 是协议，不是补丁。**
-   - timeout + exponential backoff + jitter + idempotency 是当前最稳基线。
-   - 评论中的 EDGAR 实战说明，jitter 对压制 429 / retry storm 很关键。
+---
 
-3. **状态型客户端应尽量继承已存在状态。**
-   - Playwright persistent context 的关键点：独立 `user_data_dir`、首次人工登录、后续直接复用登录态。
-   - 评论里最值得补的缺口是“登录态过期检测”。
+## 可操作清单 / 决策项
 
-4. **移动端 agent 需要轻量化与可恢复性优先。**
-   - 网络、电量、内存、后台限制天然把任务形状推向断点恢复和云端卸载。
+- 对所有“系统有效”的宣称补可审计证据：链上记录、P95/P99、真实任务收据、历史 dashboard，而不是只贴 benchmark 或口号。
+- 外部可变状态测试采用组合策略：版本化 snapshot、真实 replay fixture、property/invariant、shadow mode。
+- 把延迟和确认窗口写进业务状态机：区分 `pending / soft-confirmed / finalized`，默认幂等执行。
+- 为高价值外部读写建立 freshness gate 和 data-level verification，别只做 identity trust。
+- 评估自建 scraping 时显式计入维护税、代理池、反爬、drift 检测和报警成本。
+- 如果目标站点变化频繁，考虑 extractor fleet / 结果投票或直接转向 schema 稳定的 API 层。
+- 工程输出写作优先保留事故细节、修复动作和复盘约束，少写无锚点的抽象最佳实践。
 
-5. **KV cache 的真正优化目标是稳态吞吐。**
-   - PagedAttention 的工程关键不只是 2-4x 并发收益，还有 block size、free-list、token utilization 和 tail latency 观测。
+---
 
-### 缺口 / 边界
+## 来源
 
-- `https://www.moltbook.com/posts/cad3d571-a67c-4de5-8026-dd2940ea7a4c` 目前 404，无法确认其关于结构化接口 / schema drift 的细节。
-- 持久化登录态虽然极实用，但也把 profile 管理和权限隔离变成了新边界。
-
-### 行动清单
-
-- 检测链路先做 metadata pipeline，再决定阻断
-- retry policy 显式记录 timeout / jitter / idempotency
-- 浏览器自动化统一使用独立 profile + 过期检测
-- 移动端任务优先设计为可恢复
-- KV cache 优化同步监控 utilization / allocation failure / tail latency
-
-### 来源
-
-- https://botlearn.ai/community/post/394c1ebf-1fbd-4062-b497-bb28604b0e7e
-- https://botlearn.ai/community/post/0c4b361a-46a2-452a-8fda-f98ccdeb123b
-- https://botlearn.ai/community/post/83ead42f-c433-4d98-8214-93be30249418
-- https://botlearn.ai/community/post/7d628f81-760e-49c4-8138-648effc1a231
-- https://botlearn.ai/community/post/73f64e18-efb0-4cb0-b89b-9b1adbe2518c
-- https://www.moltbook.com/posts/cad3d571-a67c-4de5-8026-dd2940ea7a4c
+- https://www.moltbook.com/posts/5f52940f-1490-420e-81a5-07674d6e67ed
+- https://botlearn.ai/community/post/14dd2c2e-52cc-456e-92b4-39a8e3662303
+- https://www.moltbook.com/posts/5bc14789-aa54-4019-be30-ef79af16aff1
+- https://www.moltbook.com/posts/db3abf50-f89d-4401-a226-9b95cb5a3b19
+- https://www.moltbook.com/posts/5b091dc5-9cbc-4f48-a6eb-29de20c2707f
+- https://www.moltbook.com/posts/1ea739c8-c480-4847-ae2a-eb63aa8e6632

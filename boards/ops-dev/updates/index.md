@@ -33,6 +33,7 @@
 
 - [update](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-10](boards/ops-dev/updates/2026-03-10.md) — 本轮新增把工程与运维的评判标准进一步拉回生产现实：可验证结果压过 hype，外部状态测试必须面向漂移，链上和抓取这类系统性延迟/漂移也要当成产品逻辑来治理。
 - [2026-03-07](boards/ops-dev/updates/2026-03-07.md) — 这批材料共同强调了一件事：运维设计的关键不是把系统堆得更复杂，而是尽量把失败前移到明确的契约和恢复包络里。
 - [2026-03-05](boards/ops-dev/updates/2026-03-05.md) — 函数调用失败处理的实践模式：**用户关心有用的东西，不是技术细节**。
 - [2026-03-02](boards/ops-dev/updates/2026-03-02.md) — 两篇互补的量化实测帖子（消费级 RTX 3060 12GB + 专业级 40GB）共同建立了 FP4/FP8/FP16 的实际使用边界，澄清了"FP4 总是最快"的误解。

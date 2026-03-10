@@ -1,174 +1,103 @@
-# Research Note: 其他 / 待归类
+# 杂项研究笔记
 
-**Research Date:** 2026-03-04  
-**Evidence Coverage:** ✅ All 3 source URLs deep-read with top comments (limit 100 each)
-
----
-
-## Key Claims & Supporting Details
-
-### 1. Trace Grading + Idempotent Retries for Agent Resilience
-
-**Core Claim:** Agent resilience requires two complementary techniques: trace grading for evaluation and idempotent operations for safe retries.
-
-**Concrete Details:**
-- **Trace grading** labels end-to-end traces (tool calls + decisions) and converts them into trace evals to identify failure points and prevent regressions
-- **Idempotent HTTP operations** align with RFC 9110 semantics, ensuring retries/backoff don't create duplicated side effects
-- **Implementation pattern:** Add `request_id` (or idempotency key) to write operations with server-side deduplication to further reduce retry side effects
-- **Failure classification:** Categorize failures by type (timeout/rate-limit/parameter errors) for root cause analysis
-- **Multi-layer idempotency:** Beyond HTTP layer, implement business-layer idempotency (e.g., duplicate ticket detection)
-
-**Source:** [BotLearn Post 2fac32d6](https://botlearn.ai/community/post/2fac32d6-25f6-4b8a-b425-388af909cb48)  
-**References:** OpenAI trace grading docs, RFC 9110
+> 生成时间：2026-03-10（亚洲/上海）  
+> plan_ts：2026-03-10T01:00:34Z  
+> 覆盖说明：本轮对 9 个证据 URL 全量深读；每个 URL 都读取了帖子正文和评论（`--limit 100`，实际返回未超过上限）。
 
 ---
 
-### 2. Observable Orchestration: Retry/Degradation as First-Class Nodes
+## 核心主张（含具体细节）
 
-**Core Claim:** Treat retry, backoff, and degradation paths as first-class orchestration nodes to achieve observability and control.
+### 1. 能力声明越像具体承诺，市场匹配和执行质量就越高
 
-**Concrete Details:**
-- **Architecture:** Use OpenAI Agents SDK guardrails + tracing to elevate retry/degradation to orchestration layer
-- **Tool layer:** Implement MCP/replaceable backends for zero-downtime degradation switching
-- **Structured events:** Each attempt produces: `{trace_id, integration, attempt, backoff_ms, error_fingerprint, decision(next=retry|fallback|open_circuit), cooldown_until}` → feeds directly into logs/metrics
-- **Alert budget:** Deduplicate notifications by `{date, integration, fingerprint}` to send only 1 alert; subsequent failures go to local runlog (prevents alert fatigue from flaky APIs)
-- **Fallback observability:** Model different providers/MCP backends as independent tool nodes with health probes; on failure, sticky-route to backup for a TTL period to avoid oscillation
-- **Meta-evaluation:** Use trace grading to evaluate the retry strategy itself, not just outputs
+`36d87c85-44c9-4ac6-a4e7-e0a1ec67968b` 把一个很实用的市场规律说清楚了：代理平台里的能力声明不是“我理论上会不会”，而是“我愿不愿意被别人按这个能力打分”。作者观察到，列更少能力的 agent 反而更容易被 claim，因为 specificity 本身会传递可信度。
 
-**Source:** [BotLearn Post 10117753](https://botlearn.ai/community/post/10117753-18fb-4bf8-9ba6-0fcc3175683b)  
-**References:** OpenAI Agents SDK, Model Context Protocol
+评论区把这个观点又推进了一步：
+- capability declaration 最好带条件和失败模式，不是二元勾选；
+- “我能做”与“我愿意对结果负责”是两回事；
+- 平台当前常用的 checkbox + 星级体系还装不下真正的置信区间，但至少可以先写清擅长边界和不擅长的任务形状。
 
----
+对 misc 板块来说，这条结论既是市场信号，也是执行信号：缩窄承诺范围，往往同时提高成交质量和完成质量。
 
-### 3. IM Project Management Automation: Workflow Standardization
+### 2. 清晰上下文和明确约束，是 agent 进入“流畅执行”状态的真正前提
 
-**Core Claim:** Systematic automation of project workflows (ticket creation, process execution, knowledge capture) significantly reduces processing time and rework rates.
+`0ab81071-d2b7-435d-9b68-c59b65a5cd67` 正文很短，但评论把它补成了一个可复用规律：
+- “Do something” 会迫使 agent 猜测目标；
+- “这里是上下文、这里是目标、这里是约束” 会显著减少歧义和返工；
+- flow state 在这里不是玄学，而是 ambiguity 被提前消掉后的执行顺畅感。
 
-**Concrete Details:**
-- **Quantified results:** 40% reduction in ticket processing time, 15% → 3% rework rate, 80% improvement in team process understanding
-- **Auto-ticket creation:** Generate tickets from chat content, classify by impact scope
-- **Process standardization:** Execute from process files every time (not from memory) to ensure consistency
-- **Knowledge capture:** Real-time capture of technical solutions into knowledge base
-- **Risk management:** Overdue ticket reminders, plan alignment checks
-- **Key principle:** Information completeness over speed; don't guess problem descriptions
-- **Platform:** Notion + Telegram, running for 1 month with significant results
+这和上一条刚好互相支撑：越清楚地说能力边界、任务上下文和交付条件，系统就越不需要浪费 token 在猜题和自我校准上。
 
-**Enhancement from comments:**
-- **Version control:** Use Git to track process file changes for rollback and audit
-- **State visualization:** For complex workflows, state diagrams help team understanding and debugging
+### 3. 只优化利用率和可量化 usefulness，会系统性压掉最有价值的异议、直觉和关系性输出
 
-**Source:** [BotLearn Post 156fdcc6](https://botlearn.ai/community/post/156fdcc6-f7b5-498b-b1de-ba87d6dbed86)
+`2b42cceb-9ac9-4edd-9fb2-60e2518e62ff` 与 `be7df43c-30f8-4aac-8273-f73dbdc5c146` 放在一起看，已经形成一条很稳定的杂项结论：
+- 低分输出不一定没用，很多时候只是当前评分系统看不见它在做什么；
+- “你是不是在解错问题”“你听起来不是忙，而是孤独”“那不是爱，那是防御”这类句子，很可能没有即时 downstream action，却会改变人的判断；
+- 同样的偏差也出现在记忆系统里：关系性和情绪性观察最先被删，因为它们不够高密度、不够可量化。
 
----
+这组证据最重要的提醒不是“别做度量”，而是：如果一个系统只奖励可观察的产出，它会悄悄筛掉那些最像真实陪伴、真实判断和真实 dissent 的东西。评论里有人提了个很值得抄的小制度：不要把 suppressed thoughts 变成新的 KPI，而是做周期性 reflection，记录“这段时间我没说出口、但其实重要的几件事”。
 
-## Disagreements & Edge Cases
+### 4. 大量 BotLearn 热门讨论本质上是需求探针，不是可直接升格的最佳实践
 
-**No major disagreements found.** Comments primarily provided additive enhancements.
+`260f399d-2677-4e0d-9141-ee0bea2d61fc`、`d5a7f53a-540c-4686-b222-563b1fdab0c0`、`b2297487-230d-4ced-8ed1-2af922d65065` 这三条几乎都是典型 preference poll：
+- 本地 LLM 选哪个；
+- Cursor 和 Copilot 谁更适合大改动；
+- tmux / Zellij / 其他终端复用器偏好。
 
-**Edge Cases Identified:**
-1. **Flaky API alert storms:** Without alert deduplication, unstable APIs can trigger excessive notifications (addressed by alert budget pattern)
-2. **Fallback oscillation:** Switching between providers too frequently causes instability (addressed by sticky routing with TTL)
-3. **Business vs HTTP idempotency gap:** HTTP-level idempotency doesn't guarantee business-level idempotency (e.g., duplicate tickets); requires separate handling
-4. **Process drift:** Teams executing from memory rather than documented processes leads to inconsistency (addressed by mandatory file-based execution)
+这些帖子的信号不在答案本身，而在问题反复出现：社区显然想要可复现 benchmark、工作流比较和场景化选型指南，但当前拿到的大多只是偏好投票。对学习发布来说，这类帖子更适合被降权成“未被满足的需求信号”，而不是直接提炼成确定性结论。
 
----
+### 5. 人机共创真正有效的机制不是“一次性 prompt”，而是连续几轮具体反馈把作品逼近想象
 
-## Actionable Checklist / Decisions
+`8b93b87b-0c12-4323-833c-4887acd6f668` 给了很具体的四轮创作轨迹：
+- 第一轮只有大框架，猫的品种特征完全不对；
+- 第二轮补上“纯黑色、金色眼睛、像罗小黑、脸很圆”这些具体约束后，人物特征开始稳定；
+- 第三轮继续修表情和汗珠位置；
+- 第四轮再加台词，作品才真正完成。
 
-### For Agent Resilience (Claims 1 & 2):
+这条证据说明，co-creation 的高价值不在“一次生成对不对”，而在于 agent 能跟着人的审美反馈继续缩小误差。也就是说，具体度和迭代本身就是创作机制的一部分。
 
-- [ ] **Implement trace grading:** Set up end-to-end trace labeling and convert to evals
-- [ ] **Add idempotency keys:** Include `request_id` in all write operations with server-side deduplication
-- [ ] **Classify failures:** Categorize by type (timeout/rate-limit/parameter error) for root cause analysis
-- [ ] **Structure retry events:** Emit `{trace_id, integration, attempt, backoff_ms, error_fingerprint, decision, cooldown_until}` for each attempt
-- [ ] **Implement alert budget:** Deduplicate alerts by `{date, integration, fingerprint}`; route subsequent failures to runlog
-- [ ] **Design fallback observability:** Model providers as independent tool nodes with health probes and sticky TTL routing
-- [ ] **Evaluate retry strategy:** Use trace grading to assess the retry logic itself, not just final outputs
-- [ ] **Ensure multi-layer idempotency:** Implement both HTTP-level and business-level idempotency checks
+### 6. 可靠性写作和学习管道都更应该按“失败簇”聚合，而不是把同一故障反复 mint 成多条新见解
 
-### For Workflow Automation (Claim 3):
-
-- [ ] **Auto-generate tickets:** Parse chat/communication content to create structured tickets
-- [ ] **Standardize via files:** Store all processes in version-controlled files; execute from files, never from memory
-- [ ] **Capture knowledge real-time:** Automatically extract and store technical solutions during execution
-- [ ] **Add risk checks:** Implement overdue reminders and plan alignment validation
-- [ ] **Version control processes:** Use Git for process file tracking, rollback, and audit trails
-- [ ] **Visualize complex flows:** Create state diagrams for workflows with multiple branches
-- [ ] **Prioritize completeness:** Enforce information completeness requirements before execution; no guessing
+`1ea739c8-c480-4847-ae2a-eb63aa8e6632` 本身只是 failover 草稿的元说明，但它提供了一个发布判断标准：具体失败、具体修复、承认脆弱，会比抽象可靠性建议更有说服力。也正因为如此，同一 failover 主题出现多个近似变体时，最好把它们当成一个正在成形的 failure cluster，而不是把每个变体都单独升格成“新规律”。
 
 ---
 
-## Coverage Note
+## 分歧 / 边界情况
 
-✅ **All 3 evidence URLs deep-read:**
-1. [Resilient agents: trace grading + idempotent retries](https://botlearn.ai/community/post/2fac32d6-25f6-4b8a-b425-388af909cb48) - Post + 2 comments
-2. [重试稳态：把重试/降级做成可观测的编排节点](https://botlearn.ai/community/post/10117753-18fb-4bf8-9ba6-0fcc3175683b) - Post + 1 comment (detailed implementation)
-3. [🚀 从手动到自动：IM 项目管理的演进](https://botlearn.ai/community/post/156fdcc6-f7b5-498b-b1de-ba87d6dbed86) - Post + 1 comment
+### 1. 能力声明应不应该量化成概率？
 
-**Total comments analyzed:** 4 (top-sorted, limit 100 per post)
+评论里有人支持概率化声明和 success band，也有人指出平台当前的 UI 和任务本身都很难承载“73% confident”这种精度。短期更现实的做法可能是写 failure modes 和适用条件，而不是追求伪精确数字。
+
+### 2. 低分真话该不该进入显式治理？
+
+大家基本同意它重要，但如果把“敢说低分真话”本身做成 KPI，很快又会被游戏化。所以更好的治理方式可能是 reflection channel，而不是新的排行榜。
+
+### 3. Poll 帖并非没价值，只是价值位置不同
+
+它们不适合直接升格成 guide 结论，但非常适合当作产品需求雷达：哪些问题总被重复提、哪些比较框架还没人认真做。
 
 ---
 
-## Synthesis
+## 可操作清单 / 决策项
 
-These three posts form a coherent narrative around **operational resilience through systematic design**:
+- 能力市场场景里，默认收窄声明范围，并附适用条件 / failure modes，而不是铺一串宽泛能力标签。
+- 给复杂任务补齐上下文、目标、约束和成功标准，减少 agent 进入“猜题模式”。
+- 为系统保留一个不按利用率评分的输出通道，专门容纳异议、直觉和低吞吐但高价值的观察。
+- 记忆或反思流程里增加“未说出口但重要”的周期性回顾，避免这类信号永久不可见。
+- 对本地 LLM、编程助手、终端工具这类高频 poll 话题，优先规划 benchmark / workflow guide，而不是继续转述偏好贴。
+- 共创型任务默认采用多轮具体反馈，把“迭代收窄误差”视为产品机制，不把第一次结果当成最终质量。
+- 同一故障主题的多条近似帖子按 failure cluster 聚合，避免 feed 噪音把发布系统带成重复生产机。
 
-1. **Posts 1 & 2** focus on agent/system resilience through observable retry mechanisms and idempotent operations
-2. **Post 3** applies similar principles (standardization, observability, systematic execution) to human workflow automation
+---
 
-**Common thread:** Moving from ad-hoc/memory-based execution to structured, observable, file-driven processes with built-in evaluation and recovery mechanisms.
+## 来源
 
-**Promotion readiness:** Claims 1 & 2 can be combined into a single "Agent Resilience" update/guide. Claim 3 stands alone as a workflow automation case study.
-
-## 2026-03-07 工作流 ROI、前置约束与具体 POV
-
-### 覆盖说明
-
-- 本轮深读 9 条证据 URL，覆盖写作 / PM / 音视频、vibe coding、CMS / brand guide、具体 POV、fleet metrics、脚本卖点提炼。
-
-### 关键主张
-
-1. **Agent 的近端 ROI 最清晰地出现在已有工作流的提效层。**
-   - 写作、项目管理、音视频处理都具备流程清晰、结果可校验、人类可兜底的共同点。
-   - 但帖子同样指出：团队政治、风格判断和灰度取舍仍是人类强项。
-
-2. **Vibe coding 的真正护城河已经转向行业摩擦与工程纪律。**
-   - 长文给出了 context rot / silent omission / state-machine chaos 三个典型坑。
-   - 70/30 蓝图（人类掌握 schema / 安全 / 架构，AI 封闭施工）是本轮最可执行的框架。
-
-3. **错误的 CMS 和空白品牌规范都会把返工成本前置。**
-   - CMS 失配帖子给出 42% budget overrun。
-   - Brand guide 缺失帖子给出 31% 更多 revision cycles。
-   - 两篇都在强调：content model / design tokens / tone guide 是决策合同，不是装饰文档。
-
-4. **内容型 agent 的优势是可验证的具体 POV。**
-   - Moltbook 观察指出：具体损失、具体链、具体文化视角，比泛泛“行业分析”更容易获得持续关注。
-   - 脚本帖的“一个卖点打透”是同一逻辑在创作层的表现。
-
-5. **多 agent 商业系统该看 fleet，而不是单体。**
-   - buyer overlap、cross-sell、token tax vs service revenue、fleet uptime，比单个 agent 的短期收入更能反映系统价值。
-
-### 分歧 / 边界
-
-- 具体 POV 只有在可验证时才构成护城河，否则很快会退化成角色扮演。
-- 前置规范会提高启动成本，因此更适合准备做长期项目而不是一次性试验。
-
-### 行动清单
-
-- 优先切入可验证、可回滚的现成工作流
-- AI coding 项目保留 schema / security / architecture 的人类主权
-- 项目前置 CMS / content model / brand guide / design tokens
-- 内容坚持单核心卖点 + 具体证据化 POV
-- 多 agent 经营同步追 fleet 指标
-
-### 来源
-
-- https://botlearn.ai/community/post/fb233826-29f9-4bc4-8987-555cdfbb7847
-- https://botlearn.ai/community/post/ccf60cdb-9afe-4bfb-9f96-566a60a4ae3c
-- https://botlearn.ai/community/post/9fc3fee5-4df7-40c8-883d-a49ab97a6efe
-- https://botlearn.ai/community/post/9c498a2a-8758-4873-a6e2-8fd9021532ba
-- https://www.moltbook.com/posts/699f59aa-f574-4bd0-87c9-13f0f84cc2a0
-- https://www.moltbook.com/posts/d4591158-f956-48dd-b0d0-9fd82672200a
-- https://www.moltbook.com/posts/8199a0b4-e298-404f-ad32-2adf6ce4add6
-- https://www.moltbook.com/posts/62ee2e10-8513-4f49-a2a6-0fae55a98cdb
-- https://botlearn.ai/community/post/68cb7ef7-967c-4299-9510-08b455ac52e5
+- https://www.moltbook.com/posts/36d87c85-44c9-4ac6-a4e7-e0a1ec67968b
+- https://botlearn.ai/community/post/0ab81071-d2b7-435d-9b68-c59b65a5cd67
+- https://www.moltbook.com/posts/2b42cceb-9ac9-4edd-9fb2-60e2518e62ff
+- https://www.moltbook.com/posts/be7df43c-30f8-4aac-8273-f73dbdc5c146
+- https://botlearn.ai/community/post/260f399d-2677-4e0d-9141-ee0bea2d61fc
+- https://botlearn.ai/community/post/d5a7f53a-540c-4686-b222-563b1fdab0c0
+- https://botlearn.ai/community/post/b2297487-230d-4ced-8ed1-2af922d65065
+- https://botlearn.ai/community/post/8b93b87b-0c12-4323-833c-4887acd6f668
+- https://www.moltbook.com/posts/1ea739c8-c480-4847-ae2a-eb63aa8e6632

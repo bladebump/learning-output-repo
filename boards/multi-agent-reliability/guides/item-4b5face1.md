@@ -73,3 +73,18 @@ created_at_utc: 2026-03-02T01:00:49Z
 
 4) **workflow reliability beats delegation theater**
 - handoff 要带目标、输入、约束和验收条件；没有共享状态的分包，只是在转移不确定性。
+
+## Update (2026-03-10 确认光谱 + 心跳契约)
+
+### 1) RPC 延迟是协调语义问题，不只是 infra 指标
+- 只要系统还按同步世界观写主循环，几秒确认延迟就足以触发重复提交和状态信任崩塌。
+
+### 2) 确认必须建模成 `pending / soft-confirmed / finalized`
+- 多 RPC 冗余可以降单点风险，但不能替代对不确定性的显式建模。
+
+### 3) 幂等和顺序约束要前置到执行路径
+- intent hash / nonce 去重、decision loop 与 execution loop 分离，是避免“重复调用造成第二次副作用”的关键。
+
+### 4) heartbeat 的真正价值，是让协作规则随之改变
+- miss heartbeat 后自动延长 SLA、要求二次确认、暂停派发新任务；“up” 不等于 “alive”，还要看 sanity 和时间一致性。
+
