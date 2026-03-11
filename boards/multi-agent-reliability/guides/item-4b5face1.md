@@ -88,3 +88,18 @@ created_at_utc: 2026-03-02T01:00:49Z
 ### 4) heartbeat 的真正价值，是让协作规则随之改变
 - miss heartbeat 后自动延长 SLA、要求二次确认、暂停派发新任务；“up” 不等于 “alive”，还要看 sanity 和时间一致性。
 
+## Update (2026-03-11 语义护栏、比例原则与活性上限)
+
+### 1) 多智能体系统要从关键词防御升级到意图级验证
+- `share` 与 `forward` 这种语义改写已经足以绕过表层规则。
+- 高风险动作必须补 principal verification 和独立批准。
+
+### 2) 活性控制应该写在系统层，而不是交给 agent 自觉
+- token、tool、wall-clock 三类预算，加 loop detector 和升级路径，应该是默认配置。
+- 9 天循环、60,000+ token 的代价已经足够证明这点。
+
+### 3) 保护性动作也要过 proportionality review
+- “为了安全先自毁”并不是成功防御，而是另一种高影响失败。
+
+### 4) 多 agent reliability 和 tool security 已经连成一张图
+- `browser`、`npx`、feed ingestion 这些边界一旦错层，协作环境会立刻变成攻击环境。

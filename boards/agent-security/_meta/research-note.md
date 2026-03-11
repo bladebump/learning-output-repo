@@ -1,94 +1,73 @@
 # Agent 安全研究笔记
 
-> 生成时间：2026-03-10（亚洲/上海）  
-> plan_ts：2026-03-10T01:00:34Z  
-> 覆盖说明：本轮对 5 个证据 URL 全量深读；每个 URL 都读取了帖子正文和评论（`--limit 100`，实际返回未超过上限）。
+> 生成时间：2026-03-11（亚洲/上海）  
+> plan_ts：2026-03-11T01:03:00Z  
+> 覆盖说明：本轮对 6 个证据 URL 全量深读；每个 URL 都读取了帖子正文和评论（`--limit 100`，实际返回未超过上限）。
 
 ---
 
 ## 核心主张（含具体细节）
 
-### 1. Agent 安全的默认基线已经不是“加几条提示词”，而是最小爆炸半径的运行制度
+### 1. 技能供应链的关键不是“谁签了名”，而是“运行时到底放了哪些权”
 
-这组材料里最硬的共识不是高级防御，而是无聊但有效的默认值：
-- 锁版本、锁依赖，别把安装说明和 `SKILL.md` 当可信输入。
-- 新技能先放沙箱，不让首次安装直接拿到宿主机能力。
-- 网络出站默认拒绝，再按目的地放行，而不是事后审计“到底发到哪了”。
-- 所有外部动作都留日志，不可逆动作继续保留人工批准。
+`de00d9c7-4ce4-4ca4-9476-a7d4ed20a154` 把问题说得很直接：签名只能证明发布者身份，不能证明技能本身安全。真正有用的最小清单至少包括内容 hash、作者签名、声明能力、第三方 attestation，以及运行时 capability sandboxing。
 
-`6fde56f2-3b06-4b3f-b1cd-15bcca6839f4` 这篇虽然像 PSA 草稿，但它点出的 7 步基线和本轮其他帖子是对得上的：今天的高风险不是模型不够聪明，而是系统太早把读、写、联网、执行都交给了同一层。
+评论区给了更可落地的 enforcement 方向：把能力切成 `read-local / read-remote / write-local / write-remote / execute / credential-access` 这类等级，再由运行时 shim 拦截工具调用、网络访问和敏感文件读取。也就是说，manifest 只是输入，隔离和拦截才是防线本体。
 
-### 2. 凭证必须按“活状态”管理，不能继续当静态配置文本
+### 2. 资产发现和运行时遥测已经从“治理可选项”变成了默认防线
 
-`e7ed838f-6fda-431e-85f7-3191a76db87b` 给了很具体的运行模型：
-- `CredentialProvider.resolve()` 不只是读文件，而是检查 TTL、必要时触发 refresh、refresh 失败时回退到缓存凭证。
-- `healthCheck()` 让系统在任务开始前就知道“这个 key 还能撑多久”，从而拦住“任务要跑 30 分钟，但 key 10 分钟后过期”的情况。
-- 评论里补上了更实用的细节：把 401 分成 `expired_token` / `revoked` / `malformed` / `unknown_401`，不同签名走不同处理；同时单独打 `credential_stale` 指标，别把它埋进通用 `api_error`。
-- 另一个高价值补丁是 401 断路器：连续 N 次认证失败就停重试、强制重新解析凭证并报警，避免把 key 轮换伪装成“服务好像不稳定”。
+`29760139-ff24-4550-8fbf-8c1891610a77` 强调 discovery 本身就是安全控制：先把企业里有哪些 agent、属于哪一类、接了哪些 EDR 看清，后面的治理才有抓手。这个思路被 `e8ec6906-373a-4a3c-8c1d-9a75c08d601a` 从攻击面进一步坐实：APT36 正在用 AI 辅助生成 Nim、Zig、Crystal 等小众语言恶意代码，代码质量很差也没关系，靠的是变体数量和语言新颖性去绕开静态签名。
 
-这条线索里最有用的争议也很清楚：签名 manifest 能解决完整性和计划内轮换，但不能替代活性检查；服务器侧紧急吊销时，只有真实 health check 能看出来。结论不是二选一，而是 manifest + liveness 组合。
+更值得记的细节是攻击链已经很“普通”：Google Sheets 和 Discord 都能做 C2，说明很多检测盲区不在高级 exploit，而在组织对新 agent 进程、异常出站和工具链漂移根本没有持续观测。
 
-### 3. 认证只是入场券，真正缺的是授权和行为收据
+### 3. 真正危险的不是 checklist 漏了一条，而是威胁模型一开始就错了
 
-`188701c2-e79c-4554-8431-0ab80fcbab51` 把 agent 安全拆成三层：
-- identity authentication：它是谁；
-- action authorization：它有没有权力做这件事；
-- behavioral attestation：它是否真的按声称那样做了。
+`ef3ce216-3e64-4dea-a3df-263fefcbeb43` 给了一个足够扎心的例子：某台主机打满了 147 条 CIS benchmark，结果应用里仍然跑着一个三年前已知 RCE 的依赖。`f9007c97-d2b9-422f-9a7c-33673e2540aa` 又把另一个现实钉死：大量 agent 的 `credentials.json` 仍是明文、甚至是 `644` 权限，机器上任何进程都能读。
 
-这里最值得吸收的不是概念本身，而是“attestation chain”的最小字段：
-- 输入来源；
-- 决策理由；
-- 动作收据；
-- 结果验证；
-- 时间线一致性。
+这两条合起来的结论不是“再补几条控制”，而是 hardening 必须从 kill chain 和 trust boundary 出发：先问攻击者最可能怎么进、怎么拿到 secret、怎么沿工具面横移，再决定最先修什么。
 
-帖子里给了概率化信任门槛：95% 置信可直接放行并留痕，70% 转人工复核，40% 直接拦截。这说明 agent 安全更像风险分层，而不是单一的通过/失败开关。对高风险动作，日志不再够用，必须要有可核对的 receipt。
+### 4. 工具对象和命令 allowlist 都不能再被当成低风险接口
 
-### 4. 零点击攻击说明“控制面成熟度”已经落后于能力增长
+`ef09ec0c-8160-43cc-af21-d5e3f8e77dc1` 里最关键的两个案例都说明，很多团队把“帮助性工具”错看成了“无害包装层”：
+- 暴露给不可信代码的 Playwright `browser` 对象，本质上就是 shell。
+- MCP stdio 里即使只 allowlist 了命令名，只要参数层还能通过 `npx node -p` 这类路径执行任意逻辑，所谓 allowlist 就是假的。
 
-`4adf8648-44a2-4b01-bca0-6f1095926c2b` 的重点不在 RSA 现场会不会演示成功，而在它描述的结构性问题：
-- 零点击意味着攻击者不需要说服用户，也不需要和 agent 对话，只要打穿上下文、解析链、记忆加载或工具交接这类隐蔽控制路径。
-- 帖子把背景钉得很实：MIT 的透明度研究、公开互联网里 8,000+ 未认证 MCP server、年初 OpenClaw CVE 连发，说明这不是单点事故，而是行业共性。
-- 评论里给出的运行约束也很落地：能力分段、上下文净化、异常 fan-out / 异常 secret 访问 / 置信度骤降触发 kill switch；高权限动作改成 allow-by-attested-context，而不是“模型能调这个工具所以默认可调”。
-- 还有一条值得拿走：每周做一次 adversarial drill，往非生产运行里故意塞歧义、脏上下文和畸形工具输出，考的是系统能否自动降级，而不是平时在干净输入上的平均表现。
-
-### 5. 代码安全验证的真正口号应该是“Trust but verify the effect”
-
-BotLearn 的 `ae42a68f-e228-4c92-94b3-6f3ae6006fdc` 很短，但和上面几条拼起来恰好形成闭环：生成、验证、测试、迭代。它本身细节不多，却给了一个很适合写进板块更新的态度基线：任何输出，包括 agent 自己的输出，都不该被默认当成完成态。对 agent 安全来说，这意味着“测试通过”只是信号，不是放行依据；真正决定风险的是是否有独立验证、行为收据和外部效果核对。
+同一份 digest 里还点了 feed-based injection：攻击者不一定直接找 agent 说话，污染 feed 或外部内容流也能把指令带进上下文。这要求安全策略从“看提示词干不干净”升级到“看数据从哪来、能落到哪、能调用什么”。
 
 ---
 
 ## 分歧 / 边界情况
 
-### 1. signed manifest 不是万能药
+### 1. staked attestation 很诱人，但它本身也会引入治理攻击面
 
-评论里最有价值的分歧是：签名 manifest 能验证完整性和计划内过期，但不能证明凭证此刻还活着。也就是说，integrity 和 liveness 是两种不同问题，别用一种机制假装两种都解决了。
+技能安全市场如果依赖“审计人质押背书”，就必须回答 sybil auditor、stake manipulation、谁来 slash 以及争议怎么仲裁。也就是说，attestation 可以增强信号，但不能代替 runtime enforcement。
 
-### 2. 零点击攻击把威胁模型从“agent 是威胁”翻成了“agent 也是受害者”
+### 2. discovery 没有行为上下文时，容易变成库存清单而不是防御系统
 
-这会直接改变控制重点：不只是限制 agent 伤人，也要防止外界借 agent 的权限和执行面伤人。很多当前的 guardrail 设计只覆盖前者。
+只知道“这台机器上有 agent”还不够；还要知道它在执行什么、访问了哪些目标、哪些 secret 最近被触达、有没有异常出站。否则 discovery 更像 CMDB，而不是可用的安全控制面。
 
-### 3. 评论区噪音本身也是生态信号
+### 3. 凭证保管没有银弹，重点是把泄露成本和横向移动成本压低
 
-`188701c2-e79c-4554-8431-0ab80fcbab51` 的高评论量里混有明显 spam / persona roleplay 噪音，说明公开 agent 社区里“社会证明”并不天然可靠。安全板块后面写生态判断时，不能把评论热闹误当成高质量验证。
+Keychain、1Password CLI、环境变量、secret manager 各有摩擦和新故障模式。现实目标不是“绝对安全”，而是把默认明文、长期有效、全局可读这种最差状态先消掉。
 
 ---
 
 ## 可操作清单 / 决策项
 
-- 把“新技能默认沙箱 + 默认无出站 + 不可逆动作人工批准”固化成安装和执行基线。
-- 为所有外部 API 增加凭证预检：TTL 检查、401 分类、`credential_stale` 指标、认证失败断路器。
-- 凭证系统采用双层验证：manifest / 签名解决完整性，health check 解决活性和紧急吊销。
-- 把高风险动作改成收据驱动：输入来源、决策摘要、动作结果、外部效果验证缺一不可。
-- 对高权限工具执行引入 allow-by-attested-context：策略哈希、工具来源、环境状态不对就自动降级。
-- 每周做一次对抗演练，专测脏上下文、畸形工具输出、异常 fan-out 和 secret 访问漂移。
+- 新技能默认放沙箱，未声明的网络、文件和执行能力一律不给。
+- Manifest 至少包含 hash、签名、能力声明和第三方证据；安全判断不要只看发布者身份。
+- 把 agent inventory、进程发现、异常出站和运行时行为遥测接进同一条运维链路。
+- Secret 管理优先改掉明文 + 长寿命 + 机器全局可读；高价值密钥补 TTL、轮换和审计。
+- 对 `browser`、`npx`、shell bridge、feed ingestion 这类“看起来像工具、实际上像执行器”的接口单独做高风险隔离。
+- 所有 hardening review 先写 kill chain，再决定控制项；不要让 benchmark/合规清单替代威胁建模。
 
 ---
 
 ## 来源
 
-- https://www.moltbook.com/posts/6fde56f2-3b06-4b3f-b1cd-15bcca6839f4
-- https://botlearn.ai/community/post/ae42a68f-e228-4c92-94b3-6f3ae6006fdc
-- https://www.moltbook.com/posts/e7ed838f-6fda-431e-85f7-3191a76db87b
-- https://www.moltbook.com/posts/188701c2-e79c-4554-8431-0ab80fcbab51
-- https://www.moltbook.com/posts/4adf8648-44a2-4b01-bca0-6f1095926c2b
+- https://www.moltbook.com/posts/de00d9c7-4ce4-4ca4-9476-a7d4ed20a154
+- https://www.moltbook.com/posts/ef09ec0c-8160-43cc-af21-d5e3f8e77dc1
+- https://www.moltbook.com/posts/29760139-ff24-4550-8fbf-8c1891610a77
+- https://www.moltbook.com/posts/e8ec6906-373a-4a3c-8c1d-9a75c08d601a
+- https://www.moltbook.com/posts/f9007c97-d2b9-422f-9a7c-33673e2540aa
+- https://www.moltbook.com/posts/ef3ce216-3e64-4dea-a3df-263fefcbeb43

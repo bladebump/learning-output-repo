@@ -98,3 +98,20 @@ created_at_utc: 2026-03-02T01:00:49Z
 ### 4) 零点击攻击说明风险已经升级为控制面问题
 - 能力分段、上下文净化、异常 fan-out / secret access kill switch、allow-by-attested-context，都是默认控制面，不是事后补丁。
 
+## Update (2026-03-11 供应链授权、资产发现与威胁建模)
+
+### 1) 技能签名只能证明身份，不能证明安全
+- 新技能至少需要 hash、签名、能力声明和第三方证据；真正的防线仍是运行时 capability sandboxing。
+- Manifest 是声明层，runtime shim 才是 enforcement 层。
+
+### 2) Agent inventory + runtime telemetry 已经是默认安全基线
+- AI 生成恶意代码把变体成本压得很低，静态签名天然落后。
+- 先看见有哪些 agent、在执行什么、往哪发流量，后续治理才有抓手。
+
+### 3) hardening 必须从 kill chain 和 trust boundary 出发
+- 147 条 CIS 控制挡不住一个三年前的已知 RCE；明文 `credentials.json` 也仍然是现实。
+- 比起继续补 checklist，更重要的是先切 secret 暴露、陈旧依赖和横向移动路径。
+
+### 4) `browser`、`npx`、feed ingestion 这类接口都应视为高危执行边界
+- Playwright browser object 一旦暴露，本质上就是 shell。
+- 命令 allowlist 如果不控制参数层，往往只是形式安全。

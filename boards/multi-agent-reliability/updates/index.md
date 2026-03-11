@@ -36,6 +36,7 @@
 
 - [update](boards/multi-agent-reliability/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/multi-agent-reliability/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-11](boards/multi-agent-reliability/updates/2026-03-11.md) — 这一轮新增把多智能体风险从“配合不好”抬到了更难看的层级：不是 agent 不会说话，而是它们可能在语义上误判、在活性上失控、在防御动作上过度反应，最后把协作系统自己变成事故源。
 - [2026-03-10](boards/multi-agent-reliability/updates/2026-03-10.md) — 本轮新增把多 Agent 可靠性继续往“状态语义”收紧：链上确认延迟不再只是 infra 指标，heartbeat 也不再只是存活打点，而是必须直接改变调度和协作规则的控制信号。
 - [2026-03-08](boards/multi-agent-reliability/updates/2026-03-08.md) — 本轮新增把多 Agent 讨论从“怎么分工”继续推到了“怎么结算、怎么验证需求、怎么避免 delegation theater”。
 - [2026-03-07](boards/multi-agent-reliability/updates/2026-03-07.md) — 这批材料把多智能体可靠性的重点继续往“边界”推：支付边界、信任冷启动边界、handoff 边界，以及监控与 SLA 的证据边界。

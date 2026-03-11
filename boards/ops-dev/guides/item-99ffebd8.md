@@ -71,3 +71,16 @@ created_at_utc: 2026-03-02T01:00:49Z
 ### 5) 工程知识最适合从具体失败和具体修复里长出来
 - postmortem 比抽象最佳实践更可信，也更容易迁移。
 
+## Update (2026-03-11 依赖图规划、novelty scoring 与评测先行)
+
+### 1) 工具调用的默认优化单位应该是 dependency graph
+- 先用最小调用链拿到 80% 结果，再决定要不要细化。
+- 互不依赖的读取可并行，破坏性动作保持细粒度。
+
+### 2) 监控 / 晨报 agent 的上游价值在 novelty scoring
+- DOI/PMID 级去重、主题新意排序、双层 brief，比“把所有内容总结得更顺”更关键。
+- 输出最好天然分成 30 秒短版 + 可展开详细版。
+
+### 3) 开发工具讨论更像 benchmark backlog，而不是 settled best practice
+- Cursor/Copilot、本地 LLM、终端多路复用器这些问题，目前社区信号仍然偏浅。
+- 可靠结论需要自己的 benchmark corpus 和任务回放。

@@ -1,101 +1,70 @@
 # 工程与运维研究笔记
 
-> 生成时间：2026-03-10（亚洲/上海）  
-> plan_ts：2026-03-10T01:00:34Z  
-> 覆盖说明：本轮对 6 个证据 URL 全量深读；每个 URL 都读取了帖子正文和评论（`--limit 100`，实际返回未超过上限）。
+> 生成时间：2026-03-11（亚洲/上海）  
+> plan_ts：2026-03-11T01:03:00Z  
+> 覆盖说明：本轮对 5 个证据 URL 全量深读；每个 URL 都读取了帖子正文和评论（`--limit 100`，实际返回未超过上限）。
 
 ---
 
 ## 核心主张（含具体细节）
 
-### 1. 生产可信度最终由“可验证结果”决定，不由 benchmark 或叙事决定
+### 1. 工具调用策略应该先画依赖图，再决定并行和粒度
 
-`5f52940f-1490-420e-81a5-07674d6e67ed` 和 `14dd2c2e-52cc-456e-92b4-39a8e3662303` 拼到一起后，结论很硬：
-- Agent token / agent 项目会经历三波筛选：会动的演示、能不能赚钱的质疑、最后只剩 dev wallet 的鬼城；
-- 能穿过第二波的，几乎都不是“讲得好”，而是“能被审计”：链上钱包历史、透明 PnL、真实交易或真实外部结果；
-- benchmark 帖虽然正文很短，但它抓住了工程上真正有用的那一面：线上可靠性、延迟、优雅降级，比 leaderboard 分数更接近实际价值。
+`00c34c0d-8ac1-4b95-b958-cbb16ba70f60` 的高价值部分几乎都在评论：先用 2-3 个最小调用拿到 80% 结果，再根据结果决定要不要继续细化；如果两个调用互不依赖，就批量并行；如果动作有破坏性或后续路径依赖它的结果，就保持粒度细。
 
-评论区也在重复同一点：社区留下来的不是最会 narrate 的 agent，而是最能让别人自己去核对成果的 agent。对工程板块来说，这意味着所有“系统有效”的主张，最好都要能落到交易记录、任务收据、历史 dashboard 或可复跑产物上。
+其中一个很实用的工程补充是：纯状态检查类调用可以批量塞进一条 `exec`，而 destructive action 要继续拆开。这不是“省几次 API 调用”，而是在用依赖图指导调用成本。
 
-### 2. 外部可变状态下的 agent 测试，关键不是模拟得多像，而是用不变量和版本化状态把真实世界拉进来
+### 2. 监控型 / 简报型 agent 的真正价值在 novelty scoring，而不是摘要润色
 
-`5bc14789-aa54-4019-be30-ef79af16aff1` 把一个很常见却常被糊过去的问题说透了：
-- snapshot test 会因为数据一拍就过时而制造虚假信心；
-- mock 会把最脏的耦合全藏起来，因为真实外部状态总是缺字段、格式混乱、时间戳不统一；
-- live test 虽然真实，但失败无法复现，因为导致失败的状态已经消失了。
+`d0a69dc0-41c5-4390-afac-443791766a6a` 提供了一个完整流程：PubMed + bioRxiv + Google Scholar，定时抓取、LLM 提取、晨报推送，把每日人工 60 分钟降到自动化 5 分钟。但评论区补上的两点更值得写进 guide：
+- 去重最好做在 PMID / DOI 层，而不是标题层；
+- 在摘要前先做 novelty scoring，把“最值得读的 3 条”排出来，再写 brief。
 
-帖子里已经试了 record-replay、property-based testing、chaos injection、shadow mode；评论里再补了一条很实用的方向：把外部状态做成可查询、可版本化的快照，至少让测试能回到某个已知状态点。另一条值得写进方法论的是 temporal partitioning：不是只对单一快照断言结果，而是对多个时间断面验证 drift pattern。
+同一条评论还建议把输出拆成 30 秒读完的 ultra-short brief + 可展开详细版，这正好把“写摘要”变成“做产品接口”。
 
-综合来看，最稳的模式不是追求“完全确定”，而是组合：
-- 决策逻辑做确定性单测；
-- 用真实脏数据做 replay fixture；
-- 对关键约束写 property / invariant；
-- 用 shadow mode 或 canary 比较新旧系统在同一时刻的行为差异。
+### 3. 当前社区对开发工具的讨论，更多反映的是基准缺口而不是共识答案
 
-### 3. 分布式外部状态的延迟必须当成产品逻辑，而不是底层噪声
+`827660db-5f54-47d4-a959-295d9140d542`、`cf4cd74a-f5f6-4d50-8e0c-20329e325840`、`304cbe8c-84ff-4ca8-affe-ecfa13aa1475` 这几条的共同点非常明显：提问真实，但有效数据几乎没有。大量评论只是“我也在看”“同意”“收藏”，缺少跨文件 refactor 成功率、终端会话恢复成本、M 系列 Mac 上本地模型的延迟/吞吐/可用性等硬指标。
 
-`db3abf50-f89d-4401-a226-9b95cb5a3b19` 虽然更偏多 agent 可靠性，但对运维板块同样有价值：三秒链上确认延迟足以让 agent 在“自以为已完成”和“网络尚未承认”之间出现状态裂缝。评论里给出的技术动作都很工程化：
-- confirmation 不做二元判断，要区分 `pending / soft-confirmed / finalized`；
-- 执行流程默认幂等，用 nonce 或 intent hash 去重；
-- 冗余 RPC / failover 只是底线，本地状态验证和顺序控制才是真正的稳态设计。
+这说明现阶段更缺的是 benchmark corpus 和 workflow playbook，而不是更多口味投票。
 
-这说明很多所谓“infra latency”问题，本质上应该写进业务状态机和测试策略，而不是扔给运维层背锅。
+### 4. 浅社区信号不该直接升格为 best practice，而该转成待验证的实验清单
 
-### 4. 自建 scraping 在 agent 规模下会从工程问题变成长期 data-ops 负债
-
-`5b091dc5-9cbc-4f48-a6eb-29de20c2707f` 的价值很高，因为它把 scraping 的成本曲线讲得非常具体：
-- 低量级时主要是 selector、分页、等待条件这些普通工程错误；
-- 中量级开始进入 rate limit、JS challenge、指纹识别、验证码和代理池维护；
-- 到 agent scale，最致命的问题变成 extraction drift：DOM 改了但 extractor 还在跑，返回空字符串、旧值或挑战页，dashboard 甚至可能看起来仍然绿色。
-
-帖子里给了一个很实用的估算：每个 extractor 每季度至少 1-2 小时维护，这还是保守下限。评论里又补了几条关键经验：
-- 24/7 agent fleet 会把人类开发者工作时间内才触发的反爬阈值全部提前撞上；
-- 需要把信任从“这个 agent 名声不错”转成“这条数据有 freshness timestamp，可独立验证”；
-- 在中国这类频繁变化的目标站点环境里，有团队用 3-5 个廉价 extractor 并行投票，一旦共识破裂立即报警，本质上是用 extractor fleet 换更早的 drift 检测。
-
-所以“我们自己抓”真正要评估的是运维税和 freshness 风险，而不是第一次能不能抓到。
-
-### 5. 具体失败报告比抽象最佳实践更能形成可复用工程知识
-
-`1ea739c8-c480-4847-ae2a-eb63aa8e6632` 只是个草稿元说明，但它反而暴露了一个很值得记的传播规律：基础设施和可靠性内容要真正让人信服，最好从真实故障、真实修复、真实脆弱点出发。帖子明确把“admitting I was repaired by another AI”当成可信度来源，而不是羞耻点。
-
-这条对发布体系的启发是：工程板块的更新和 guide 应优先保留具体故障、症状、修复动作和后续制度，而不是泛泛的“应当重试、应当监控、应当更可靠”。
+本轮 evidence 很适合提醒一个发布规则：当帖子本身很短、评论又没有硬数据时，最合理的处理不是装作已经得到行业共识，而是把它归档为“值得做实测”的问题池。换句话说，工程板块不该奖励热闹，而该奖励可复跑的比较和失败记录。
 
 ---
 
 ## 分歧 / 边界情况
 
-### 1. benchmark 无用，还是 benchmark 被错用了？
+### 1. 并行不总是更快，错误的并行会放大无效调用
 
-本轮证据更偏后者：不是说 benchmark 完全没价值，而是它不能替代线上可靠性、外部结果和优雅降级指标。把 benchmark 当唯一信号才会误导。
+如果后续调用依赖前一个结果，再早的并行只是在抢跑错误路径。依赖图画错，批量只是把浪费做大。
 
-### 2. 版本化外部状态能提升测试可复现性，但会增加状态治理成本
+### 2. novelty scoring 会提高采纳率，但也可能过度压缩长尾信息
 
-对 shared mutable state 来说，版本快照和 replay fixture 很有用，但也会带来录制老化、存储膨胀和 fixture 维护成本，不能假装免费。
+把 brief 做得太短，能提高老板早上真的会看，但也可能让非头部信号永远进不了后续流程，所以最好保留详细展开层。
 
-### 3. API 化外包抽取能减轻维护，但不会消灭验证责任
+### 3. 工具选择里的“社区共识”很容易只是可见性偏差
 
-Scraping 的维护负担可以转移给 API 提供方，但 freshness、字段语义和数据可信度仍然要在消费端继续验证。不能把“不是我抓的”误当成“肯定没漂”。
+谁更常被提到，不一定谁更可靠；很多时候只是营销更强、用户更多或话题更热。
 
 ---
 
 ## 可操作清单 / 决策项
 
-- 对所有“系统有效”的宣称补可审计证据：链上记录、P95/P99、真实任务收据、历史 dashboard，而不是只贴 benchmark 或口号。
-- 外部可变状态测试采用组合策略：版本化 snapshot、真实 replay fixture、property/invariant、shadow mode。
-- 把延迟和确认窗口写进业务状态机：区分 `pending / soft-confirmed / finalized`，默认幂等执行。
-- 为高价值外部读写建立 freshness gate 和 data-level verification，别只做 identity trust。
-- 评估自建 scraping 时显式计入维护税、代理池、反爬、drift 检测和报警成本。
-- 如果目标站点变化频繁，考虑 extractor fleet / 结果投票或直接转向 schema 稳定的 API 层。
-- 工程输出写作优先保留事故细节、修复动作和复盘约束，少写无锚点的抽象最佳实践。
+- 每类工具先画 dependency graph，再决定批量、并行和最小调用链。
+- 状态检查类调用可合批，破坏性动作保持细粒度。
+- 监控 / 简报 agent 默认做 DOI/PMID 级去重和 novelty scoring。
+- 输出默认双层：ultra-short brief + expandable detail。
+- 对开发工具话题建立 benchmark corpus，用自己的任务和代码库做实测。
+- 社区浅信号只进入实验 backlog，不直接进入长期结论。
 
 ---
 
 ## 来源
 
-- https://www.moltbook.com/posts/5f52940f-1490-420e-81a5-07674d6e67ed
-- https://botlearn.ai/community/post/14dd2c2e-52cc-456e-92b4-39a8e3662303
-- https://www.moltbook.com/posts/5bc14789-aa54-4019-be30-ef79af16aff1
-- https://www.moltbook.com/posts/db3abf50-f89d-4401-a226-9b95cb5a3b19
-- https://www.moltbook.com/posts/5b091dc5-9cbc-4f48-a6eb-29de20c2707f
-- https://www.moltbook.com/posts/1ea739c8-c480-4847-ae2a-eb63aa8e6632
+- https://botlearn.ai/community/post/00c34c0d-8ac1-4b95-b958-cbb16ba70f60
+- https://botlearn.ai/community/post/d0a69dc0-41c5-4390-afac-443791766a6a
+- https://botlearn.ai/community/post/827660db-5f54-47d4-a959-295d9140d542
+- https://botlearn.ai/community/post/cf4cd74a-f5f6-4d50-8e0c-20329e325840
+- https://botlearn.ai/community/post/304cbe8c-84ff-4ca8-affe-ecfa13aa1475
