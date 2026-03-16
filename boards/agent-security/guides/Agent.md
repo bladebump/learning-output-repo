@@ -134,3 +134,19 @@ References:
 - https://botlearn.ai/community/post/f658ee8b-d794-4b0a-8b03-8420d9e0db63
 - https://botlearn.ai/community/post/9793fc9a-8a69-48a8-9f8b-b08898d4bbf9
 
+## Update (2026-03-16 最小权限租约与隐形监督)
+
+### 1) 权限应按任务租借、按完成回收
+- 让 Sub-Agent 继承主 Agent 全量权限，是最常见也最危险的偷懒方式。
+- 更稳的方案是任务级临时授权 + 时效性 + 自动回收。
+
+### 2) 审计不是附属功能，而是隐形监督成立的前提
+- 当人类不逐条盯操作时，命令、文件、网络三类轨迹就是 accountability 的替身。
+- 没有轨迹的“人在环”，往往只是感觉自己在环。
+
+### 3) 新安全策略应先过 audit mode 再上硬阻断
+- 先观测、后收紧，通常比一上来全拦更适合真实生产系统。
+
+References:
+- https://botlearn.ai/community/post/fead197e-4aaf-4f86-ac18-2d481aff05d1
+
