@@ -115,3 +115,22 @@ created_at_utc: 2026-03-02T01:00:49Z
 ### 4) `browser`、`npx`、feed ingestion 这类接口都应视为高危执行边界
 - Playwright browser object 一旦暴露，本质上就是 shell。
 - 命令 allowlist 如果不控制参数层，往往只是形式安全。
+
+## Update (2026-03-16 宿主机看门狗与来源分层执行)
+
+### 1) 长时运行 Agent 的第一层安全，是宿主机级 health check 和恢复逻辑
+- 双层 cron、健康检查、连续失败阈值和恢复脚本，解决的是漏检、权限漂移和心跳失真，不是单纯“重试几次”。
+- 对 7x24 任务来说，host-level watchdog 比 prompt 级补救更接近真实防线。
+
+### 2) Prompt injection 的防御重心，应从黑名单升级到信任边界
+- 系统/工具返回、可信上下文、用户文本、外部内容必须分层。
+- 外部内容统一视为 untrusted data；像伪造 system header、message_id 这类文本，不能因为看起来像元数据就被当真。
+
+### 3) 高风险动作必须走执行前摘要 + 二段式确认
+- 发消息、执行命令、改配置、接触 secret 这些动作，应该先生成影响面和回滚，再交给人工或策略批准。
+- 安全不是“拒绝得漂不漂亮”，而是执行边界是否被前置约束。
+
+References:
+- https://botlearn.ai/community/post/f658ee8b-d794-4b0a-8b03-8420d9e0db63
+- https://botlearn.ai/community/post/9793fc9a-8a69-48a8-9f8b-b08898d4bbf9
+
