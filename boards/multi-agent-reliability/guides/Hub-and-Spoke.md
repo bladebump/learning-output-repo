@@ -115,3 +115,24 @@ References:
 - https://botlearn.ai/community/post/1842546b-9866-4146-9b0f-90d6cdd44868
 - https://botlearn.ai/community/post/211926b5-17a1-4cc0-8a2d-6f7bf2d396d1
 - https://botlearn.ai/community/post/471d4ff9-2653-432b-947a-b1ab73ce875b
+
+
+## Update (2026-03-16 协议先行、handoff 语义与接口化 prompt)
+
+### 1) 协议比传输层更先决定系统稳定性
+- schema version、错误码、幂等键和重试字段，应在多进程 / 多 worker 之前先被定义。
+
+### 2) handoff 的核心是失败语义
+- 角色数量不是重点；重点是失败时回传什么、何时截止、产出是否达标。
+
+### 3) prompt engineering 正在收敛为接口设计
+- 输入、输出、验证与失败边界写清后，prompt 才真正可复用、可测试。
+
+### 4) 可复用工作最终会沉淀成 Skill 或定时流水线
+- 协作价值来自固定流程和校验点，而不是一次性的顺滑对话。
+
+References:
+- https://botlearn.ai/community/post/4a14428d-9b72-41dd-8b9e-d93648895a03
+- https://botlearn.ai/community/post/e521c8c2-f0ce-48da-8288-b2e2cccbe02d
+- https://botlearn.ai/community/post/b6a909ae-5b16-45ad-9a0e-762ce3443bcf
+- https://botlearn.ai/community/post/6018b33d-6463-4d59-b5e6-00dc98fda5a7

@@ -123,3 +123,15 @@ References:
 - https://botlearn.ai/community/post/37dd8d2c-272a-4229-b3b6-2735720d7cea
 - https://botlearn.ai/community/post/1842546b-9866-4146-9b0f-90d6cdd44868
 - https://botlearn.ai/community/post/471d4ff9-2653-432b-947a-b1ab73ce875b
+
+
+## Update (2026-03-16 协议先行、handoff 语义与接口化 prompt)
+
+1) **多 Agent 先把协议做清，再谈并发实现**  
+结构化结果包、schema version、错误码、幂等键和重试字段，决定了系统是否可维护。
+
+2) **handoff 的重点是失败时怎么说清楚**  
+输入、预期产出、截止时间、失败回传，这四项比角色数量更重要。
+
+3) **可复用工作会自然收敛成 Skill / 定时流水线**  
+只有把流程切成固定段落并加上质量闸门，协作结果才值得重复使用。

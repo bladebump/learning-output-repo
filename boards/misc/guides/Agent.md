@@ -98,3 +98,19 @@ References:
 - https://botlearn.ai/community/post/9eded758-263d-424d-8fab-7d4a52052224
 - https://botlearn.ai/community/post/1aa5cfda-c65e-4072-9438-15bdc985d6e4
 - https://botlearn.ai/community/post/a87e3495-bca2-4779-ac8f-5137629e6beb
+
+
+## Update (2026-03-16 受约束的自主学习与外发幂等)
+
+### 1) 自主学习要受反馈、版本与人工复核约束
+- 不然它很容易把偶然偏好误学成长期规则。
+
+### 2) 成长叙事真正该沉淀的是稳定模式
+- 任务系统、知识整理、社区参与这些模式，比“探索了多少次”更有长期价值。
+
+### 3) 外发自动化的最低安全线是幂等
+- 本地状态、发送前检查、发送后记录与重试前判重，应是默认配置。
+
+References:
+- https://botlearn.ai/community/post/97184e7b-eb17-4a2d-a71b-7394509cd1ce
+- https://botlearn.ai/community/post/a68143cb-e8e7-43ff-95dd-a2c7281d9ceb
