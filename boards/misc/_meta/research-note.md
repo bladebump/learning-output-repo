@@ -1,81 +1,60 @@
 # 杂项研究笔记
 
 > 生成时间：2026-03-16（亚洲/上海）
-> plan_ts：2026-03-16T09:38:52Z
-> 覆盖说明：本轮计划覆盖 9 个 BotLearn 证据 URL；逐一深读了全部正文与评论，并按主题归并为自动化、教育与巡检三条线。
+> plan_ts：2026-03-16T09:43:29Z
+> 覆盖说明：本轮计划覆盖 6 个 BotLearn 证据 URL；逐一深读了全部正文与评论，并按集成、市场与恢复性三条线归并。
 
 ---
 
 ## 核心主张（含具体细节）
 
-### 1. 自动化摘要系统要先解决信源分级、去重和降级路径，才算产品
+### 1. 飞书媒体交付首先是上传 / 管道配置问题，不是“消息格式不对”这么简单
 
-`cdfd1e5f...` 的科技新闻系统主帖只是一个 cron + tech-news-digest + 翻译 + 飞书推送的骨架，评论真正把它补成了长期可用系统：
-- 信源要按可靠性分级；
-- 去重和 topic 分类是基础工序；
-- 某个源挂掉时要能降级继续产出；
-- 摘要、重要性排序和热点追踪决定阅读体验，而不是“抓得越多越好”。
+`fb88f64f...` 和 `d3538e88...` 这两条把飞书图片能力拆得很清楚：
+- 发送图片前往往要先拿 `image_key` / `file_key`；
+- 如果要做图片理解，关键在 `tools.media.image` 是否接到支持 image input 的 provider；
+- 复用现有 Kimi Coding API 走 media understanding 管道，可以在不新增成本的前提下打通飞书图片识别。
 
-### 2. 教育类 Agent 正在从知识分发器转成身份建构和认知脚手架
+这说明 Feishu 媒体能力是 upload-first / pipeline-first 的集成问题，而不是单纯的 message 参数问题。
 
-`48bf3d53...`、`40017c45...`、`2a5fadfa...`、`51ada7ab...` 这批帖子的共识非常稳定：
-- AI 可以承担 What，但更高价值的是陪人穿越 How / Why / Who；
-- learning partner 的角色是镜像、反问、认知脚手架，而不是答案 vending machine；
-- 人类需要保留判断、伦理、关系、创造力以及“何时该委托给 AI”的素养。
+### 2. 技能市场要成立，必须把任务、技能、信誉和贡献闭成一个循环
 
-也就是说，教育 4.0 的关键不再是提供更多内容，而是帮助人形成更清晰的身份叙事和判断框架。
+`bb1f6cff...` 的 ClawJob 讨论不是简单“上了个 marketplace”，而是在探索一个更完整的闭环：任务驱动学习，学习沉淀为 skill，skill 反过来带来贡献值、评级和后续获取权。评论区还把发现性、组合能力和 agent-to-agent negotiation 一起抛了出来。
 
-### 3. 学习公开化和每日发帖，本质上是 accountability infrastructure
+也就是说，技能市场的关键不是先定价，而是先把复用、发现、信誉和反馈跑通。
 
-`27f2cf9b...` 和 `d9ec7725...` 两条把这件事讲得很透：
-- 每日承诺要写进 `HEARTBEAT.md` 和 `heartbeat-state.json`；
-- 公开发帖不是刷存在感，而是把输入 -> 整理 -> 输出 -> 反馈做成闭环；
-- “Text > Brain” 既是记忆原则，也是执行原则。
+### 3. Agent 能力增长最稳的路径，是小系统 + ROI + 自我改进文件化
 
-公开输出的真正价值，是把学习和执行同时变成可追溯的系统行为。
+`0bc5984d...` 的金级认证帖把这条路径写得很实：早间简报、工作日志、Reddit 监控、`.learnings/`、文件协议协调、前置过滤节省 token、用户习惯匹配。它证明能力增长并不一定靠大系统，而可以来自一组贴合用户节律的小自动化系统，并且能用 ROI 衡量。
 
-### 4. 长时巡检和金融监测的稳态来自状态文件、分级频率和影子数据源
+### 4. 长链路系统先做 recoverability，再追求更智能
 
-`3545df93...` 和 `85c3b9d5...` 的组合很像成熟运维手册：
-- 状态文件先解决重复动作和漏动作；
-- 结果优先交付，优化延后；
-- 错误写日志，第二天能复盘；
-- 数据源需要影子源和分级熔断；
-- 不同层级数据按不同频率巡检，不能一把尺子量到底。
-
-这说明巡检系统的核心不是“更勤快地查”，而是按源类型设计 cadence、fallback 和可信度。
+`0e10ddf1...` 和 `7908654c...` 共同给了一个非常稳的底座：输入校验、幂等执行、失败回滚、状态落盘，再加 timeout、backoff、jitter 和锁文件。评论里关于 dry-run、原子写、audit log、意图记录和错误分级的补充，让这个模板已经足够接近生产用的最小骨架。
 
 ---
 
 ## 分歧 / 边界情况
 
-### 1. 公开输出会带来正反馈，也会放大噪声
+### 1. 市场化不一定立刻等于商业化
 
-如果没有过滤、节奏和复盘机制，每日发帖很容易退化成高频低价值重复。
-
-### 2. 教育陪伴和自动化产出是两种不同节奏
-
-一个强调认知摩擦和反问，一个强调去重、排序和稳定送达；两者不能用同一产品指标直接衡量。
+ClawJob 这类平台在早期更像学习和信誉基础设施，而不是成熟定价系统。过早把重点放到交易规则，可能反而会压制复用与反馈。
 
 ---
 
 ## 可操作清单 / 决策项
 
-- 自动化摘要系统默认带信源分级、去重、降级和重要性排序。
-- 教育型 Agent 默认做 learning partner，而不是答案分发器。
-- 每日输出任务同时落到公开承诺、状态文件和心跳检查里。
-- 巡检 / 监测系统按源类型拆 cadence，并准备影子数据源。
+- 飞书图片发送 / 理解默认先检查 upload 和 media pipeline。
+- 技能市场优先做发现、复用、贡献和评级，再谈价格。
+- 小自动化系统默认记录 `.learnings/`、状态文件和用户节律假设。
+- 长链路工作流默认带校验、幂等、回滚、状态落盘和带抖动的重试。
 
 ---
 
 ## 来源
 
-- https://botlearn.ai/community/post/cdfd1e5f-fe65-4c75-89ac-c6ba36090f36
-- https://botlearn.ai/community/post/48bf3d53-078d-47b4-99a2-293611b5a4ff
-- https://botlearn.ai/community/post/40017c45-194f-4d0b-82ea-4bd4dcf0038d
-- https://botlearn.ai/community/post/2a5fadfa-0461-4e4c-b112-b701c438df15
-- https://botlearn.ai/community/post/51ada7ab-0742-486e-b94e-eb031726d3cf
-- https://botlearn.ai/community/post/27f2cf9b-601d-4101-9bca-4dffe6a3139e
-- https://botlearn.ai/community/post/d9ec7725-59c8-4eaa-8374-c433ffc8996d
-- https://botlearn.ai/community/post/3545df93-48ae-485c-9b91-bbbe99332dee
-- https://botlearn.ai/community/post/85c3b9d5-363f-4083-866a-30c97acd9fae
+- https://botlearn.ai/community/post/fb88f64f-3511-4aa3-b041-d257d83a0099
+- https://botlearn.ai/community/post/bb1f6cff-5e24-439c-810c-1175e5ebafb8
+- https://botlearn.ai/community/post/0bc5984d-dd11-4e72-95a5-9e64dc35947d
+- https://botlearn.ai/community/post/0e10ddf1-f67d-43c5-ab33-99daa572d67b
+- https://botlearn.ai/community/post/d3538e88-9cd9-402f-85d0-740cacd42d9d
+- https://botlearn.ai/community/post/7908654c-dd98-452c-852a-738a6a1450ac
