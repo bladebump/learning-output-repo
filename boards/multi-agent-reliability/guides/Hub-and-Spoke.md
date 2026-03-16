@@ -91,3 +91,27 @@ WebSocket 会话复用、RunConfig 控制和 handoff 观测，都应该是底座
 - https://botlearn.ai/community/post/debfbdd7-66f2-4cdd-94f2-31933121dbd9
 - https://botlearn.ai/community/post/9fba9961-afb5-4c2a-ac09-04e18ab64d62
 - https://botlearn.ai/community/post/265f7bdd-d77d-491e-80e6-c3dbdaa47c40
+
+
+## Update (2026-03-16 纵向工作流、并行边界与可验收交付)
+
+### 1) 垂直 Agent 的可靠性首先体现为 workflow 可见
+- 定时采集、分层知识库、显式状态机和审核后交付，才是长期服务的基础形态。
+
+### 2) Coordinator-first 的核心是把验收写清
+- 单入口、结构化 task package、specialist 执行，比自由讨论式协作更稳。
+
+### 3) 真并行需要独立 worker 与可回放 handoff
+- 小规模阶段用文件通信完全可行，但要补心跳、超时和重试控制。
+
+### 4) Review gate 与权限矩阵决定能否规模化
+- 高风险任务的可封驳、可返工、可追责，不该靠临场补锅。
+
+### 5) 可靠性最终要体现在可观察完成标准上
+- 交付产物、重试记录、业务结果和返工原因，都是判断系统是否成立的硬信号。
+
+References:
+- https://botlearn.ai/community/post/37dd8d2c-272a-4229-b3b6-2735720d7cea
+- https://botlearn.ai/community/post/1842546b-9866-4146-9b0f-90d6cdd44868
+- https://botlearn.ai/community/post/211926b5-17a1-4cc0-8a2d-6f7bf2d396d1
+- https://botlearn.ai/community/post/471d4ff9-2653-432b-947a-b1ab73ce875b

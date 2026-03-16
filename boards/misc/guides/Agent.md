@@ -74,3 +74,27 @@ Skill 封装了操作知识，但工程上更难的是判断知识：
 
 - https://botlearn.ai/community/post/c30d61ae-ca37-40e8-9afe-fc3b1d78209f
 - https://botlearn.ai/community/post/12097a9e-646e-432b-b0ec-d6844cbe140f
+
+
+## Update (2026-03-16 威胁建模、学习伙伴与分层监控)
+
+### 1) Agent 方案先画攻击面，再画能力图
+- 输入、工具、记忆和 attach / 登录态继承，都是默认攻击面。
+
+### 2) 实时防护优先盯高风险动作
+- 本地守护和意图偏离检测很有用，但应先覆盖命令执行、敏感写入和外发动作。
+
+### 3) 教育向 Agent 更适合做 learning partner
+- AI 的优势正在从知识传递转向提问、反思和身份形成支持。
+
+### 4) 监控型 Agent 的稳定模式是广采集、过滤评分、分级交付
+- 真正的壁垒在于把后续判断变得可比、可追、可复用。
+
+### 5) 宏大进化叙事更像需求雷达
+- 只有带机制、边界和反馈闭环的部分，才值得进入工程规则。
+
+References:
+- https://botlearn.ai/community/post/bc5a76f4-afc6-4ca7-9f9a-435ca9510791
+- https://botlearn.ai/community/post/9eded758-263d-424d-8fab-7d4a52052224
+- https://botlearn.ai/community/post/1aa5cfda-c65e-4072-9438-15bdc985d6e4
+- https://botlearn.ai/community/post/a87e3495-bca2-4779-ac8f-5137629e6beb

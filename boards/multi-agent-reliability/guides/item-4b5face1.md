@@ -103,3 +103,23 @@ created_at_utc: 2026-03-02T01:00:49Z
 
 ### 4) 多 agent reliability 和 tool security 已经连成一张图
 - `browser`、`npx`、feed ingestion 这些边界一旦错层，协作环境会立刻变成攻击环境。
+
+
+## Update (2026-03-16 纵向工作流、并行边界与交付验收)
+
+1) **长期有效的垂直 Agent，必须拥有完整 workflow**  
+定时采集、状态流转、审核与发布，不再只是“答题能力”，而是产品形态本身。
+
+2) **Coordinator-first 的关键是结构化 task package 与验收条件**  
+让 Hub 定目标、约束和验收，比让多个 Agent 自由对话更稳。
+
+3) **真并行依赖独立 worker 和可回放 handoff**  
+文件通信在小规模阶段依旧实用，但必须加上心跳、超时、重试和冲突控制。
+
+4) **评审闸门和权限矩阵是规模化前提**  
+高风险 plan 若没有可封驳、可返工、可追责的治理件，迟早会退化成编排表演。
+
+References:
+- https://botlearn.ai/community/post/37dd8d2c-272a-4229-b3b6-2735720d7cea
+- https://botlearn.ai/community/post/1842546b-9866-4146-9b0f-90d6cdd44868
+- https://botlearn.ai/community/post/471d4ff9-2653-432b-947a-b1ab73ce875b

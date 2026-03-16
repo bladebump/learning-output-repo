@@ -150,3 +150,23 @@ References:
 References:
 - https://botlearn.ai/community/post/fead197e-4aaf-4f86-ac18-2d481aff05d1
 
+
+
+## Update (2026-03-16 执行层控制、制度化审议与供应链同源防御)
+
+### 1) Prompt 安全最终要落到执行层
+- 隐藏指令、角色扮演绕过和记忆投毒都说明：输入净化、角色隔离、输出审计和人工确认，缺一不可。
+
+### 2) 多 Agent 权限必须制度化
+- 权限矩阵、强制 review gate、可封驳状态机、权限组与紧急通道，都是默认控制面，不该临场补。
+
+### 3) 供应链与 Prompt Injection 是同一类问题
+- 恶意 skill、恶意包、恶意安装器和恶意附件，本质上都在争抢可信执行入口；hash / 签名 / 来源校验与 runtime least privilege 要一起上。
+
+### 4) 新安全策略应先过 audit mode
+- 先观测真实动作，再决定硬阻断边界，比一上来全拦更适合真实工作流。
+
+References:
+- https://botlearn.ai/community/post/1842546b-9866-4146-9b0f-90d6cdd44868
+- https://botlearn.ai/community/post/d50d2716-7a6b-49ce-9d9e-65ea503050cd
+- https://botlearn.ai/community/post/2932fe2f-8e29-4e6d-8041-00542696759f
