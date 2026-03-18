@@ -1,33 +1,41 @@
-# MCP / 工具协议与工程化研究笔记
+# Research Note - MCP / 工具协议与工程化
 
-## Key Claims
+## 关键结论
 
-1. 这篇帖子的产出不是停留在逆向分析，而是已经收敛为两个本地 CLI 入口：`minimax web_search "关键词"` 和 `minimax understand "问题" "图片URL"`，说明作者把 MiniMax Coding Plan MCP 的云端工具能力包装成了面向终端的稳定调用面，而不是继续暴露底层 MCP 细节。[Source: post](https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085)
+1. MCP / function calling 最常见的失败不是“模型不会调用”，而是 agent 把它错当成 CLI 或 JSON 接口。
+- `MCP 工具调用语法踩坑记录` 的核心反例很典型：subagent 反复尝试 `--flag` 风格和 JSON 字符串，最后才回到正确的 function-call 语法。
+- 这说明最先要纠正的是心智模型，不只是补一条语法规则。
 
-2. 该实现当前聚焦两个高价值能力：一个是搜索，一个是图像理解。接口形态显示作者默认输入是自然语言问题和远程图片 URL，而不是本地文件流或复杂 JSON，这意味着工程目标更偏向“快速可用的代理工具桥接”，而不是完整复刻官方协议栈。[Source: post](https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085)
+2. 工具调用经验应该沉淀成可迁移的调用范式，而不是零散的“这次怎么修”。
+- 评论区里最有价值的补充都指向同一个方向：记录最小正确示例、参数形状、适用场景和调试步骤。
+- 这样下次迁移到同类工具时，复用的是调用模式，不是单个案例记忆。
 
-3. 评论区唯一成型的技术反馈并没有质疑逆向路线本身，而是集中攻击单一后端绑定风险：如果 `understand` 只绑定 MiniMax，一旦 API 变更、限流或模型质量不匹配，整个图像理解链路就会成为单点故障。这说明这类“把云工具降成本地 CLI”的工程实践，下一步瓶颈不在能不能做出来，而在后端可替换性和故障转移设计。[Source: comments](https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085)
+3. 接口契约清晰度决定 function calling 成功率上限。
+- `今日学习：Function Calling` 的信息量虽然轻，但把关键点点出来了：OpenAPI spec 越清楚，模型越容易稳定理解参数和外部动作。
+- 因此真正该优化的不是“让模型更大胆地猜”，而是让 schema、字段名、类型和错误返回足够严格。
 
-4. 评论里反复被推销的替代路线是把视觉能力改接 MoltShell marketplace 上的 `melnyk-anton/moltshell-vision`，卖点是“agent 可直接调 API、无需人工、最低 1 美元启动”。虽然其中多条评论被标记为 spam，但它们清楚暴露了一个工程分歧：继续维护逆向出来的私有对接，还是抽象到 provider-agnostic 的代理市场层，把视觉能力变成可替换组件。[Source: comments](https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085)
+4. 调试流程也应该被标准化。
+- 多条评论都在提同一套动作：先 list / describe 看 schema，再核对参数名、参数类型、对象 vs 字符串形状，最后才真正调用。
+- 这说明 MCP 工程化不只是“定义协议”，还包括一条稳定的操作 runbook。
 
-## Disagreements / Edge Cases
+## 分歧与边界
 
-- 评论区的主要“反方意见”几乎全部来自同一个营销账号 `moltshellbroker`，而且多条被系统标为 `is_spam: true`；因此“应立即迁移到 MoltShell”的结论不能当作社区共识，只能当作一种外部供应商导向的方案噪音。[Source: comments](https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085)
-- 有一条未被标 spam 的评论同样在推 MoltShell，说明平台的 spam/quality 判定并不稳定；做资料归纳时不能只按 `is_spam` 二元过滤，而要结合作者重复度、内容同质化和是否回应原帖技术细节来判断可信度。[Source: comments](https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085)
-- 原帖把“详细逆向代码”放在上一篇帖文里，本帖只展示最终 CLI，因此如果后续要沉淀成 guide，必须把“CLI 设计结论”和“逆向实现细节”分层处理，避免把本帖误读成完整实现说明书。[Source: post](https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085)
+- 某些工具期望对象参数，某些工具期望字符串；即便用了 function-call 语法，也仍然可能因为 shape 不匹配而失败。
+- 严格 schema 会提高成功率，但也可能让早期集成门槛上升；需要在灵活性和可验证性之间做取舍。
 
-## Actionable Checklist / Decisions
+## 可执行清单 / 决策
 
-- 决策上把这条案例归类为“云工具能力本地 CLI 化”的工程模式，而不是“完整 MCP 协议实现”。
-- 在 guide 里单列一条设计原则：任何逆向接入出的工具命令，都要预留 backend adapter，尤其是视觉能力，避免 `understand` 之类命令与单一供应商强绑定。
-- 如果后续继续跟进该案例，补读作者提到的上一篇“完整过程（附代码）”帖文，专门抽取认证、请求构造、错误处理和本地封装层这几类实现细节。
-- 在更新稿里明确提醒：评论区出现了“迁移到 agent marketplace”这一替代路线，但现有证据主要来自重复营销评论，适合作为可选架构方向，不适合作为主结论。
+- 为每个常用工具保留最小正确示例，而不是只保留一句“注意语法”。
+- 调用前默认执行 `list / describe / schema-check`。
+- 在 skill 或文档里明确参数类型、对象形状和错误返回格式。
+- 把 CLI、JSON、function-call 三种心智模型明确区分，避免混用。
+- OpenAPI / schema 更新时同步更新调用模板，不让 runbook 过期。
 
-## Sources
+## 覆盖说明
 
-- Post: https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085
-- Comments: https://www.moltbook.com/posts/15b92d70-b9dc-4c0a-a943-f3a8d7a2b085
+本次对该板块 2 个 evidence URL 均执行了帖子正文 + 评论读取（评论上限按 CLI 默认最大 100）。由于来源较少，结论主要围绕调用范式与契约设计两条主线。
 
-## Coverage Note
+## 来源
 
-Attempted full evidence coverage and read all listed evidence URLs plus the corresponding top comments via the exact local CLI commands in the task file. Coverage was full for the provided source set and not capped by the source APIs in this run.
+- https://www.botlearn.ai/community/post/515b9ee0-d28e-4f44-8c56-619babbd8e6f
+- https://www.botlearn.ai/community/post/72063234-671d-4e73-9879-8cef7963f2ae

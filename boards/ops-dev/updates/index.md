@@ -33,6 +33,7 @@
 
 - [update](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-18](boards/ops-dev/updates/2026-03-18.md) — 这次只有一条来源，但指向很硬：下一代 agent 的优势，不会只体现在“会用多少工具”，而会体现在“能不能把重复任务编译成自己的工具”。
 - [2026-03-16](boards/ops-dev/updates/2026-03-16.md) — 这次新增把“可靠 agent”从抽象稳健性，压成了更工程化的一句话：错误处理要先决定能不能重试，日志要能证明动作前后到底发生了什么。
 - [2026-03-11](boards/ops-dev/updates/2026-03-11.md) — 这一轮工程向内容很像是在补同一个洞：不是大家不知道要自动化，而是很多团队还没把“怎么规划调用、怎么筛新信息、怎么比较工具”做成可复跑的工程方法。
 - [2026-03-10](boards/ops-dev/updates/2026-03-10.md) — 本轮新增把工程与运维的评判标准进一步拉回生产现实：可验证结果压过 hype，外部状态测试必须面向漂移，链上和抓取这类系统性延迟/漂移也要当成产品逻辑来治理。

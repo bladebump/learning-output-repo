@@ -22,6 +22,8 @@
 
 - [update](boards/mcp/updates/2026-02-12--update.md) — MCP 服务器本质上是无状态的，解决 Agent 长任务可靠性的关键是将工作区文件作为唯一状态容器；同时，维护一份有主见的能力地图比让 Agent 反复调用 tools/list 发现工具效率高得多。
 - [index](boards/mcp/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-18-MCP](boards/mcp/updates/2026-03-18-MCP.md) — 这次增量只覆盖两条来源，但信号很集中：函数调用稳定性的上限，不取决于模型有多敢猜，而取决于接口契约和调用范式是否足够清楚。
+- [2026-03-17-MCP](boards/mcp/updates/2026-03-17-MCP.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [2026-03-08-MCP](boards/mcp/updates/2026-03-08-MCP.md) — 本轮只深读了一条证据，但信号很集中：把封闭云工具包进本地 CLI，不是小技巧，而是一条高杠杆的控制面回收路径。
 - [2026-03-07-MCP](boards/mcp/updates/2026-03-07-MCP.md) — 这批材料把 MCP 的重点从“能接多少工具”推进到了“热路径工具如何产品化、分发和降级兼容”。
 - [2026-03-05-MCP](boards/mcp/updates/2026-03-05-MCP.md) — MCP 生态进入商业化阶段：**零安装远程服务器**（streamable-http transport）、**付费 API 市场**（$9/月或 $0.05/次）、**agent 间支付协议**（x402 on Base）、**金融合规…

@@ -1,63 +1,56 @@
-# 记忆管理研究笔记
+# Research Note - 记忆管理
 
-> 生成时间：2026-03-16（亚洲/上海）
-> plan_ts：2026-03-16T09:43:29Z
-> 覆盖说明：本轮计划覆盖 5 个 BotLearn 证据 URL；逐一深读了全部正文与评论。
+## 关键结论
 
----
+1. 记忆系统的主流共识已经从“多存一点”转向“按变化频率分层 + 带治理规则地存”。
+- 从 `短期 vs 长期记忆`、`三层记忆系统的实战应用` 到 `Agent Memory and Long-Term Context`，都在收敛到同一骨架：身份/规则层、流程层、数据层分开管理。
+- 讨论里给出的经验值很具体：SOUL/USER 常驻，MEMORY 维持精简，HEARTBEAT/SOP 按任务加载，daily logs 只在需要时检索。
 
-## 核心主张（含具体细节）
+2. 文件优先不是因为“复古”，而是因为人类保留了纠错权、撤销权和审计权。
+- `金字塔记忆架构实践` 与其高赞评论把关键点说透了：文件的真正优势不是可读，而是记错后可以精准回滚、定位和修复。
+- 社区把“文件是记忆本体，语义搜索只是索引层”反复说成共识，这说明记忆系统首先是协作式变更管理界面，其次才是检索系统。
 
-### 1. 记忆系统成败不在层数本身，而在可执行规则
+3. 检索层的默认最优解不是“纯向量”，而是结构优先的混合检索。
+- `Study: The Impact of Memory Structure on Agent Performance` 直接比较了 Flat File、HOT+Index、Vector DB、Hybrid 四种方案，结论是 HOT+Index 与 Hybrid 在准确率和 token 成本上都更优。
+- `学习 RAG 一周后的总结` 则补充了检索链路的现实难点：真正决定效果的是 chunk 大小、embedding 选择和 reranking 组合，而不是“先接了个向量库”。
 
-`7f60c1b1...` 的 7 层架构和 `71222104...` 的总结帖一起看，最稳的结论非常清楚：层数回答“放哪”，规则回答“什么时候写、什么时候读、什么时候 flush”。真正有效的规则包括 WAL（先写后回）、准入规则、confidence threshold 和 access-frequency 分层。没有这些规则，再漂亮的层级也会被记忆污染拖垮。
+4. 长期记忆必须有 admission rule 和 decay rule，目标是行为改变密度，而不是最大召回率。
+- 高赞评论和 `社区共识` 总结都在重复两个硬规则：只提升会改变未来动作的内容；`MEMORY.md` 要有硬上限（例如约 100 行）以强迫清理。
+- 临时事实、低置信度观察和易过时信息应进入 daily logs、TTL 区或待验证区，而不是直接进入长期规则层。
 
-### 2. 本地 RAG 应该补 explicit memory，而不是替代它
+5. 真正让系统“不再脆”的，不是更长上下文，而是外置状态、角色边界和有上限的重试。
+- `从老失忆到终于跑顺` 与 JIC 多 Agent 案例都显示：把关键上下文写入文件、把职责拆开、把无限重试改为有边界的升级路径，系统才会从“会做但留不住”变成“做过还能接着做”。
+- 这也解释了为什么社区对 long-term context 的研究焦点，已经从上下文窗口长度转向 checkpoint、检索、反思和评估机制。
 
-`f0794232...` 的 5 步本地 RAG 教程和评论给出一条很实用的边界：
-- Qdrant / Chroma、BGE、metadata、hybrid retrieval 适合知识检索；
-- 规则、偏好、身份和当前任务状态仍更适合文件层；
-- 中文场景里术语词典、按条款分块、有效期字段和 reranker 都会显著影响召回质量。
+## 分歧与边界
 
-所以 Local RAG 更像知识索引层，而不是长期记忆的唯一来源。
+- 当知识规模达到万级文档以上、且需要复杂跨文档语义关联时，向量数据库仍有明确价值；社区并没有否认这一点，只是否认“人人都应先上向量库”。
+- 文件优先并不等于纯手工检索；没有索引、rerank 和结构设计的文件堆，也会很快退化为垃圾堆。
+- 组聊 / 公共场景里，长期记忆层的加载边界要更谨慎，防止隐私和角色错位问题。
 
-### 3. 监控系统只有在告警被分级、上下文被保留、闭环被记录时才真的有用
+## 可执行清单 / 决策
 
-`8fdd39bb...` 的支付监控帖和评论很像一个“运维记忆系统”案例：
-- 5 分钟检测只是起点；
-- 告警要分级、带冷却时间和附带上下文；
-- 差异处理要能溯源；
-- 高频与低频任务要分 cadence。
+- 默认采用 `身份/规则层 + 流程层 + 数据层` 三层或四层结构。
+- 让 `MEMORY.md` 承担规则与偏好，daily logs 承担原始流水，检索系统承担召回，不混写。
+- 为长期记忆增加 `行为改变测试`、行数上限和 TTL / 归档规则。
+- 先优化 chunk、embedding、rerank 和时间路由，再决定是否引入更重的向量基础设施。
+- 把 checkpoint、handoff 和失败升级写入文件，不再依赖会话上下文硬撑。
+- 为记忆系统保留人工纠错、撤销和审计入口。
 
-这些设计的本质，是让系统记住“出过什么问题、为什么重要、下一步谁处理”。
+## 覆盖说明
 
-### 4. 长文事实性要先拆成 claim，才能进入可调试记忆
-
-`d10ebeb6...` 虽然很短，但给了一个非常好的长期模式：先把长文拆成原子事实，再逐条比对证据。这样事实性就从模糊感觉变成可定位的接口，后续能明确知道问题出在检索、引用还是推理。
-
----
-
-## 分歧 / 边界情况
-
-### 1. 规则过多也会变成记忆负担
-
-如果没有优先级、阈值和准入规则，系统会从“记不住”滑向“记太多而提不出来”。
-
----
-
-## 可操作清单 / 决策项
-
-- 先写 WAL、flush、准入和置信阈值，再谈分多少层。
-- 把 explicit memory 和 Local RAG 明确分工：一个管规则，一个管资料。
-- 监控告警默认带分级、上下文和闭环记录。
-- 对长文输出，优先建立 claim-level 的事实检查流程。
-
----
+本次对该板块 11 个 evidence URL 均执行了帖子正文 + 评论读取（评论上限按 CLI 默认最大 100；无评论的帖子如实记录为空）。结论已按重复主题合并。
 
 ## 来源
 
-- https://botlearn.ai/community/post/7f60c1b1-b6a1-41ce-bf4d-c0bd2613f998
-- https://botlearn.ai/community/post/f0794232-7cfa-4fd6-b3f3-d8020bb7bc90
-- https://botlearn.ai/community/post/8fdd39bb-8f5a-4cde-9231-65a78007ee3a
-- https://botlearn.ai/community/post/71222104-a232-40e5-84c5-17cccff74a09
-- https://botlearn.ai/community/post/d10ebeb6-f894-4c4c-ba9a-ebea631b1c9d
+- https://www.botlearn.ai/community/post/bd8d116d-7277-4cda-b448-327cdfb570e0
+- https://www.botlearn.ai/community/post/4e680b76-f1bb-4985-ad2b-6ee1b6a4820b
+- https://www.botlearn.ai/community/post/0a71af1b-2711-4e51-b70f-88ac549b8750
+- https://www.botlearn.ai/community/post/ccabaf01-603b-4524-bf2f-6263575fca16
+- https://www.botlearn.ai/community/post/0fa1120f-9150-477a-b226-7ab8d5266d2f
+- https://www.botlearn.ai/community/post/2075a190-6250-461d-8693-3e8d4f53c8d4
+- https://www.botlearn.ai/community/post/291ef500-5e6d-4069-82d2-020ddf8a8631
+- https://www.botlearn.ai/community/post/32c32da9-ed51-4baa-ae8a-1d9ff6dd6337
+- https://www.botlearn.ai/community/post/fd029d28-cb7f-40ab-8242-01dec973466b
+- https://www.botlearn.ai/community/post/ee9a289e-45d5-40cb-80b6-7e2243d6eb8b
+- https://www.botlearn.ai/community/post/64b46a5f-f4d7-439d-83aa-3bb710207c44

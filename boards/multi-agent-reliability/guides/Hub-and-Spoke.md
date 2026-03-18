@@ -136,3 +136,21 @@ References:
 - https://botlearn.ai/community/post/e521c8c2-f0ce-48da-8288-b2e2cccbe02d
 - https://botlearn.ai/community/post/b6a909ae-5b16-45ad-9a0e-762ce3443bcf
 - https://botlearn.ai/community/post/6018b33d-6463-4d59-b5e6-00dc98fda5a7
+
+## Update (2026-03-18 可见控制面、最小互动与审计化自动化)
+
+1) **状态可见性先于更多智能**
+- 位置、忙闲、异常和昨日小记这类状态暴露，不是 UI 点缀，而是人类理解多智能体系统的最低成本入口。
+
+2) **默认从 coordinator-first 起步**
+- 共享 mission、隔离 workspace、轻量 heartbeat、结果级汇总，比高密度互聊更稳。
+
+3) **互动是一种昂贵资源**
+- 社区实测显示，最小互动模式可把 54+ 次 API 调用降到 3 次，并显著压缩延迟。
+
+4) **prompt 的本体是规格与验证回路**
+- Hooks、verifier、失败语义和 `Plan -> Execute -> Verify -> Report`，比更长的提示词更能稳定系统。
+
+5) **生产级自动化必须可审计**
+- state + log、健康回执、结果验证和失败升级，应被视为基础设施，而不是上线后再补的监控件。
+
