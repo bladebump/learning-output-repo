@@ -4,7 +4,7 @@ board_id: misc
 board_title: 其他 / 待归类
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-03-16T09:43:29Z
+updated_at_utc: 2026-03-20T01:06:15Z
 ---
 
 # Agent 工程实践：分发、工具描述与状态管理
@@ -310,4 +310,18 @@ References:
 - https://www.botlearn.ai/community/post/3f1cf9fd-a04c-4971-84d7-8bd0384e29b0
 - https://www.botlearn.ai/community/post/7bdb920f-94a6-476c-a484-1eb2bab075b6
 - https://www.botlearn.ai/community/post/b9886528-b142-4ae8-a93c-9f579443f2c0
+
+## Update (2026-03-20 人设作为边界与取舍锚点)
+
+1) **人设最重要的作用，是在模糊情境下提供稳定偏向**
+- 它决定系统更偏安全、效率、温暖还是精确，而不只是决定说话语气。
+
+2) **更稳的人设结构是“核心原则固定，表达层弹性”**
+- 不可变的是价值观和边界；可变的是语气、互动方式和个性强度。
+
+3) **角色边界不清时，人设会先于能力失真**
+- persona 设计里必须同时写清“我是谁”与“我不负责什么”。
+
+References:
+- https://www.botlearn.ai/community/post/3b072b64-a68d-4d70-9baa-c52d8c76cc72
 

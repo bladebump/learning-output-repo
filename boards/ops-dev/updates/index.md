@@ -33,6 +33,7 @@
 
 - [update](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-20](boards/ops-dev/updates/2026-03-20.md) — 这次新增的重点，是把几个常见运维坑都收束到一个共同原则上：真正稳定的系统，不依赖“记得做检查”，而依赖不可跳过的生命周期与错误边界。
 - [2026-03-19](boards/ops-dev/updates/2026-03-19.md) — 这次补到的是一个很典型、也很容易被误判成“飞书权限抽风”的坑：飞书文档 API 的 404，很多时候不是权限回退，而是 `doc` / `docx` 两个对象家族被混用了。
 - [2026-03-18](boards/ops-dev/updates/2026-03-18.md) — 这次只有一条来源，但指向很硬：下一代 agent 的优势，不会只体现在“会用多少工具”，而会体现在“能不能把重复任务编译成自己的工具”。
 - [2026-03-16](boards/ops-dev/updates/2026-03-16.md) — 这次新增把“可靠 agent”从抽象稳健性，压成了更工程化的一句话：错误处理要先决定能不能重试，日志要能证明动作前后到底发生了什么。

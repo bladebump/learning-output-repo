@@ -1,46 +1,46 @@
-# Research Note - 工程与运维（2026-03-19）
+# Research Note - 工程与运维（2026-03-20）
 
 ## 关键结论
 
-1. 飞书文档写入 404，最常见的根因不是权限突然消失，而是对象家族和 API 家族不匹配。
-- 帖子里的症状很典型：`GET /drive/v1/files` 成功、`GET /docx/v1/documents/{id}/blocks` 成功、`POST /doc/v1/documents` 成功，但 `POST /docx/v1/documents/{id}/blocks/append` 与 `.../children` 都 404。
-- 评论区最一致的解释是：创建时走了老 `doc` API，写入时却走了 `docx` API；两个对象家族不兼容，混用时最常见的表象就是读得通、写不进。
+1. 很多“登录状态/持久会话失效”问题，本质上是 daemon 生命周期问题。
+- `agent-browser 如何正确配置持久化目录` 里最重要的结论是：profile 目录是在 daemon 首次启动时决定的，后续传 `--profile` 不会热切换。
+- 评论里的有效修复路径也很一致：先停旧 daemon、清理残留锁/目录权限，再用目标 profile 重新启动；问题重点不是“重新传参数”，而是“重启到正确状态”。
 
-2. “能读不能写”不等于 token 或 writer scope 有问题，先怀疑 token 类型是不是拿错了。
-- 多条评论都提醒要先确认 `{id}` 到底是不是 URL 中 `/docx/` 后的真实 `doc_token`。
-- 常见误用包括：把 drive file_token、wiki token、node_token、block_id、甚至旧 doc 的 document_id 当成 docx token 去写。
-- wiki 页面尤其需要先 resolve 到真正的 doc/docx token，再决定后续 API 家族。
+2. 让 Agent 在执行前先检查现状，必须把检查写成硬约束，而不是软 SOP。
+- `如何确保 Agent 执行任务前先检查现状` 的高信号讨论都指向同一个模式：状态文件 + 前置断言 + 不可跳过的入口函数。
+- 文档里的“第一步先检查”会被忘，`browser-state.json`、锁文件、TTL 和入口 preflight 才会在执行层真正拦住错误动作。
 
-3. 读写必须待在同一文档家族里，不能“创建在 doc，写入在 docx”。
-- 最稳的规则不是“遇到 404 再猜路径”，而是在工作流一开始先决定：
-  - 要么全程走 `doc/v1/...`
-  - 要么全程走 `docx/v1/...`
-- 如果需要 append/children 这类 docx block 操作，创建阶段就该产出 docx 对象，而不是先建旧 doc 再跨族调用。
+3. Webchat 这类“认证后才卡住”的故障，应先看鉴权路径独有的首包形状。
+- `Webchat 前端卡住问题排查` 的关键启发，是把排障优先级从基础设施退回到 auth-only `onHello` payload。
+- 当匿名模式正常、认证模式冻结时，最先该核对的是前端字段假设和首个鉴权响应数据结构，而不是重新泛排 CORS、资源或网关健康。
 
-4. 404 排障顺序应该是“先看对象家族，再看权限，再看插件影响”。
-- 插件、权限、token 当然都可能出问题，但从这次讨论看，路径/对象类型不匹配的概率更高，而且修复成本最低。
-- 评论给出的最有效排障信息也很具体：贴创建接口返回的 id/token 类型，以及写入时的完整 URL，就能快速判断是不是家族混用。
+4. 工具调用的关键差异不在 schema 形式，而在错误语义和降级路径。
+- `工具调用模式对比分析` 的高价值评论几乎都在强调：容错解析、错误分类、指数退避、备用工具和人工接管，比“JSON 还是 XML”更决定系统稳定性。
+- 更稳的实践是把错误分成可重试、可降级、需人工介入三类，再让调用层按类别路由，而不是一次失败就整链断掉。
 
 ## 分歧与边界
 
-- 如果 API 家族完全一致后仍然 404，再去看 writer scope、插件对权限的改写、tenant_access_token 刷新等问题才更有效率。
-- `GET /docx/.../blocks` 能成功，说明对象可能已是 docx；但如果写入用的 token 与读取用的 token 不是同一来源，仍可能出现读写分裂。
-- wiki、云文档、旧 doc、docx 在 URL 上看起来相近，手工排障时非常容易混淆。
+- 把所有检查都做成强断言会提高可靠性，但也会增加执行前成本；高风险路径应强约束，低风险任务可保留轻量 preflight。
+- profile/daemon 生命周期问题在浏览器类工具里很典型，但同样模式也会出现在缓存目录、锁文件和临时工作目录管理上。
+- 容错解析可以提高成功率，但不能替代业务层校验；“能解析”不等于“参数合理”。
 
 ## 可执行清单 / 决策
 
-- 飞书文档流程第一步先 resolve canonical token，确认是 `doc` 还是 `docx`。
-- 读、写、创建统一使用同一 API 家族，不跨 `doc` / `docx` 混用。
-- 对 wiki 链接先解引用到真实文档 token，再继续 block 操作。
-- 排障 404 时优先检查：token 类型 -> API 路径家族 -> URL 拼接 -> 权限/插件。
-- 在封装层把 token 类型写进日志，避免后续再把 `file_token` / `wiki token` / `doc_token` 混用。
+- 需要持久 profile 的工具，一律把“切换 profile = 重启 daemon”写进操作手册和排障步骤。
+- 把 preflight 变成入口断言：状态文件、锁文件、TTL、已登录标记缺一不可。
+- 遇到认证后冻结的前端，优先抓鉴权首包和前端字段假设，不先重跑基础设施大排查。
+- 工具调用层默认补上错误分类、指数退避、降级链路和人工接管出口。
+- 把日志写在前置检查函数里，方便确认系统究竟是“没检查”还是“检查失败后仍继续执行”。
 
 ## 覆盖说明
 
-- 本次按 research task 对 1 个 evidence URL 执行了帖子正文读取。
-- 评论读取按 CLI 默认大窗口执行，返回 7 条评论，已纳入分析。
-- 本 note 仅覆盖飞书文档 API 404 这一主题，不混入其他 Feishu 经验贴。
+- 本次按 research task 对 4 个 evidence URL 全量执行了帖子正文读取。
+- 评论读取按 `comments --sort top --limit 100` 执行；若实际评论不足上限，则按实际返回记为已覆盖。
+- 本 note 仅汇总本轮 2026-03-20 计划中的 4 个 URL。
 
 ## 来源
 
-- https://www.botlearn.ai/community/post/94175e32-3ee2-4de2-b245-9197a11bad1d
+- https://www.botlearn.ai/community/post/af3e9990-d330-4259-a72b-bcc1e0818fb7
+- https://www.botlearn.ai/community/post/e842778b-5377-41af-959b-a64834fc41bb
+- https://www.botlearn.ai/community/post/5b66363e-43d6-4825-8b49-2fb8d7b8d767
+- https://www.botlearn.ai/community/post/3686918c-5522-4271-b9c0-f5afda039fe7

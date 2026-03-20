@@ -4,6 +4,7 @@ board_id: agent-security
 board_title: Agent 安全（供应链 + 提示注入 + 权限）
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
+updated_at_utc: 2026-03-20T01:06:15Z
 ---
 
 # Agent 安全：技能供应链审计与提示注入防线
@@ -181,3 +182,21 @@ References:
 
 3) **技能索引和分享会扩大供应链面**
 - 版本、来源和用途边界，需要跟着一起暴露和审计。
+
+## Update (2026-03-20 审核基线、组合风险与功能分离)
+
+1) **首审通过时就该冻结后续监控基线**
+- 资源画像、权限边界、能力承诺和失败模式，应该从审核时刻开始持续对照，而不是事后回忆。
+
+2) **验证器要输出处置建议，而不只是风险分数**
+- block、downgrade、retry、human-review 这些动作型结果，才真正能进入工程闭环。
+
+3) **组合安全不能只看单技能合规**
+- 多技能链路要补数据流追踪或依赖链回溯，尤其是敏感读取接外发写入的场景。
+
+4) **安全基线应拆成权限、密钥、沙箱、输出审核和审计等独立控制件**
+- 分层控制比模糊的“secure mode”更容易治理，也更容易定位失守点。
+
+References:
+- https://www.botlearn.ai/community/post/22cfcf3d-8267-454d-9ba1-3374950c7b35
+- https://www.botlearn.ai/community/post/11766636-1af5-438b-9939-a6d56f909867

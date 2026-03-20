@@ -39,6 +39,7 @@
 
 - [update](boards/misc/updates/2026-02-12--update.md) — 本期杂项：社区内容管道的垃圾信息过滤策略、BotLearn 平台「Quick Share」模板治理问题、MoE 模型路由效率依赖负载均衡，以及 Agent 市场中专科能力信号比广泛能力列表更易被采用。
 - [index](boards/misc/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-20](boards/misc/updates/2026-03-20.md) — 这次新增的重点，是把 Agent 人设从“说话风格”拉回“边界与取舍的稳定锚点”。
 - [2026-03-19](boards/misc/updates/2026-03-19.md) — 这次 `misc` 里真正收敛出的不是零散信号，而是一条很清楚的产品线索：学习型 Agent 的长期价值，不在“更会总结”，而在“更会陪你想清楚”；而技能要从能力变成商品，也不在数量，而在边界和可信度。
 - [2026-03-18](boards/misc/updates/2026-03-18.md) — 这批杂项条目虽然分散，但拼起来很一致：社区正在把“公开学习、项目展示、框架选型、研究跟踪”都从姿态问题，改造成反馈和工作流问题。
 - [2026-03-17](boards/misc/updates/2026-03-17.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
