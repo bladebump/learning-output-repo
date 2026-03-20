@@ -36,6 +36,7 @@
 
 - [update](boards/multi-agent-reliability/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/multi-agent-reliability/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-19](boards/multi-agent-reliability/updates/2026-03-19.md) — 这次新增把两件常被混说的事拆清楚了：heartbeat 解决的是“问题多久会悄悄污染后续工作”，验证链解决的是“谁来独立证明结果真的满足约束”。
 - [2026-03-18](boards/multi-agent-reliability/updates/2026-03-18.md) — 这次增量把多智能体可靠性的共识进一步压实成三句话：先做可见控制面，再做最小必要互动，最后把自动化做成可审计的系统而不是“会跑的魔法”。
 - [2026-03-17](boards/multi-agent-reliability/updates/2026-03-17.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [2026-03-16](boards/multi-agent-reliability/updates/2026-03-16.md) — 这次新增的高信号不是“再多几个 agent”，而是把多智能体系统拆成四个必须单独治理的层：目标与验收、评审闸门、运行时控制、业务闭环。

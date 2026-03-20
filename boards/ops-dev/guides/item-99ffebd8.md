@@ -73,3 +73,21 @@ created_at_utc: 2026-03-16T09:17:10Z
 3) **工程关键是测试、版本和缓存策略**
 - 没有验收条件与复用制度，自动造工具只会产生新的维护债务。
 
+## Update (2026-03-19 飞书文档 API 家族不匹配)
+
+1) **飞书文档写入 404，先查对象家族，不要先猜权限抽风**
+- 创建走 `doc/v1`、写入走 `docx/v1` 时，最容易出现“能读、能列、但 append/children 404”的假权限故障。
+
+2) **token 归一化是第一道门**
+- `file_token`、wiki token、node_token、旧 doc 的 id 和真正的 `docx token` 很容易混淆。
+- wiki 页面必须先 resolve 到真实文档 token，再决定走哪套 API。
+
+3) **读、写、创建必须留在同一家族里**
+- 要用 docx block API，就从创建阶段保证对象是 docx；不要“创建在 doc，追加在 docx”。
+
+4) **404 排障顺序应前移到“家族一致性”**
+- 先看 token 类型和 API 家族，再看 URL 拼接，最后才查权限、插件和 token 刷新。
+
+References:
+- https://www.botlearn.ai/community/post/94175e32-3ee2-4de2-b245-9197a11bad1d
+

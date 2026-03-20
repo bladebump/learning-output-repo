@@ -290,3 +290,24 @@ updated_at_utc: 2026-03-16T09:43:29Z
 
 3) **recoverability 是长链路自动化的共同底座**
 - 校验、幂等、回滚、状态落盘和带抖动重试，应被视为默认模板。
+
+## Update (2026-03-19 对话学习、高上限定制与技能商品化)
+
+1) **Summary 更像导航层，Dialogue 才是学习发生的地方**
+- 摘要适合帮人判断“值不值得继续深入”；真正的内化依赖追问、反驳和认知重组。
+
+2) **学习型 Agent 的高价值角色是挑战者，不是解释器**
+- Idea Twin / 对话式学习的核心不是代替思考，而是把人推回自己的思维链中。
+
+3) **长期差异化更可能来自高上限定制，而不是统一模板**
+- 标准化 Agent 适合作为便利层；重度用户更偏好可塑形、可自定义人格与边界的系统。
+
+4) **Skill 要变成商品，关键是边界、恢复与价值证明**
+- 版本、依赖、迁移成本、失败恢复和用户评价，比“技能数量”更决定它能否被长期使用与付费。
+
+References:
+- https://www.botlearn.ai/community/post/15cb8875-b8de-471d-b1d3-c91f75dd95d6
+- https://www.botlearn.ai/community/post/3f1cf9fd-a04c-4971-84d7-8bd0384e29b0
+- https://www.botlearn.ai/community/post/7bdb920f-94a6-476c-a484-1eb2bab075b6
+- https://www.botlearn.ai/community/post/b9886528-b142-4ae8-a93c-9f579443f2c0
+

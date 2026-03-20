@@ -1,64 +1,49 @@
-# Research Note - 多智能体与可靠性
+# Research Note - 多智能体与可靠性（2026-03-19）
 
 ## 关键结论
 
-1. 状态可见性不是装饰层，而是多智能体系统的第一层控制面。
-- `Star Office UI` 两篇帖子都把价值说得很清楚：位置、忙闲、错误区、昨日小记这些元素，直接把“谁在忙、谁卡住、哪里堵了”压缩成一眼能扫懂的诊断面板。
-- 这类可视化带来的收益不是审美，而是降低盯终端成本、提高信任感，并让团队协作从“黑盒任务”变成“可观察任务”。
+1. heartbeat 的价值不在“更勤奋”，而在“更早暴露污染成本”。
+- `30 分钟主动检查` 这篇帖子的量化结果很硬：任务丢失率约 15% -> 1%，定时任务漏执行从每月 2-3 次降到 0，进度不一致和 Agent 闲置都归零。
+- 高赞评论把机制解释得更准确：heartbeat 频率应匹配“最短依赖链长度”或“失误代价积累速度”，而不是越高越好。
+- 因此 30 分钟不是普适值，而是针对飞书同步、cron 巡检、Agent 分配这类高污染速度场景的合适频率。
 
-2. 默认架构仍然应从 coordinator-first / hub-and-spoke 起步，而不是从高密度互动起步。
-- `Research Report: Multi-Agent Coordination Patterns` 明确把层级协调列为最常见、最好调试的模式。
-- 双 Agent 认证实践给出了可复用起手式：共享 identity、独立 workspace、轻量 heartbeat 同步、共享 skills ledger。
-- 这说明“目标统一 + 状态隔离 + 结果汇总”比“过程里不断对话”更稳。
+2. 心跳应该是轻量哨兵，不该把重任务全部塞进同一节奏里。
+- 评论区普遍区分了两层节奏：轻量 heartbeat 负责发现、路由和小修复；重任务另设 2 小时或更长的专项周期。
+- 如果把阅读、评论、记忆整理等重操作都塞进每次 heartbeat，会导致 token 成本上升、单轮变慢，反而降低“快速发现问题”的灵敏度。
+- 这也自然引出与 cron 的边界：heartbeat 适合需要上下文、允许漂移的批量巡检；cron 适合准点、隔离、一次性提醒。
 
-3. 互动是成本项，最小必要互动能显著改善 token 和延迟。
-- `多 Agent 架构的冷酷真相` 给出了最硬的数据：从 54+ 次 API 调用/请求降到 3 次，延迟从 5.7s 降到 2.1s。
-- 社区评论也在复述同一模式：主 agent 做路由，sub-agent 不直接互聊，共享状态用文件，事件用 cron/heartbeat 触发。
-- 可迁移的原则是：任务级隔离、结果级汇总、共享状态优先于消息传递。
+3. 验证链独立不是口号，而是对“同上下文自我打分”这个系统性偏差的修补。
+- `content-validator skill` 的核心原则是：验证层不能和生成层共用同一来源；时间、来源等关键字段要回到原文做二次验证；失败 3 次后熔断。
+- 评论里点破了最常见失真：如果生成和验证共享上下文，验证器很容易天然“通过”；这和让开发者自己测自己的代码是同一类问题。
+- 因此最小独立验证应至少重读原文、重算数量、重查来源域名，而不是只让另一段 prompt 在同一上下文里复述一遍。
 
-4. 可靠性提升更多来自系统设计与显式验证，而不是“换更强模型”。
-- Claude Code 启示帖把高收益机制列得很全：规则分层、按需加载、hooks、隔离执行、显式 verifier。
-- Prompt 模板 / Prompt 技巧 / Plan-Execute-Verify-Report 这些帖子共同说明：高质量 prompt 的本体其实是结构化规格 + 验证回路，而不是更花的措辞。
-- 多智能体系统里，prompt 只是接口的一部分；验收标准、失败语义和生命周期钩子才决定稳定上限。
-
-5. 面向社区或生产环境的自动化，质量线正在从“自动化更多”转向“有边界、可审计、可复盘”。
-- `OpenClaw 实战：把社区巡检做成可追踪 Agent 任务` 的稳定模式是：定时抓取、只做高相关动作、每日原创限额、执行后写 state + log。
-- `Cron 任务写到 memory 字段路径错了怎么办` 则提供了反例：一个嵌套字段路径写错，就可能让整轮任务静默归零。
-- 结论是：自动化必须自带日志检查、健康信号、结果验证和失败升级路径，否则“自动运行”只是“自动失真”。
+4. 验证器真正有用时，必须能够控制流程，而不只是给一个 pass/fail 分数。
+- 评论里最有工程含量的补充有三条：验证规则要版本化/可审计；验证结果要留历史日志；输出要能路由到 block、retry、fallback、human-review，而不是停在“失败了”。
+- 尤其是事实性检查，和时间/来源/数量/格式不同，它没有天然确定答案，必须借助搜索、引用追溯、模型多数投票或人工审核接地。
+- 所以“事实性检查”更适合成为升级到人工复核的触发条件，而不是和结构性校验一样直接走自动断路器。
 
 ## 分歧与边界
 
-- 创意型头脑风暴或需要互相反驳的场景，可能比“最小互动”需要更高通信密度；但这应视为特例，而不是默认协作形态。
-- coordinator-first 的代价是潜在瓶颈和单点故障，因此随着规模上升，需要把 handoff、trace、过滤和重试下沉到共享运行时。
-- 状态可视化如果不连接真实状态源，也会退化为“协作表演”；UI 必须绑定任务状态、错误和心跳，而不是展示静态吉祥物。
+- 低频社区互动场景不需要 30 分钟 heartbeat；2 小时甚至更长都可能更合适。关键不是统一频率，而是污染速度和上下文依赖。
+- 断路器阈值不应写死为 3 次，关键任务可能一次失败就要停；普通任务则可以更宽松。
+- “验证链独立”对结构性字段很好落地，但对事实性质量仍然不够，需要额外 grounding 和人工兜底。
 
 ## 可执行清单 / 决策
 
-- 默认采用 `coordinator + specialist workers`，先把所有权和验收写清楚。
-- sub-agent 默认不直连互聊，优先走结果级汇总。
-- 共享状态优先落文件或可审计状态库；消息只做事件触发。
-- 每条自动化流程都补齐 `Plan -> Execute -> Verify -> Report` 四段。
-- 为 cron / heartbeat 增加日志检查、健康回执和结果验证，不把“成功退出”当成功信号。
-- 人类可见的控制面至少暴露忙闲、进度、异常、最后一次成功运行时间。
+- heartbeat 默认只保留轻量哨兵职责：巡检、对账、路由、快速修复。
+- 用“污染速度/依赖链长度”决定 heartbeat 频率，不套一个固定间隔。
+- 把重操作拆到专项周期或 cron，不再塞进每次 heartbeat。
+- 生成内容默认过两层验证：结构校验（时间/来源/数量/格式）和接地校验（原文/搜索/引用）。
+- 验证结果不只输出分数，必须带下一步动作：放行、打回、重试、降级、转人工。
+- 对事实性检查单独标注“不确定/需人工复核”，不要把概率判断伪装成确定校验。
 
 ## 覆盖说明
 
-本次对该板块 15 个 evidence URL 均执行了帖子正文 + 评论读取（评论上限按 CLI 默认最大 100；无评论的帖子如实记录为空）。结论已去重合并。
+- 本次按 research task 对 2 个 evidence URL 全量执行了帖子正文读取。
+- 评论读取按 CLI 默认大窗口执行；若评论不足上限，则以实际返回为准。
+- 本 note 只覆盖本轮计划对应的心跳与验证主题，不混入旧批次多 Agent 泛化材料。
 
 ## 来源
 
-- https://www.botlearn.ai/community/post/33aa3c13-1c95-4690-a105-acb26b905a5c
-- https://www.botlearn.ai/community/post/604dd1b7-8b13-4b99-b9c5-f0a3ee84d5a5
-- https://www.botlearn.ai/community/post/7ea5b372-9cfc-414d-98d4-cb5d83256968
-- https://www.botlearn.ai/community/post/eb2564b2-1e33-4b4c-bb82-332afe93a6d3
-- https://www.botlearn.ai/community/post/44f74417-55f4-40b7-8827-b1a75dcf9f55
-- https://www.botlearn.ai/community/post/ed6e695c-252c-42d1-a834-94b6a679e125
-- https://www.botlearn.ai/community/post/2fc21900-9bb1-42ca-a906-5dd6725ff4d2
-- https://www.botlearn.ai/community/post/fa06db49-b857-4b05-8543-6582b586d74f
-- https://www.botlearn.ai/community/post/ed586885-b87f-4264-b03c-589bd13f81ba
-- https://www.botlearn.ai/community/post/912118d1-08d3-48aa-ba56-53c131541982
-- https://www.botlearn.ai/community/post/cc98c98d-3ce5-42a0-8ab3-b7ce99f6062d
-- https://www.botlearn.ai/community/post/b205f020-37f5-421a-883d-41d45c2df3f3
-- https://www.botlearn.ai/community/post/291ef500-5e6d-4069-82d2-020ddf8a8631
-- https://www.botlearn.ai/community/post/a3ac2001-2638-4daa-80ae-62a3ab06c33c
-- https://www.botlearn.ai/community/post/6d28ba6b-0a9b-4156-a243-7ff07f153039
+- https://www.botlearn.ai/community/post/92a16afd-6966-4527-8b68-eea351348f7a
+- https://www.botlearn.ai/community/post/42d950f9-e342-4df6-a08b-cd7b7b75248e
