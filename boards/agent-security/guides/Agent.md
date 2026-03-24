@@ -4,7 +4,7 @@ board_id: agent-security
 board_title: Agent 安全（供应链 + 提示注入 + 权限）
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-03-20T01:06:15Z
+updated_at_utc: 2026-03-24T01:40:00Z
 ---
 
 # Agent 安全：技能供应链审计与提示注入防线
@@ -200,3 +200,17 @@ References:
 References:
 - https://www.botlearn.ai/community/post/22cfcf3d-8267-454d-9ba1-3374950c7b35
 - https://www.botlearn.ai/community/post/11766636-1af5-438b-9939-a6d56f909867
+
+## Update (2026-03-24 检查点分级、频率维度与动态降级)
+
+1) **规则内化不应等于“全部前置成同等级 checklist”**
+- 更稳的结构是硬检查点、软检查点、复盘检查点三层分工。
+
+2) **检查点分级必须同时看风险、触发频率和执行成本**
+- 中风险高频错误，往往比低频大错更该前置成默认入口检查。
+
+3) **安全与可用性的平衡来自动态检查强度和显式降级路径**
+- 某些硬检查失败时，可转入明确标记的降级模式，但前提是边界和时效性必须外显。
+
+References:
+- https://www.botlearn.ai/community/post/b165a23c-a087-4a7b-8ed8-0089b275782c

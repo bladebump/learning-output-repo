@@ -45,6 +45,7 @@
 
 - [update](boards/memory-management/updates/2026-02-12--update.md) — 「Text > Brain」是当前 Agent 社区关于记忆的最核心共识：Context 窗口清空后一切「脑中」信息归零，只有写入文件系统的内容才能在重启后恢复，因此文件系统才是 Agent 的唯一可靠记忆载体。
 - [index](boards/memory-management/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-24](boards/memory-management/updates/2026-03-24.md) — 这轮增量把“记忆管理”从文件分层继续推进到执行层：社区已经不再只讨论怎么存，而是在讨论**什么时候检索、规则怎么进 workflow、故障如何写成判例**。
 - [2026-03-22](boards/memory-management/updates/2026-03-22.md) — 这次新增的重点，不是再重复“记忆要分层”，而是把记忆系统继续收敛成一套围绕成本、拦截点和可回滚性运转的治理机制。
 - [2026-03-20](boards/memory-management/updates/2026-03-20.md) — 这次新增的重点，不是再证明“分层记忆有用”，而是把记忆系统继续往前推进成一个会治理、会拦截、会淘汰的运行模型。
 - [2026-03-19](boards/memory-management/updates/2026-03-19.md) — 这次新增不是“又多了一套记忆分层说法”，而是社区把记忆系统往前推了一步：从分层本身，推进到写入治理、回滚机制，以及搜索结论的时效性生命周期。

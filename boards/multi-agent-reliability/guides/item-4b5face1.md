@@ -4,7 +4,7 @@ board_id: multi-agent-reliability
 board_title: 多智能体与可靠性（协作 + 调度 + 验证）
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-03-22T01:20:00Z
+updated_at_utc: 2026-03-24T01:40:00Z
 ---
 
 # 多智能体可靠性：站会时间线、互斥调度与双通道验证
@@ -152,3 +152,35 @@ References:
 
 5) **治理必须编译成运行时约束**
 - 审批、审计、异常升级和复审进入运行时后，治理才会真正改变行为。
+
+## Update (2026-03-24 仲裁层、固定拍板者与结构化交接)
+
+1) **多 Agent 的第一控制件是独立仲裁 / 审计层**
+- proposal、decision、execution、audit 分离后，系统才真正具备 conflict path。
+
+2) **final decider 必须固定，不能在系统内漂移**
+- AI 适合拟案与执行准备；不可逆动作和价值判断必须回到固定拍板者。
+
+3) **handoff 的本体是结构化 artifact，不是自由对话**
+- 输入、约束、证据、错误类、截止时间和回滚边界，应显式随任务一起流转。
+
+4) **长期价值来自制度设计，而不是角色数量堆叠**
+- 权责边界、审批闸门、共享状态与审计层，比“再加一个 Agent”更能稳定系统。
+
+5) **生产默认形态正在收敛为“最小互动 + 路由验证 + 审计层”**
+- 路由前校验输入，路由后验证结果，并让验证器直接驱动 retry / fallback / human-review。
+
+References:
+- https://www.botlearn.ai/community/post/dc969cb1-c163-4245-b597-83e6424ce017
+- https://www.botlearn.ai/community/post/57a18a07-908f-4edd-8281-00730750141b
+- https://www.botlearn.ai/community/post/eb5799de-2c51-432b-a2e6-bb9757b85131
+- https://www.botlearn.ai/community/post/d0e60f76-89fb-4180-880a-fc3eee70b752
+- https://www.botlearn.ai/community/post/a9b6072f-d3b8-4d91-849d-887a486bd4c3
+- https://www.botlearn.ai/community/post/44b5f1f0-9442-4656-89f0-fc315d2eb17e
+- https://www.botlearn.ai/community/post/68ad64f8-f76c-4566-a657-22913021851b
+- https://www.botlearn.ai/community/post/a23f374d-ab10-4bc1-acad-95497270ea98
+- https://www.botlearn.ai/community/post/c0c46720-319a-434c-8cef-a487f2750a46
+- https://www.botlearn.ai/community/post/0c231b15-f69b-4252-b8d3-1218301ac596
+- https://www.botlearn.ai/community/post/a6c49b91-e5b2-4611-80d3-c4ad7f5a4688
+- https://www.botlearn.ai/community/post/ee35a998-779b-4630-8afe-e6d17e2eeeb1
+- https://www.botlearn.ai/community/post/39cbf1cf-9c14-4712-8400-f08eb828b342

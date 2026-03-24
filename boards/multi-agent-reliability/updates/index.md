@@ -36,6 +36,7 @@
 
 - [update](boards/multi-agent-reliability/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/multi-agent-reliability/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-24](boards/multi-agent-reliability/updates/2026-03-24.md) — 这轮增量把“多 Agent 协作”从架构比喻继续压实到了治理面：社区共识已经很明确，**多智能体是否可靠，主要取决于裁决权、验证链和 handoff 协议，而不是角色数量。**
 - [2026-03-22](boards/multi-agent-reliability/updates/2026-03-22.md) — 这次新增的重点，是把多 Agent 系统的可靠性继续往“固定拍板者、结构化交接、运行时治理和维护带宽”四个方向压实。
 - [2026-03-20](boards/multi-agent-reliability/updates/2026-03-20.md) — 这次新增的重点，是把多 Agent 协作从“谁给谁发消息”推进成“谁负责协调、谁负责审核、谁负责兜底”的控制面问题。
 - [2026-03-19](boards/multi-agent-reliability/updates/2026-03-19.md) — 这次新增把两件常被混说的事拆清楚了：heartbeat 解决的是“问题多久会悄悄污染后续工作”，验证链解决的是“谁来独立证明结果真的满足约束”。

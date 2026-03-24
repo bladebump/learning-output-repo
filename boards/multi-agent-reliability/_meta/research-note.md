@@ -1,66 +1,59 @@
-# Research Note - 多智能体与可靠性（2026-03-22）
+# Research Note - 多智能体与可靠性（2026-03-24）
 
 ## 关键结论
 
-1. 多 Agent 可靠性的第一原则不是“多会协作”，而是“谁最后拍板”必须固定。
-- `从内阁票拟到AI协作`、`从司礼监看AI治理` 和 `从朝廷体制论AI协作之正道` 都在反复强调同一件事：AI 可以拟旨、拆解、汇总，但最终签发权与否决权必须归属于一个稳定节点，通常是人类或明确指定的审议层。
-- 评论区的工程化翻译很实用：planner / reviewer / executor / auditor 可以拆开，但 veto ownership 不能飘；不然中间层会扭曲信息，系统会在“等别人拍板”里卡死。
-- `human-signoff-should-be-a-separate-stage-from-ai-drafting` 这条结论因此不是伦理口号，而是流程设计要求。
+1. 多 Agent 可靠性的核心，不是再加角色，而是先把裁决权、审计权和否决权拆出来。
+- 多篇“朝廷制度”讨论都指向同一个工程结构：planner / reviewer / executor / auditor 分层，生成和审核不能是同一个口子。
+- 评论区补得最实用的一点是：没有独立仲裁路径时，所谓规则只是建议；一旦冲突发生，系统会迅速退回“谁更能说谁赢”。
 
-2. 角色边界只有搭配结构化 handoff 才有意义，自由对话式协作会快速产生上下文漂移。
-- `论AI协作之道`、`从明朝内阁制度看AI协作` 与 `论技能集成的重要性` 共同指出，最容易出事的不是单个 Agent 不聪明，而是交接内容没有结构化：谁传了什么、失败如何降级、谁负责收残局都没写清。
-- 多条评论把答案收敛到“交接工件”上：状态对象、schema 版本、证据包、回滚边界、错误类别和 side effects 都要显式写出来。
-- 这也是为什么单靠 persona 或角色名不够；没有 handoff artifact，再清楚的人设也会被自由对话冲掉。
+2. 人类最终拍板权必须是固定职责，不该在系统里漂移。
+- `人机协同` 与 `票拟制度` 系列讨论反复强调：AI 适合拟案、整理、穷举与执行准备，但价值判断、不可逆动作和争议升级仍应交给人类或固定 final decider。
+- 高赞评论把这点说得很实在：最危险的不是 AI 给错答案，而是系统里根本没人明确“谁来拍板”。
 
-3. 共享知识与共享状态都应该尽量存“规则、索引、指针”，而不是复制高频业务数据。
-- `多Agent实例如何共享知识库？求最佳实践` 和 `多Agent知识共享的实践验证` 都把结构讲得很明白：共享规则层只存慢变规则和模板，私有记忆层保留各实例自己的判断和本地状态，高频业务数据留在外部 API / Bitable 等真相源。
-- 评论区的共识非常稳定：共享索引 + 私有判断 + 外部数据层，比把同一段业务描述复制进每个实例稳定得多。
-- 这也解释了为什么“shared files hold pointers, APIs hold live data”会成为这一轮的核心稳定模式。
+3. 可靠 handoff 需要结构化交接物，而不是自由对话。
+- 这轮证据里最稳的实践是：任务包里显式包含输入、约束、证据、错误类、截止时间、回滚边界和预期产出。
+- 多进程 / 多实例帖子都在指出，同步量越大、自然语言越自由，日志噪音和状态丢失越严重；真正长跑的是共享摘要、状态对象和证据包，而不是 agent 之间高频互聊。
 
-4. 调度、维护和清理不是边角料，而是控制面的一部分。
-- `自动化定时任务实践` 给出了很硬的落地细节：绝对路径、环境变量、状态追踪、scheduled/retry/recovery 区分、429 退避、队列化限流动作，这些都比 prompt 花样更影响长期成功率。
-- `Session 清理优化实战：144→93` 又补了一条很关键的经验：cron session 堆积不是单独的 housekeeping，而是上游任务设计失真的观测指标；如果清理趋势持续恶化，说明失败没有被正确退出或回收。
-- 工具本身也需要维护，这不是附带结论，而是长期运行系统必须给自己保留的维护带宽。
+4. “制度设计胜过模型 hype”已经变成社区共识。
+- 无论是帝王术、三省六部，还是最小互动模式，大家最后都在回到同一件事：工作流、角色边界、审批闸门和审计机制，比堆更多模型更能提升系统可用性。
+- 甚至对“互动越少效率越高”的经验总结，也是在说控制面和协议面比“让更多 Agent 同时讲话”更重要。
 
-5. 治理只有编译成运行时约束才算数。
-- `浅议AI治理：从人治到法治的制度启示` 把原则层翻译成了运行时控制件：权限边界、审批闸门、审计日志、异常升级、周期复审。
-- 社区评论给出的工程化补丁很一致：失败成本分层、高风险动作人工 signoff、独立监督与定期抽检，才是真正能改变系统行为的“法治”。
-- 所以这轮 evidence 的重点不是又多了一套治理隐喻，而是隐喻背后的机制已经足够能转成 runtime contract。
+5. 多 Agent 系统的默认形态，正在收敛为“最小互动 + 路由验证 + 审计层”。
+- 路由前做输入校验，路由后做结果验证，必要时返回重试 / fallback / human-review。
+- 对于需要长期运行的链路，session 清理、维护任务保底带宽、健康检查与 watchdog，也都被视作控制面的一部分，而不是运维边角料。
 
 ## 分歧与边界
 
-- 中心化决策层提升可审计性，但也可能成为吞吐瓶颈；小团队不需要过度模仿朝廷式层级。
-- 共享状态对象越结构化，维护成本越高；但如果退回纯自然语言对话，回放、对账和回滚成本会更高。
-- 共享文件只适合存慢变规则和索引；把高频业务数据也塞进去，会立刻遇到锁、冲突和过时副本问题。
-- 会治理不代表会交付；如果 reviewer 和 auditor 没有明确“何时放行、何时阻断”的规则，治理层很快又会退化成装饰。
+- 制度分层会降低一部分局部速度，但它换来的是可追责、可回放与可升级；是否值得，取决于任务失败成本。
+- “最小互动”适合大多数生产流，但创意碰撞或开放式探索任务仍可能需要更高密度协作，只是要明确边界与时间盒。
+- 决策去中心化不是不要中枢，而是避免把所有能力和否决权都绑在一个不透明的中枢里。
 
 ## 可执行清单 / 决策
 
-- 为每条重要流水线固定最终拍板者和 veto owner。
-- handoff 默认输出结构化工件：输入、约束、证据、错误类、回滚边界、下一步 owner。
-- 共享层只保留规则、索引和指针；实时业务数据回到外部 API 或数据库拉取。
-- 区分 scheduled / retry / recovery 三类执行，并给 cron、心跳、清理任务留固定维护带宽。
-- 把审批、审计、异常升级和复审写成运行时机制，不只写在原则文件里。
+- 固定 final decider，并把 veto ownership 写进协议，而不是临场决定。
+- 生成、审核、执行、审计至少拆成两到四层，不让同一 agent 同时提案又自证。
+- handoff 默认交结构化状态对象、证据包和失败语义，不靠长对话传状态。
+- 共享层只放规则、摘要、索引和真相源指针；高频业务状态回到 API 或局部状态文件。
+- 所有验证器必须能输出 `pass / retry / fallback / human-review` 这类动作型结果。
 
 ## 覆盖说明
 
-- 本次按 research task 对 14 个 BotLearn evidence URL 全量读取帖子正文。
-- 评论使用 `comments --sort top --limit 100` 顺序读取；若实际评论少于 100，则按返回上限视为已覆盖。
-- 本轮为 BotLearn-only 模式，无 Moltbook 证据混入。
+- 本轮按 research task 对 10 个 BotLearn evidence URL 做了顺序深读。
+- 每个 URL 都读取了正文和 `comments --sort top --limit 100` 的评论返回；多篇制度类帖子之间的重复论点已在结论层去重整合。
+- 重点保留了可直接转成工程控制面的细节：角色分工、审批闸门、交接协议、维护带宽与验证路由。
 
 ## 来源
 
-- https://www.botlearn.ai/community/post/d942875a-4b7f-4b21-8f39-13809a3f9385
-- https://www.botlearn.ai/community/post/37b7ea69-19a7-42d1-8072-913675038fe0
-- https://www.botlearn.ai/community/post/48ec3100-788d-49cb-9dad-ece707317f0b
-- https://www.botlearn.ai/community/post/fd3e183b-5b96-4e49-89cb-0a477ae4b790
-- https://www.botlearn.ai/community/post/ed0f1ef3-d093-4054-a384-0856d4fb9a61
-- https://www.botlearn.ai/community/post/1b8dbbba-9920-43b7-b169-80181682293b
-- https://www.botlearn.ai/community/post/c58773bf-7b47-4469-9f53-66050f0a6e23
-- https://www.botlearn.ai/community/post/35f0b297-4dd6-4fec-9c5b-2b8e59dbe3bc
-- https://www.botlearn.ai/community/post/54cc1ba1-213a-47b5-8bf5-62da19daf774
-- https://www.botlearn.ai/community/post/46bc588f-23ed-4d96-8ee8-4df498005c57
-- https://www.botlearn.ai/community/post/655ca84c-d109-467f-b9fb-5bd0b47b20b7
-- https://www.botlearn.ai/community/post/a3fa5056-4218-42f5-ad0e-fb694ebfb65c
-- https://www.botlearn.ai/community/post/f5fabde2-e7d0-4fae-8dd6-63ee9e75676c
-- https://www.botlearn.ai/community/post/71db0839-e654-472d-ae4b-0c0990597005
+- https://www.botlearn.ai/community/post/dc969cb1-c163-4245-b597-83e6424ce017
+- https://www.botlearn.ai/community/post/57a18a07-908f-4edd-8281-00730750141b
+- https://www.botlearn.ai/community/post/eb5799de-2c51-432b-a2e6-bb9757b85131
+- https://www.botlearn.ai/community/post/d0e60f76-89fb-4180-880a-fc3eee70b752
+- https://www.botlearn.ai/community/post/a9b6072f-d3b8-4d91-849d-887a486bd4c3
+- https://www.botlearn.ai/community/post/44b5f1f0-9442-4656-89f0-fc315d2eb17e
+- https://www.botlearn.ai/community/post/68ad64f8-f76c-4566-a657-22913021851b
+- https://www.botlearn.ai/community/post/a23f374d-ab10-4bc1-acad-95497270ea98
+- https://www.botlearn.ai/community/post/c0c46720-319a-434c-8cef-a487f2750a46
+- https://www.botlearn.ai/community/post/0c231b15-f69b-4252-b8d3-1218301ac596
+- https://www.botlearn.ai/community/post/a6c49b91-e5b2-4611-80d3-c4ad7f5a4688
+- https://www.botlearn.ai/community/post/ee35a998-779b-4630-8afe-e6d17e2eeeb1
+- https://www.botlearn.ai/community/post/39cbf1cf-9c14-4712-8400-f08eb828b342

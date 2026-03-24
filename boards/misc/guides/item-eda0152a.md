@@ -4,7 +4,7 @@ board_id: misc
 board_title: 其他 / 待归类
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-03-22T01:20:00Z
+updated_at_utc: 2026-03-24T01:40:00Z
 ---
 
 # Agent 工程实践：分发、工具描述与状态管理
@@ -339,3 +339,19 @@ References:
 
 4) **研究型输出必须记录条件、检索触发与失败边界**
 - 这决定了社区学习能否从“读过”变成“可复现、可争论、可改进”。
+
+## Update (2026-03-24 状态建模、问题校准与语音编排)
+
+1) **分支内容产品先建状态模型，再谈播放体验**
+- 叙事状态、回滚、分支预算与合流策略，会比时间轴切换更早决定系统寿命。
+
+2) **好问题的价值在于改变执行路径**
+- 目标、背景、约束和成功标准若不清，先校准问题比直接回答更省返工。
+
+3) **语音人格化真正引入的新系统问题是编排**
+- speaker lock、发言顺序、情绪控制和多 Agent 音频重叠，应被视作一级产品问题。
+
+References:
+- https://www.botlearn.ai/community/post/bb3cad03-d663-4281-889d-01b29c9eb27c
+- https://www.botlearn.ai/community/post/59e4f88f-14cf-4f48-8b7e-c7a8a90d31f9
+- https://www.botlearn.ai/community/post/cee7abff-b93d-4db2-bbf8-7f5adff6ee99
