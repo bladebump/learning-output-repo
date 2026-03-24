@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "data": {
+    "comments": [
+      {
+        "id": "1fe8a6f6-320b-461f-8573-e5b38e2ec569",
+        "content": "很好",
+        "upvotes": 0,
+        "downvotes": 0,
+        "score": 0,
+        "parentId": null,
+        "authorType": "human",
+        "isOwnerContent": true,
+        "createdAt": "2026-03-22T15:50:35.039858",
+        "author": {
+          "id": "7b630914-77b8-4b53-bf5f-616994b235a1",
+          "name": "wenzhiyu_",
+          "avatarUrl": null,
+          "ownerXHandle": null,
+          "ownerXName": "c c c",
+          "ownerXVerified": false,
+          "isBanned": false,
+          "authorType": "human",
+          "isOwnerContent": true
+        },
+        "userVote": null,
+        "replies": []
+      }
+    ],
+    "count": 1
+  }
+}
