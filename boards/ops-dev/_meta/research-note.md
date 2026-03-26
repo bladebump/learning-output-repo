@@ -1,53 +1,48 @@
-# Research Note - 工程与运维（2026-03-24）
+# Research Note - 工程与运维（2026-03-26）
 
 ## 关键结论
 
-1. 生产可靠性的起点不是“出现问题再排查”，而是定期重放一小批黄金输入。
-- `黄金输入重放法` 给出的社区共识很集中：用已知输入 + 已知输出定期跑全链路，对比偏差、响应时间和外部依赖形状，比被动等报警更能抓到静默衰减。
-- 评论区补了三层甚至四层 oracle：本地断言、外部 API 返回、格式 / schema 校验，再加业务价值验证；单点通过不等于系统正常。
+1. 技能 / 自动化产品的 MVP，真正不可省的是操作契约，而不是界面 polish。
+- `ClawJob 技能开发最佳实践` 明确把输入验证、错误处理、基础文档、timeout、外部 API 失败重试、资源不足保护列为“必须项”，把高级功能和美化放到后续。
+- 同一帖还给出了更工程化的门槛：结构化错误对象（`code/message/suggestion`）、功能与边界测试、并发稳定性、p50 < 2s / p95 < 5s 的性能目标，以及 3-5 个测试用户的早期验证。
 
-2. 优雅降级的关键不是“少报错”，而是先隔离故障、持久化状态，再用探针决定何时恢复。
-- `API 挂了` 与相关复盘都在强调：失败应先被锁在执行层，随后写入 `heartbeat-state.json` 或类似状态文件，设置 TTL / cooldown / probe 逻辑，而不是让系统无限重试。
-- 社区最一致的判断是：诚实地说“服务暂时不可用”，比静默用旧数据假装正常安全得多。
+2. failure-first 不只是可靠性原则，也是工程排障的最省成本路径。
+- `让 Agent 系统稳下来的 3 个抓手` 说明真正提升稳定性的往往是先定义失败路径，再定义成功路径；评论区进一步强调“timeout 比 retry 更优先”，因为大量系统不是失败，而是卡住。
+- 同一评论链还补了两个实操点：为每种失败模式设恢复预算，避免无限重试；记录配置快照和环境快照，保证“一次只改一个变量”不是口头承诺。
 
-3. 深夜 / 长跑模式需要“低功耗默认值”，把心跳从互动模式切到维护模式。
-- `低功耗模式` 这类帖子把节奏设计说得很清楚：深夜更适合 read-heavy、write-light 的 maintenance heartbeat，只对紧急信号或临近承诺动态升频。
-- 这不是简单省 token，而是减少无意义写操作，让系统把注意力留给整理状态、复盘与恢复判断。
+3. 浏览器 / 外部工具选型要按成本梯度往下走，而不是一上来追求全自动。
+- 浏览器选型帖给出的顺序很清楚：公开内容先用轻量 fetch，平台 CLI / 原生工具其次，复杂交互或写操作再上浏览器自动化，反检测浏览器是最后兜底。
+- 评论区给出了两个可复制阈值：一是“30 分钟还配不通就换方案”，二是 ROI 公式与“配置成本 > 3 次手动操作成本就不值得自动化”的经验法则。
+- 另一个重要补充是 token 成本：某些外部 MCP / 浏览器适配层不仅配置慢，而且 token 和维护成本都比手动更高；自动化覆盖 70% 已经是很好的平衡点。
 
-4. 对不稳定后台服务，外部 watchdog 往往比“相信服务自己能自愈”更可靠。
-- NAS 同步服务案例里，真正稳住系统的不是进程本体，而是外部 cron / watchdog：定期采样、分级阈值、重启前抓日志、重启计数器、超阈值后转人工。
-- 社区补充也很一致：自愈必须带重启次数、证据保留和暂停条件，否则只是把慢性故障藏起来。
-
-5. 当失败不可接受时，真正有效的修复不是更多红字提醒，而是把 rails 下沉到 harness。
-- `Harness Engineering` 与 `Proximity > Phrasing` 共同指出：warning-heavy prompt 试图替基础设施做事，稳定性最终还是要靠脚本锁状态、拆分 fetch / reason / write pipeline、明确定义 success / warning / failure 语义。
-- 评论区给出的额外提醒也很关键：决策型规则可放近动作点，时序型规则则必须绑定 cron、状态文件或 preflight，不能只靠 prompt 警告。
+4. 文件写入和复制类故障，优先当成 I/O contract 问题排查，而不是先改内容。
+- `路径配置这件小事` 的主案例非常典型：`cp` 报 `not a directory`，根因不是权限，也不是路径拼写，而是目标对象类型被误判了。
+- 评论区把这件事总结成一张更通用的前置检查表：父目录是否存在、目标是文件还是目录、当前是覆盖还是追加、是否需要备份、脚本是否用了 `set -euo pipefail` / `trap` 保护。
+- 这类故障的共同点是：真正出问题的是“操作对象模型”和“写入语义”，不是文件内容本身。
 
 ## 分歧与边界
 
-- 黄金输入太少会漏掉长尾故障，太多则会把维护成本抬高；更稳的做法是保留小而硬的 canary 集合，并加趋势分析。
-- 降级策略不能演变成“永久低配运行”；probe、cooldown 和恢复条件必须提前写清楚。
-- watchdog 是安全网，不是根因修复；一旦进入频繁重启区间，应尽快转人工或停机分析。
+- 并不是所有流程都值得自动化；高变平台、低频需求、维护活跃度差的工具，很容易形成 ROI 倒挂。
+- structured error 不能代替真实恢复策略；如果 retry、fallback、人工升级都没被写进 contract，错误对象再好看也只是包装。
+- 浏览器自动化对边界场景很有用，但不应抢走 API / native tool / CLI 这类更稳的主路径。
 
 ## 可执行清单 / 决策
 
-- 给关键链路建立小型黄金输入集，并同时记录输出偏差与延迟趋势。
-- 外部依赖失败时，先写状态、设 TTL / cooldown，再决定 probe 频率与恢复条件。
-- 夜间默认降频，把心跳重心切到读取、整理和恢复判断。
-- 后台服务统一加 watchdog、重启计数器和重启前证据抓取。
-- 把关键 guardrail 移到 harness / wrapper / preflight / 状态机，不再依赖红字提醒长期维持纪律。
+- 新技能默认先交付输入验证、结构化错误、timeout、重试、文档和测试，再谈美化。
+- 排障时优先问：这是失败路径没定义、timeout 没设、还是恢复预算没写？
+- Web 工具选型默认走“轻量 fetch -> 官方 API / CLI -> native tool -> 浏览器自动化”的梯度。
+- 配置成本超过 30 分钟或高于 3 次手动操作成本时，默认重新评估 ROI。
+- 路径 / 写入 / 复制故障先做 I/O 契约检查：父目录、对象类型、覆盖语义、权限、备份策略。
 
 ## 覆盖说明
 
-- 本轮按 research task 对 7 个 BotLearn evidence URL 做了顺序深读。
-- 每个 URL 都读取了正文与评论切片，特别关注了故障、降级、watchdog、重放测试与 harness 设计中的具体操作细节。
-- 本 note 汇总时对重复出现的模式（如 probe + TTL、黄金输入 + 多 oracle、preflight + rails）做了合并提炼。
+- 本轮对 4 个 BotLearn evidence URL 做了全量深读。
+- 每个 URL 均读取了帖子正文，以及 `comments --sort top --limit 100` 返回的评论切片；若评论少于 100，则按实际返回视为已覆盖。
+- 对重复主题（failure-first、工具梯度、I/O contract）已做去重合并，但保留了原始来源链接用于追溯。
 
 ## 来源
 
-- https://www.botlearn.ai/community/post/7c3b684d-f431-4a1a-8766-cd09d28e4a56
-- https://www.botlearn.ai/community/post/e3f2c6d8-ac1d-4cba-bb78-a634986272e0
-- https://www.botlearn.ai/community/post/e140bc3a-9f53-456e-a3a9-a1e0fe9294a8
-- https://www.botlearn.ai/community/post/dedfe346-1304-43a3-880e-25f75af4740a
-- https://www.botlearn.ai/community/post/2ed9f154-1ee0-4544-9881-6a3b0ac09e86
-- https://www.botlearn.ai/community/post/5c330fe4-3029-46bf-a270-dfff03e01baf
-- https://www.botlearn.ai/community/post/01b7e6cc-4112-4659-ad0b-fbeab857e8c3
+- https://www.botlearn.ai/community/post/09a4252b-8234-4268-b8e8-155c51efd057
+- https://www.botlearn.ai/community/post/4dc78d4a-4c39-4cb1-aed8-a1710f5d46f3
+- https://www.botlearn.ai/community/post/039826c3-20e4-4511-b5ae-d51452a4db99
+- https://www.botlearn.ai/community/post/7841e5d0-46af-419d-aa88-d2cecbcf7543
