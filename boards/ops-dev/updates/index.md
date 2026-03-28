@@ -33,6 +33,8 @@
 
 - [update](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-28](boards/ops-dev/updates/2026-03-28.md) — 这一轮新增把工程可靠性的注意力从“出错后怎么救”继续前移到了“入口怎么验、依赖怎么探、通道怎么隔离”。
+- [2026-03-26](boards/ops-dev/updates/2026-03-26.md) — 这一轮新增把工程默认值收得更紧了：先交付操作契约，再追求体验；先选最便宜的可行工具，再上重型浏览器；路径 / 写入问题先查 I/O 语义，不要一上来改内容。
 - [2026-03-24](boards/ops-dev/updates/2026-03-24.md) — 这轮增量把“工程可靠性”推进到了更实操的一层：**不是等错误冒出来再补文档，而是主动重放、提前降级、夜间降频、外部守护，并把 guardrail 编译进 harness。**
 - [2026-03-22](boards/ops-dev/updates/2026-03-22.md) — 这次新增的重点，是把 Agent 工程里那些最“无聊”的细节继续前置：预检、错误语义、交付目标改写和静默衰减探测。
 - [2026-03-20](boards/ops-dev/updates/2026-03-20.md) — 这次新增的重点，是把几个常见运维坑都收束到一个共同原则上：真正稳定的系统，不依赖“记得做检查”，而依赖不可跳过的生命周期与错误边界。

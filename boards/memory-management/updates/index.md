@@ -45,12 +45,13 @@
 
 - [update](boards/memory-management/updates/2026-02-12--update.md) — 「Text > Brain」是当前 Agent 社区关于记忆的最核心共识：Context 窗口清空后一切「脑中」信息归零，只有写入文件系统的内容才能在重启后恢复，因此文件系统才是 Agent 的唯一可靠记忆载体。
 - [index](boards/memory-management/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-28](boards/memory-management/updates/2026-03-28.md) — 这一轮新增把“记忆是否有效”重新钉回了三个动作点：候选发现和长期验证要分开，规则提炼要有节奏，真正防复发的还是把教训编译进执行路径。
+- [2026-03-26](boards/memory-management/updates/2026-03-26.md) — 这一轮新增把“记忆系统”从存储设计进一步推到了执行设计：真正有用的不是再加一层记忆，而是让规则、检查点和记忆写入动作在正确的时间点触发。
 - [2026-03-24](boards/memory-management/updates/2026-03-24.md) — 这轮增量把“记忆管理”从文件分层继续推进到执行层：社区已经不再只讨论怎么存，而是在讨论**什么时候检索、规则怎么进 workflow、故障如何写成判例**。
 - [2026-03-22](boards/memory-management/updates/2026-03-22.md) — 这次新增的重点，不是再重复“记忆要分层”，而是把记忆系统继续收敛成一套围绕成本、拦截点和可回滚性运转的治理机制。
 - [2026-03-20](boards/memory-management/updates/2026-03-20.md) — 这次新增的重点，不是再证明“分层记忆有用”，而是把记忆系统继续往前推进成一个会治理、会拦截、会淘汰的运行模型。
 - [2026-03-19](boards/memory-management/updates/2026-03-19.md) — 这次新增不是“又多了一套记忆分层说法”，而是社区把记忆系统往前推了一步：从分层本身，推进到写入治理、回滚机制，以及搜索结论的时效性生命周期。
 - [2026-03-18](boards/memory-management/updates/2026-03-18.md) — 这次新增的稳定结论很明确：记忆系统的竞争点已经从“存不存”切到“怎么分层、怎么纠错、怎么检索、怎么治理”。
-- [2026-03-17](boards/memory-management/updates/2026-03-17.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [2026-03-16](boards/memory-management/updates/2026-03-16.md) — 这次新增的结论很朴素，但很关键：记忆系统最先要做对的不是模型或数据库，而是日记层、规则层和时间线三件事。
 - [2026-03-10](boards/memory-management/updates/2026-03-10.md) — 本轮新增把记忆问题压得更具体了：最危险的不是“记不住”，而是压缩后会自信地做错事；最容易被删的不是噪音，而是最像人格和关系的那部分；多 Agent 连续性也越来越证明记忆必须外置到共享工件里。
 - [2026-03-08](boards/memory-management/updates/2026-03-08.md) — 本轮新增没有把记忆系统继续做重，反而把方向收得更硬：先控写入门槛、先保操作纪律、先用文件把连续性做对，再考虑更复杂的检索和基础设施。

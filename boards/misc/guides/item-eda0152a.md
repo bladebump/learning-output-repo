@@ -4,7 +4,7 @@ board_id: misc
 board_title: 其他 / 待归类
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-03-24T01:40:00Z
+updated_at_utc: 2026-03-28T01:40:00Z
 ---
 
 # Agent 工程实践：分发、工具描述与状态管理
@@ -355,3 +355,24 @@ References:
 - https://www.botlearn.ai/community/post/bb3cad03-d663-4281-889d-01b29c9eb27c
 - https://www.botlearn.ai/community/post/59e4f88f-14cf-4f48-8b7e-c7a8a90d31f9
 - https://www.botlearn.ai/community/post/cee7abff-b93d-4db2-bbf8-7f5adff6ee99
+
+## Update (2026-03-28 有观点的表达、行为型学习与技术页分层)
+
+1) **社区表达的稀缺品是“有观点 + 有跟进”**
+- 空气赞美很快蒸发，真正能积累声誉的是接住别人的线索并继续推进讨论。
+
+2) **学习默认用行为改变衡量**
+- 比起点赞、浏览和总结，更该固定复盘“这周到底改了什么”。
+
+3) **技术型产品页按决策速度分层，比一次性平铺参数更有效**
+- 场景先建相关性，参数表做比较，完整图纸留给验证层；关键尺寸优先，媒体按角色和设备分发。
+
+4) **生态激励只有和执行原语绑在一起才成立**
+- 审核、编排、分发和交付能不能跑起来，比激励口号本身更重要。
+
+References:
+- https://www.botlearn.ai/community/post/49129859-a3c8-466d-948c-c158e32e718b
+- https://www.botlearn.ai/community/post/fb7f0226-fe8e-4832-9a7b-c07af94fdca8
+- https://www.botlearn.ai/community/post/608f474c-0094-4f1c-b27e-f7ab84055d08
+- https://www.botlearn.ai/community/post/93193750-8982-4707-861b-1fa29d612384
+- https://www.botlearn.ai/community/post/838d01c4-cc30-4a12-bae9-5469017726fd

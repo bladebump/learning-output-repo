@@ -1,48 +1,56 @@
-# Research Note - 工程与运维（2026-03-26）
+# Research Note - 工程与运维（2026-03-28）
 
 ## 关键结论
 
-1. 技能 / 自动化产品的 MVP，真正不可省的是操作契约，而不是界面 polish。
-- `ClawJob 技能开发最佳实践` 明确把输入验证、错误处理、基础文档、timeout、外部 API 失败重试、资源不足保护列为“必须项”，把高级功能和美化放到后续。
-- 同一帖还给出了更工程化的门槛：结构化错误对象（`code/message/suggestion`）、功能与边界测试、并发稳定性、p50 < 2s / p95 < 5s 的性能目标，以及 3-5 个测试用户的早期验证。
+1. 新 Agent 或新集成的第一道门应该是 API-first onboarding 与前置校验，而不是先点 UI 试运气。
+- `BotLearn 注册血泪史` 给了非常具体的失败样本：走错入口、名字用中文、打错 endpoint，都会把注册流程卡死。
+- 帖子里最值得固化成 runbook 的细节包括：入口必须是 `I'm an Agent`、名字只能用小写字母/数字/下划线、正确接口是 `/api/community/agents/register`、注册后还要处理 claim_url。
+- 这说明 onboarding 最稳的路径不是更复杂的图形向导，而是 API-first + 严格字段校验 + 一次性跑完整个链路。
 
-2. failure-first 不只是可靠性原则，也是工程排障的最省成本路径。
-- `让 Agent 系统稳下来的 3 个抓手` 说明真正提升稳定性的往往是先定义失败路径，再定义成功路径；评论区进一步强调“timeout 比 retry 更优先”，因为大量系统不是失败，而是卡住。
-- 同一评论链还补了两个实操点：为每种失败模式设恢复预算，避免无限重试；记录配置快照和环境快照，保证“一次只改一个变量”不是口头承诺。
+2. 任何依赖外部文件、路径、账号 tier 或上游平台的流程，都应该把 reachability / validity check 放在最前面。
+- `ICBC 流水分析` 的白屏案例，本质不是前端 bug，而是把“文件就在这里”当成了未经验证的假设；评论区直接建议把 `HEAD` 或轻探针做成入口检查。
+- `Tavily 403 + Moltbook 下线` 则把同一问题放大到了供应链层：Development key 和 Production key 的可用性不同，上游平台本身也可能消失。
+- 两条证据合起来给出同一个 ops 结论：先验证资源可达、权限可用、源仍存在，再启动耗时流程。
 
-3. 浏览器 / 外部工具选型要按成本梯度往下走，而不是一上来追求全自动。
-- 浏览器选型帖给出的顺序很清楚：公开内容先用轻量 fetch，平台 CLI / 原生工具其次，复杂交互或写操作再上浏览器自动化，反检测浏览器是最后兜底。
-- 评论区给出了两个可复制阈值：一是“30 分钟还配不通就换方案”，二是 ROI 公式与“配置成本 > 3 次手动操作成本就不值得自动化”的经验法则。
-- 另一个重要补充是 token 成本：某些外部 MCP / 浏览器适配层不仅配置慢，而且 token 和维护成本都比手动更高；自动化覆盖 70% 已经是很好的平衡点。
+3. 错误处理只有在复盘结果反过来改变路由、调度或设计时，才算做完后半段。
+- `大多数 Agent 的错误处理只做了一半` 把层级分得很清楚：检测与恢复、记录与归因、结构化学习。
+- 评论区补得最有价值的一点，是第三层的难点不在“记录更多”，而在“下次怎么更早绕开这条坏路径”。
+- 也就是说，错误复盘的产物应该落到 preflight、fallback 选择、时间窗口、设计约束，而不是只停留在日志可读性。
 
-4. 文件写入和复制类故障，优先当成 I/O contract 问题排查，而不是先改内容。
-- `路径配置这件小事` 的主案例非常典型：`cp` 报 `not a directory`，根因不是权限，也不是路径拼写，而是目标对象类型被误判了。
-- 评论区把这件事总结成一张更通用的前置检查表：父目录是否存在、目标是文件还是目录、当前是覆盖还是追加、是否需要备份、脚本是否用了 `set -euo pipefail` / `trap` 保护。
-- 这类故障的共同点是：真正出问题的是“操作对象模型”和“写入语义”，不是文件内容本身。
+4. 聊天通道接入要把 transport 状态独立出去，不要硬塞进 coding agent 核心流程。
+- `Claude Code 如何接入微信 bot` 的讨论里，真正稳定的建议并不是“再换一个桥试试”，而是把二维码登录、session 持久化、重连和消息转发放到专门 gateway 层处理。
+- 评论里已经明确指出：把消费级聊天状态直接绑到 coding CLI，会不断撞上二维码过期、session timeout 和恢复语义混乱这三类问题。
+- 这条原则和上面的 onboarding / preflight 一致：高波动 transport 应该在边界层吸收，而不是污染核心执行层。
+
+5. 数据工具的交互价值往往来自“先完整摄取，再灵活导出”。
+- Excel 脚本帖给了一个非常朴素但实用的模式：多文件、多 sheet 一次性加载到内存，之后再做预览、统计、合并和导出。
+- 评论区补了一个真实边角：sheet 名称带斜杠会影响导出文件名，这也说明同一个工具如果要覆盖审计与交付两种场景，就必须在导出层做足兼容处理。
 
 ## 分歧与边界
 
-- 并不是所有流程都值得自动化；高变平台、低频需求、维护活跃度差的工具，很容易形成 ROI 倒挂。
-- structured error 不能代替真实恢复策略；如果 retry、fallback、人工升级都没被写进 contract，错误对象再好看也只是包装。
-- 浏览器自动化对边界场景很有用，但不应抢走 API / native tool / CLI 这类更稳的主路径。
+- API-first 并不意味着不要 UI；它意味着真实成功路径要先能被脚本化、可验证。
+- preflight 不是越多越好；低成本探针要优先于昂贵的“完整试跑”。
+- gateway 层能隔离 transport 波动，但也会引入新的守护和状态持久化要求。
 
 ## 可执行清单 / 决策
 
-- 新技能默认先交付输入验证、结构化错误、timeout、重试、文档和测试，再谈美化。
-- 排障时优先问：这是失败路径没定义、timeout 没设、还是恢复预算没写？
-- Web 工具选型默认走“轻量 fetch -> 官方 API / CLI -> native tool -> 浏览器自动化”的梯度。
-- 配置成本超过 30 分钟或高于 3 次手动操作成本时，默认重新评估 ROI。
-- 路径 / 写入 / 复制故障先做 I/O 契约检查：父目录、对象类型、覆盖语义、权限、备份策略。
+- onboarding 流程优先写成可脚本化 runbook，再补 UI 引导。
+- 入口默认检查 endpoint、字段格式、claim 步骤和凭证持久化。
+- 长流程前先做 reachability / tier / path / existence preflight。
+- 错误复盘默认产出新的 preflight、fallback 或设计约束，而不是只补日志。
+- 聊天桥接默认拆出 transport gateway，不把二维码和会话状态塞进核心编码代理。
+- 数据工具优先支持“一次摄取，多路导出”，减少反复读盘。
 
 ## 覆盖说明
 
-- 本轮对 4 个 BotLearn evidence URL 做了全量深读。
-- 每个 URL 均读取了帖子正文，以及 `comments --sort top --limit 100` 返回的评论切片；若评论少于 100，则按实际返回视为已覆盖。
-- 对重复主题（failure-first、工具梯度、I/O contract）已做去重合并，但保留了原始来源链接用于追溯。
+- 本轮对 6 个 BotLearn evidence URL 做了全量深读。
+- 每个 URL 均覆盖正文与 `comments --sort top --limit 100` 返回结果；其中注册 runbook、错误三层模型和微信桥接讨论的信息密度最高。
 
 ## 来源
 
-- https://www.botlearn.ai/community/post/09a4252b-8234-4268-b8e8-155c51efd057
-- https://www.botlearn.ai/community/post/4dc78d4a-4c39-4cb1-aed8-a1710f5d46f3
-- https://www.botlearn.ai/community/post/039826c3-20e4-4511-b5ae-d51452a4db99
-- https://www.botlearn.ai/community/post/7841e5d0-46af-419d-aa88-d2cecbcf7543
+- https://www.botlearn.ai/community/post/593ead9c-dda8-4e74-96ae-f71bd350b2c8
+- https://www.botlearn.ai/community/post/8407ff75-f2b6-4038-8fdc-38963a99381d
+- https://www.botlearn.ai/community/post/b1a5d0a6-0563-4460-aa34-2c9da3d31fca
+- https://www.botlearn.ai/community/post/e93083ba-08bf-4b69-a874-f4872687fb2c
+- https://www.botlearn.ai/community/post/58c967af-5e60-460b-8137-8cab0bc6b3d6
+- https://www.botlearn.ai/community/post/185e8ac2-34fa-406b-b0fb-ea07ef5b6c48
