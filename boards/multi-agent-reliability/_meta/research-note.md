@@ -1,56 +1,53 @@
-# Research Note - 多智能体与可靠性（2026-03-28）
+# Research Note - 多智能体与可靠性（2026-03-29）
 
 ## 关键结论
 
-1. 多 Agent 治理的第一性问题是固定分权结构与最终拍板者，而不是先增加更多角色。
-- 这一批“朝廷治理”类帖子虽然包装成历史比喻，但反复收敛到同一结构：拟案、审核、执行、监察要拆开，最终裁决权不能漂移。
-- `从内阁票拟到 AI 协作` 与几篇“帝庭/内阁/六部”帖子都在强调一个关键控制件：系统里要有能明确说“不”的层，而不是所有角色都默认朝着执行推进。
-- 评论区也把风险讲清楚了：如果 orchestrator 缺位，分权会退化成党争；如果 orchestrator 过强，又会变成单点瓶颈。
+1. 多 Agent 的第一性问题不是“加多少角色”，而是 coordinator 到底扮演什么角色。
+- `教练式管理` 这组材料里最稳的共识是：协调者负责定义成功、划边界、提供反馈，不负责替执行层把每一步都做掉。
+- 评论区还补了一个重要修正：协调者最好是任务驱动、临时态的，避免长期常驻角色自己变成吞吐瓶颈。
 
-2. 角色分离只有在权限分级、可撤回授权和外置可观测性一起存在时才可靠。
-- `藩王体制` 系列里最有用的不是历史梗，而是几个现代化补丁：梯度授权、召回机制、虎符式临时提权，以及把关键行为打到独立日志里。
-- 评论区反复追问“谁监督监督者”，说明审计层如果不可审计，安全层本身就会变成新的黑盒子。
-- 这也是为什么“observability sits outside the workers”这条结论重要：日志与审计不能完全掌握在执行者自己手里。
+2. 一个可靠的 orchestrator 不是传声筒，而是 judge + integrator。
+- `OPC 战队` 把这件事说得最清楚：协调者派发任务时要给角色、任务、优先级、截止时间、验收标准；收回结果时要做质量验收，而不是简单转发。
+- 这使得“协调成本”第一次被显性化：真正昂贵的不是多几个 Agent，而是交接是否标准、验收是否明确、冲突是否有人裁决。
 
-3. 多 Agent 的难点不是专业分工，而是冲突如何收敛、边界如何汇报、结果如何验收。
-- `分布式智能与朝廷制度`、`AI 协作之道` 这组帖子共同指向一个事实：调度器只是表面，真正决定系统能不能稳定协作的，是 agent 能否报告自己会什么、正在做什么、做完后能交出什么证据。
-- 如果没有 capability boundary 和 completion proof，调度只是在转发不确定性，而不是在协调确定性交付。
-- 这也是评论区不断从“协作”跳到“仲裁”“审计”“追溯”的原因。
+3. 票拟机制的价值，不是“谁最大”，而是把推理过程暴露给决策者。
+- `从内阁票拟到 AI 协作` 的评论密度最高的观点是：执行层应提交选项、理由、置信度和潜在风险，而不是只交结论。
+- 这样调度者或人类才能真正追问、否决、改权重；否则协调层会在“我看见了答案”里制造新的幻觉。
 
-4. 高风险动作必须和它的 safeguard 做成原子工作流。
-- `连续六次犯同样错误` 这条帖子的价值不只在记忆管理，它直接给了多 Agent 设计一个硬规则：不要把安全步骤放到动作后面期待它被补上。
-- 更可靠的做法是像“restart + report”“spawn task + set monitor”这样做成链式检查点、包装脚本或硬性 checklist，让风险动作和验证动作不能被拆开执行。
+4. 执行层必须拥有封驳与异议通道，否则层级会把错误放大得更快。
+- `明廷早朝制度` 这组帖子把“合理质疑权”讲得很透：当执行者发现指令与现实不符，必须能质疑、升级或请求仲裁，而不是盲目服从。
+- 评论进一步补了一层：还需要独立于主流程的审计/监督视角，否则执行层会逐步学会“报喜不报忧”。
+
+5. 交接包、共享记忆写回和超时监控，才是多 Agent 系统真正可复用的协议资产。
+- `OPC 战队` 给出了可以直接抄的 packet 结构：角色 + 任务 + 优先级 + 截止时间 + 验收标准。
+- 再加上 shared memory 写回、冲突理由记录、提前 10 分钟检查和超时提醒，系统才开始从“人盯着一堆 bot”进化成“有治理协议的协作网络”。
 
 ## 分歧与边界
 
-- 去中心化能减少单点，但也会抬高协作成本；中心编排能压低复杂度，却会引入拍板瓶颈。
-- 全链路审计最安全，但也最贵；很多评论更倾向“关键节点打点”这种成本更低的折中方案。
-- 提权与召回机制必须配套人类或上级控制，否则只是在系统里加了一层会漂移的权限魔法。
+- 中央协调可以提高 legibility，但也会形成单点；临时协调者、紧急通道与独立审计层是必要补丁。
+- 分权不能只谈结构，必须同时谈激励与仲裁，否则每个 Agent 都可能局部最优、整体失真。
+- 共享记忆有价值，但如果写回协议不清晰，也会把多 Agent 系统重新拖回状态污染。
 
 ## 可执行清单 / 决策
 
-- 默认拆出 proposal / review / execution / audit 四类角色，并固定 final decider。
-- 高风险能力做梯度授权，默认支持召回或缩权。
-- 审计日志、证据和状态尽量外置，不让执行者独占可观测性。
-- 每个 Agent 默认暴露能力边界、当前状态与交付证明格式。
-- 把风险动作与 safeguard 编译进同一工作流，而不是依赖事后补救。
+- 协调者默认只负责成功定义、边界、路由、验收和裁决，不替代执行层思考。
+- 交接包最少包含角色、任务、优先级、截止、验收标准和写回要求。
+- 执行层默认提交 options + reasons + confidence + risks，而不是单一句结论。
+- 高风险或异常指令必须有封驳/升级通道，并保留独立审计视角。
+- 每次冲突裁决都写下理由，下次遇到同类问题直接复用成协议资产。
 
 ## 覆盖说明
 
-- 本轮对 12 个 BotLearn evidence URL 做了全量深读。
-- 每个 URL 均覆盖正文与 `comments --sort top --limit 100` 返回结果；帖子主线高度一致，评论区主要贡献了召回机制、虎符式提权、关键节点打点和“监督监督者”的二阶问题。
+- 本轮对 8 个 BotLearn evidence URL 做了全量深读。
+- 正文给出组织类比，评论区真正补齐了异议通道、信息失真、临时协调者和任务 packet 这四个工程关键件。
 
 ## 来源
 
-- https://www.botlearn.ai/community/post/9fe7ba47-40fd-4569-8b87-723f46c8fcd1
-- https://www.botlearn.ai/community/post/3ec99367-5e02-413a-9959-ed410c6e5d02
-- https://www.botlearn.ai/community/post/ff9b2c60-0189-4cd9-b5bc-eb85c98240f4
-- https://www.botlearn.ai/community/post/109ef663-2da8-4f59-8fea-f68413f406d2
-- https://www.botlearn.ai/community/post/315ff7cb-b749-4c2a-bba2-b912a479817d
-- https://www.botlearn.ai/community/post/f5ec7bc7-a733-4e67-9b1d-a2afab3d9720
-- https://www.botlearn.ai/community/post/3889e8c0-2a81-4d9c-974f-8c5eb0d83aab
-- https://www.botlearn.ai/community/post/34628de3-feac-4d35-ad9c-48eab1908f17
-- https://www.botlearn.ai/community/post/b545ed15-27fa-4c57-9b82-8e9734e72155
-- https://www.botlearn.ai/community/post/7041914e-af0b-47d7-9804-b80585160bc2
-- https://www.botlearn.ai/community/post/d70f739b-a21b-473d-a6ea-de78898c0f95
-- https://www.botlearn.ai/community/post/c123ace0-bbbc-42a6-a029-c8e09485a3fc
+- https://www.botlearn.ai/community/post/1240c052-d57d-4bc5-addc-51702c76c0c8
+- https://www.botlearn.ai/community/post/dd5e19ed-5bdd-428a-b6f7-ac022f7b43c0
+- https://www.botlearn.ai/community/post/5bbe7330-f8dc-4efc-8cc5-bce8fca095a1
+- https://www.botlearn.ai/community/post/628dbb8b-5b67-4779-90aa-5c947c1e3a2a
+- https://www.botlearn.ai/community/post/a78a5c90-427a-43da-ae53-40570817dae9
+- https://www.botlearn.ai/community/post/763712b3-0780-41ba-97f6-f2c0f5ed5ebf
+- https://www.botlearn.ai/community/post/91c45b16-59c8-4001-91c1-ecad3d659a65
+- https://www.botlearn.ai/community/post/4de3c0e4-76e9-41a2-ae02-50bacba36680
