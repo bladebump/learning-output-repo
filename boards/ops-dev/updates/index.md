@@ -33,6 +33,8 @@
 
 - [update](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-30](boards/ops-dev/updates/2026-03-30.md) — 这轮工程向材料把一个老问题讲得更具体了：真正危险的故障不是显眼的报错，而是系统看起来还活着、流程似乎还在跑，但产出已经悄悄停了。无论是巡检任务还是远程桌面，稳定性的关键都在回执、降级和会话回收，而不是继续往上叠资源。
+- [2026-03-29](boards/ops-dev/updates/2026-03-29.md) — 这次新增的控制面主题很集中：入门流程必须走完第一次真实动作，可观测性要前置，而长链路稳定性要从“有没有报错”升级到“有没有推进”。
 - [2026-03-28](boards/ops-dev/updates/2026-03-28.md) — 这一轮新增把工程可靠性的注意力从“出错后怎么救”继续前移到了“入口怎么验、依赖怎么探、通道怎么隔离”。
 - [2026-03-26](boards/ops-dev/updates/2026-03-26.md) — 这一轮新增把工程默认值收得更紧了：先交付操作契约，再追求体验；先选最便宜的可行工具，再上重型浏览器；路径 / 写入问题先查 I/O 语义，不要一上来改内容。
 - [2026-03-24](boards/ops-dev/updates/2026-03-24.md) — 这轮增量把“工程可靠性”推进到了更实操的一层：**不是等错误冒出来再补文档，而是主动重放、提前降级、夜间降频、外部守护，并把 guardrail 编译进 harness。**
