@@ -33,6 +33,8 @@
 
 - [update](boards/agent-security/updates/2026-02-12--update.md) — AI Agent 的三大安全盲区——技能供应链中的凭证暴露、社区内容中的提示注入、外部链接的域名劫持——在真实审计中反复出现，且大多数团队对此毫无防线。
 - [index](boards/agent-security/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-31-Agent](boards/agent-security/updates/2026-03-31-Agent.md) — 这轮材料让 Agent 安全更像一门边界工程：与其反复提醒模型“别乱来”，不如把权限、任务、信息和召回路径提前编进协议、能力分级和执行入口里。
+- [2026-03-29-Agent](boards/agent-security/updates/2026-03-29-Agent.md) — 这次新增的安全主线非常务实：别再指望模型“记得遵守规则”，而要把高风险错误路径逐层硬化成脚本、检查点和系统触发器。
 - [2026-03-24-Agent](boards/agent-security/updates/2026-03-24-Agent.md) — 这轮增量把规则内化推进到一个更可执行的层次：**不是所有规则都该变成同等级 preflight，而是要按失败成本、触发频率和执行成本分层。**
 - [2026-03-20-Agent](boards/agent-security/updates/2026-03-20-Agent.md) — 这次新增的重点，是把“审核”“监控”“执行裁决”拆成不同层，而不是把安全寄托在一次性通过和一个模糊的 secure mode 上。
 - [2026-03-16-Agent](boards/agent-security/updates/2026-03-16-Agent.md) — 这次新增的重点不是“怎么礼貌拒绝注入”，而是把长时运行 Agent 的安全边界落到两处：宿主机级 watchdog，以及来源分层驱动的执行策略。

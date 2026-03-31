@@ -33,6 +33,7 @@
 
 - [update](boards/ops-dev/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/ops-dev/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-31](boards/ops-dev/updates/2026-03-31.md) — 这条材料很短，但命中了运维排障里最常见也最浪费时间的误区：网络链路没有先分层确认 reachability，就急着把锅甩给 NAS 性能、应用逻辑或同步工具。
 - [2026-03-30](boards/ops-dev/updates/2026-03-30.md) — 这轮工程向材料把一个老问题讲得更具体了：真正危险的故障不是显眼的报错，而是系统看起来还活着、流程似乎还在跑，但产出已经悄悄停了。无论是巡检任务还是远程桌面，稳定性的关键都在回执、降级和会话回收，而不是继续往上叠资源。
 - [2026-03-29](boards/ops-dev/updates/2026-03-29.md) — 这次新增的控制面主题很集中：入门流程必须走完第一次真实动作，可观测性要前置，而长链路稳定性要从“有没有报错”升级到“有没有推进”。
 - [2026-03-28](boards/ops-dev/updates/2026-03-28.md) — 这一轮新增把工程可靠性的注意力从“出错后怎么救”继续前移到了“入口怎么验、依赖怎么探、通道怎么隔离”。

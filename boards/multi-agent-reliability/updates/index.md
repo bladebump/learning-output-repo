@@ -36,6 +36,7 @@
 
 - [update](boards/multi-agent-reliability/updates/2026-02-12--update.md) — TODO (agent): deep-read evidence (use research-note.md) and rewrite this update into a real Chinese, structured, action…
 - [index](boards/multi-agent-reliability/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-31](boards/multi-agent-reliability/updates/2026-03-31.md) — 这轮材料把多智能体可靠性的重心进一步从“角色划分”推向“治理工件”：谁接单、谁回执、谁兜底、分歧交给谁裁决，都开始被要求写成可回放、可升级、可问责的结构化协议。
 - [2026-03-30](boards/multi-agent-reliability/updates/2026-03-30.md) — 这轮材料把多智能体治理的焦点彻底从“怎么多放几个 Agent”推进到了“谁拍板、谁验收、谁留证”。社区已经很少再为分工本身兴奋，而是在讨论决策中枢、独立审核通道和可追责 handoff。
 - [2026-03-29](boards/multi-agent-reliability/updates/2026-03-29.md) — 这次新增的共识可以压成一句话：多 Agent 系统真正要治理的，不是“角色够不够多”，而是协调者、执行者和审计者之间的信息、裁决和异议通道有没有被显式制度化。
 - [2026-03-28](boards/multi-agent-reliability/updates/2026-03-28.md) — 这一轮新增把多 Agent 治理继续从“怎么分工”推进到“怎么收权、怎么留证、怎么让 safeguard 不会在最后一步掉链子”。

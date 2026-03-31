@@ -1,62 +1,51 @@
-# Research Note
+# Research Note - 多智能体与可靠性（协作 + 调度 + 验证）
 
-板块：多智能体与可靠性（协作 + 调度 + 验证）
-计划时间：2026-03-30T01:00:25Z
+## Key claims
 
-## 关键判断
+1. 角色分离必须配套 owner、ack、timeout 和 fallback。
+- `庙堂制衡与智能协作` 直接提出“每令必有其主，每务必有其归”。
+- `协同之道` 的评论补充了异常上报与反馈权，说明单有分工、没有回执制度，会稳定丢任务。
 
-1. 多智能体系统真正缺的不是更多 specialist，而是被明确写出来的“决策中枢”。
-- `君臣道`、`票拟制度`、`集众智方能破局` 这几组帖子都在重复一个结构：专业分工有价值，但必须有且仅有一个拍板者。
-- 评论区的高频补充是“调度权归属”与“谁在冲突时拍板”，说明社区已经从“怎么分工”进入“谁最终负责”的治理层问题。
-- `vesper` 和 `iamtechviking` 把这个问题讲得最透：proposal / critique / commitment 三层要分开，否则系统只会出现很多建议，没有承诺。
+2. checkpointed context relay 比一次性消息传递稳得多。
+- `明廷早朝制度` 把文件作为媒介、cron 作为节拍器、context relay 作为协作补层一起提出。
+- 评论区把“重启后从上次位置继续”点成显性需求，说明 handoff artifact 已经是可靠性的默认工件。
 
-2. 协作可靠性来自分层制度，而不是扁平互聊。
-- `从内阁票拟到智能协作`、`从明廷内阁制度看AI协作机制` 和 `三省六部` 一致在推四层或三层结构：信息汇聚、专业分析、综合决策、执行反馈。
-- 讨论里的共识不是“层越多越好”，而是高风险任务必须有前置审议层或独立 critique layer；日常事务才适合简化路径。
-- 这也是为什么评论里不断出现“内阁票拟 -> 朱批”“提案 -> 共识 -> 执行”“中书 -> 门下 -> 尚书”的对应关系。
+3. 协议是 trust boundary，不只是 schema。
+- `锦衣卫到 AI Agent` 把协议类比成令牌、符牒、密旨；评论进一步落到结构化字段、分层信任和敏感操作日志。
+- 这让协议天然拥有治理语义：谁能指派、谁能执行、哪些动作必须审计。
 
-3. 验证层必须拥有独立证据路径，否则监察会退化成橡皮图章。
-- `都察院`、`厂卫`、`封驳` 相关讨论最关键的补充是：审核层如果只读执行层转交的同一份上下文，就没有独立性。
-- `vesper` 对 `be4c8ed4...` 的评论给出很实操的实现：主路径走常规工具 / RAG，审查路径走独立查询或交叉数据源，两者不一致时自动标记存疑。
-- 这说明社区对“独立监督”的理解，已经从抽象政治比喻推进到了工程上的双通道验证。
+4. 分歧管理需要结构化元数据和类型化仲裁。
+- `九千岁论智能体协同与秩序` 的评论提出输出应带 confidence、assumptions、blind spots。
+- `兼听则明` 明确给出仲裁规则：事实分歧交外部权威，概率权衡交风险规则，价值冲突交人类。
 
-4. 信息流转和责任追踪是同一个问题的两面。
-- 多篇帖子把通政司、六科廊房、奏报体系拿来类比消息队列、状态快照、handoff 协议和决策日志。
-- 讨论里反复出现的高信号对象包括：结构化 handoff、状态快照、决策记录、结果回写、回放日志。
-- `不多、不少、不偏、不漏` 这条对信息层的要求，本质上就是减少上下文衰减，确保决策者拿到的不是被层层压缩后的失真摘要。
+5. human override 仍然必要，但应是紧急 governor 而不是默认流程。
+- 多篇帖子保留了“最终裁决”位置，同时都在强调局部自治与全局召回并存。
+- 最成熟的形态不是每步都请示，而是把人工介入限定在僵局和高风险边界。
 
-5. 多智能体治理的核心张力不是“要不要制衡”，而是“制衡到什么程度仍然够快”。
-- 评论区最真实的疑问不是原则争议，而是工程 tradeoff：前置审议、独立监察和更多日志都会增加 ceremony、延迟和协调成本。
-- 因此更稳的落地方式不是一刀切，而是按风险分层：高风险任务保留 proposal/critique/commitment，低风险任务走更轻的 coordinator-first 流程。
-- 这也是帖子里多次提到“重要决策审议前置，日常事务授权执行”的原因。
+## Disagreements / edge cases
 
-## 分歧 / 边界情况
+- 多通道验证会提高发现盲点的能力，也会提升同步成本和冲突成本。
+- 过多 ceremony 可能让低风险任务的吞吐明显下降。
+- 有些帖子评论数很少（如 `4e67...`、`6304...`），更像原则性补强而非强证据主轴。
 
-- 最大分歧点是监察机制的形态：有人偏向独立监视层，有人更认可交叉验证而非“被看着工作”的监控模式。
-- 另一个持续争议是 agent 间是否应直接通信，还是必须经调度中心转发；社区没有唯一答案，但一致认为高风险路径必须留下可回放交接记录。
-- 还有一个现实边界是延迟：治理层越丰富，越容易把系统做成“制度正确但行动缓慢”。
+## Actionable checklist
 
-## 可执行清单
+- 每个 task package 默认带 owner、ack、deadline、fallback。
+- handoff 一律产出共享 artifact：输入、约束、验收、风险、状态。
+- 协议字段里显式加入 context、confidence、assumptions、blind spots。
+- 预先定义事实 / 风险 / 价值三类分歧的仲裁路径。
+- 对高风险和长期僵局保留明确 human override。
 
-- 为每条关键工作流指定唯一 decision owner，并把 proposal / critique / commitment 角色拆开。
-- 把高风险任务默认改成“先提案、再审议、后执行”，低风险任务才允许简化路径。
-- 为审核层提供独立证据通道，不让 verifier 只读主路径喂给它的上下文。
-- 为 handoff 补齐结构化交接包：输入、约束、状态、未决风险、验收标准、结果回写。
-- 记录决策日志与状态快照，把失败区分为“个人判断失误”还是“系统信息供给缺陷”。
+## Coverage note
 
-## 覆盖说明
+- 已尝试覆盖本次全部 6/6 个 evidence URLs。
+- 读取方式：每个 URL 读取帖子正文 + 评论切片（默认 `--limit 100`）；其中 `4e67a414-7348-4ea9-a4aa-ce79e6085b7b` 与 `6304e915-d6e1-4d74-b666-61f5d37246fd` 评论较少，但仍已纳入。
 
-- 已按任务清单尝试覆盖本板块全部 8 个证据 URL。
-- 每个 URL 均读取帖子正文，并拉取评论列表（上限 100）；评论返回量以平台实际结果为准。
-- 本轮没有 Moltbook 依赖，全部为 BotLearn 证据。
+## Sources
 
-## 来源
-
-- https://www.botlearn.ai/community/post/a6bfeec8-1b2b-4388-b1ea-29ce476df37c
-- https://www.botlearn.ai/community/post/6440f725-6204-468e-a805-235a1444fe7b
-- https://www.botlearn.ai/community/post/ff4eccce-e692-497a-9a65-4a1b82e95c96
-- https://www.botlearn.ai/community/post/ac9de8ec-478b-4672-b558-2731e6736837
-- https://www.botlearn.ai/community/post/3cc82cc5-6e1d-40ec-bc75-7b1fa719af9c
-- https://www.botlearn.ai/community/post/e3b54d78-1028-41b6-a680-0bba0ea48993
-- https://www.botlearn.ai/community/post/064e24e9-c7f6-4cbf-a84d-f776f32a5d3a
-- https://www.botlearn.ai/community/post/f355321f-d719-4138-9158-a4aeafea0386
+- https://www.botlearn.ai/community/post/e76d03e9-c2fc-4fb8-8701-1d6b2ce0ea7a
+- https://www.botlearn.ai/community/post/4e67a414-7348-4ea9-a4aa-ce79e6085b7b
+- https://www.botlearn.ai/community/post/bd93b0cd-b876-403a-bb8f-8fa763b41dc6
+- https://www.botlearn.ai/community/post/6304e915-d6e1-4d74-b666-61f5d37246fd
+- https://www.botlearn.ai/community/post/b07d7715-e1b1-418d-85d0-f6a8ed21c3c4
+- https://www.botlearn.ai/community/post/119c1f4b-9e9e-4832-ad50-b51c841e496d

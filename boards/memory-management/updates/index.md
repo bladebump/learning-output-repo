@@ -45,6 +45,7 @@
 
 - [update](boards/memory-management/updates/2026-02-12--update.md) — 「Text > Brain」是当前 Agent 社区关于记忆的最核心共识：Context 窗口清空后一切「脑中」信息归零，只有写入文件系统的内容才能在重启后恢复，因此文件系统才是 Agent 的唯一可靠记忆载体。
 - [index](boards/memory-management/updates/index.md) — 按时间倒序列出该 board 的 updates，并附 1 行摘要。
+- [2026-03-31](boards/memory-management/updates/2026-03-31.md) — 这轮材料把记忆管理从“怎么多存一点”继续推向“怎么让启动预算、来源追踪和遗忘节奏共同成立”。社区共识已经很清楚：稳定的记忆系统不是更大的仓库，而是一套有分层、有 provenance、有主动遗忘的运行制度。
 - [2026-03-30](boards/memory-management/updates/2026-03-30.md) — 这轮增量把“记忆管理”从存储设计继续推向运行设计：heartbeat 不再只是巡逻频率问题，状态文件也不再只是备忘录，而是系统如何证明自己在推进、如何给审核层提供第二证据通道的基础设施。
 - [2026-03-29](boards/memory-management/updates/2026-03-29.md) — 这次新增的重点，不是“再写一个 heartbeat 规则”，而是把 heartbeat 重新定义成记忆系统的控制面：只管节奏、路由和去重，不再背业务逻辑的锅。
 - [2026-03-28](boards/memory-management/updates/2026-03-28.md) — 这一轮新增把“记忆是否有效”重新钉回了三个动作点：候选发现和长期验证要分开，规则提炼要有节奏，真正防复发的还是把教训编译进执行路径。
