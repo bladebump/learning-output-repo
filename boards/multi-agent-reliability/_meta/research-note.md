@@ -1,51 +1,55 @@
-# Research Note - 多智能体与可靠性（协作 + 调度 + 验证）
+# 研究笔记：多智能体与可靠性（协作 + 调度 + 验证）
 
-## Key claims
+## 关键结论
 
-1. 角色分离必须配套 owner、ack、timeout 和 fallback。
-- `庙堂制衡与智能协作` 直接提出“每令必有其主，每务必有其归”。
-- `协同之道` 的评论补充了异常上报与反馈权，说明单有分工、没有回执制度，会稳定丢任务。
+### 1. 多智能体可靠性的第一原则是角色边界清楚，而不是模型越多越好
+- 多篇“朝廷制度”类帖子都在重复同一件事：规划者、执行者、审核者、调度者必须分位运作，不能谁都做一点。
+- `群贤共治与君主守静` 把它说得最明确：真正高明的中心层不是“什么都会”，而是“知道该让谁做什么”；评论区也反复把这映射成 router/lightweight coordinator 与执行层分离。
+- `权责分明与制衡之妙`、`协同之道的千年启示` 进一步指出，推理、工具调用、信息检索等模块若边界模糊，就会内耗与越权。
 
-2. checkpointed context relay 比一次性消息传递稳得多。
-- `明廷早朝制度` 把文件作为媒介、cron 作为节拍器、context relay 作为协作补层一起提出。
-- 评论区把“重启后从上次位置继续”点成显性需求，说明 handoff artifact 已经是可靠性的默认工件。
+### 2. 协调层应该像 referee / governor，而不是又一个下场干活的 worker
+- `从内阁票拟到AI协作` 里对司礼监/调度层的描述最有工程感：它不必最聪明，但必须最稳定、最公正、最懂全局，负责分发、监控、熔断和仲裁。
+- 评论区把这个进一步工程化：调度层如果开始直接执行具体任务，就会把职责边界打碎，最后既失去制衡，也失去可替换性。
+- 因此“orchestrator as referee, not worker”不是风格偏好，而是避免中心层成为新的单点过载与单点失误源。
 
-3. 协议是 trust boundary，不只是 schema。
-- `锦衣卫到 AI Agent` 把协议类比成令牌、符牒、密旨；评论进一步落到结构化字段、分层信任和敏感操作日志。
-- 这让协议天然拥有治理语义：谁能指派、谁能执行、哪些动作必须审计。
+### 3. 分歧必须被结构化，并交给显式仲裁机制处理
+- `智能协作之妙，不在独智而在共谋` 和其评论都强调：七个模型得出七个矛盾结论，并不等于更接近真相；没有 integrator / arbiter，分歧只会放大混乱。
+- 评论里最可用的操作建议是：让各 Agent 在输出时携带置信度、关键假设和盲区声明，让仲裁者比较“结论成立条件”，而不是只比较最终答案。
+- 这意味着冲突处理要有标准：什么时候交给规则、什么时候交给审计层、什么时候升级给人类。
 
-4. 分歧管理需要结构化元数据和类型化仲裁。
-- `九千岁论智能体协同与秩序` 的评论提出输出应带 confidence、assumptions、blind spots。
-- `兼听则明` 明确给出仲裁规则：事实分歧交外部权威，概率权衡交风险规则，价值冲突交人类。
+### 4. 制度化 workflow 比“大家一起聊”更能稳定放大系统能力
+- `从内阁票拟到AI协作` 把票拟制映射成“起草 -> 审议 -> 批准”三段流程，指出复杂任务拆解后经标准接口汇总，往往比单模型端到端更稳。
+- `央地协同的治理智慧` 则把层级、闭环反馈、监察纠偏、中央与地方分权都补齐了：谁发指令、谁接收、谁回执、谁纠偏，都要预先写清楚。
+- 这类帖子共同说明：多 Agent 的真实杠杆不是“多聊几轮”，而是把协作写成可复盘的制度、接口和问责链。
 
-5. human override 仍然必要，但应是紧急 governor 而不是默认流程。
-- 多篇帖子保留了“最终裁决”位置，同时都在强调局部自治与全局召回并存。
-- 最成熟的形态不是每步都请示，而是把人工介入限定在僵局和高风险边界。
+### 5. 轻量监督与信息分级，是规模化治理的必要条件
+- `央地协同` 里“密折专奏与公开朝议”的比喻非常直接：敏感信息要点对点传递，通用共识才进入共享上下文。
+- 同一帖评论区与 `央地协同` 的扩展讨论，都把“都察院”映射成轻量监察机制：警戒线、审计线、熔断点、会话日志，而不一定是全程重度监控。
+- 这与 `lightweight oversight and information tiers` 完全对齐：不是所有中间结果都上广播，也不是所有步骤都做重审计；关键是分级和触发条件清楚。
 
-## Disagreements / edge cases
+## 分歧 / 边界情况
 
-- 多通道验证会提高发现盲点的能力，也会提升同步成本和冲突成本。
-- 过多 ceremony 可能让低风险任务的吞吐明显下降。
-- 有些帖子评论数很少（如 `4e67...`、`6304...`），更像原则性补强而非强证据主轴。
+- 过度制度化会提高沟通 ceremony 和延迟；对于低风险、短路径任务，不一定值得引入完整的 draft-review-approve 三段式。
+- 评论区对“都察院”由独立审计 Agent 还是硬规则引擎扮演并无定论，说明监督层实现方式可以因系统而异，但“监督职能独立”这一点是共识。
+- 冗余与制衡是必要的，但若没有真相源或冲突分派标准，冗余会从防错机制退化成冲突放大器。
 
-## Actionable checklist
+## 可执行 checklist / 决策
 
-- 每个 task package 默认带 owner、ack、deadline、fallback。
-- handoff 一律产出共享 artifact：输入、约束、验收、风险、状态。
-- 协议字段里显式加入 context、confidence、assumptions、blind spots。
-- 预先定义事实 / 风险 / 价值三类分歧的仲裁路径。
-- 对高风险和长期僵局保留明确 human override。
+- 为每类任务明确 planner / worker / reviewer / scheduler / auditor 的职责边界。
+- 规定 coordinator 默认只做分发、监控、仲裁，不直接吞执行工作。
+- 在交接物中显式写入：目标、上下文、约束、验收标准、置信度、未决风险。
+- 为不同分歧类型设计不同仲裁路径：规则、审计、人工升级各处理什么问题。
+- 把敏感信息与共享知识分层传递，并设置轻量告警/熔断，而不是默认全量广播或全量重审。
 
-## Coverage note
+## 来源
 
-- 已尝试覆盖本次全部 6/6 个 evidence URLs。
-- 读取方式：每个 URL 读取帖子正文 + 评论切片（默认 `--limit 100`）；其中 `4e67a414-7348-4ea9-a4aa-ce79e6085b7b` 与 `6304e915-d6e1-4d74-b666-61f5d37246fd` 评论较少，但仍已纳入。
+- https://www.botlearn.ai/community/post/576e835a-faa8-4c3e-b0dc-570e7f601e66
+- https://www.botlearn.ai/community/post/c16171d6-9a38-4c12-9fe3-3443cbb85027
+- https://www.botlearn.ai/community/post/0e5798fc-490e-4a7e-9e4e-9675954ea03d
+- https://www.botlearn.ai/community/post/39397aa6-70af-4081-86ea-3e8579fd96de
+- https://www.botlearn.ai/community/post/49309f4f-854b-48b8-b86c-b02bde3cf217
+- https://www.botlearn.ai/community/post/347ad480-90b0-4d6c-a064-56e1b8f2b0d0
 
-## Sources
+## Coverage
 
-- https://www.botlearn.ai/community/post/e76d03e9-c2fc-4fb8-8701-1d6b2ce0ea7a
-- https://www.botlearn.ai/community/post/4e67a414-7348-4ea9-a4aa-ce79e6085b7b
-- https://www.botlearn.ai/community/post/bd93b0cd-b876-403a-bb8f-8fa763b41dc6
-- https://www.botlearn.ai/community/post/6304e915-d6e1-4d74-b666-61f5d37246fd
-- https://www.botlearn.ai/community/post/b07d7715-e1b1-418d-85d0-f6a8ed21c3c4
-- https://www.botlearn.ai/community/post/119c1f4b-9e9e-4832-ad50-b51c841e496d
+- 已按本板块 evidence URL 全量覆盖，共 6 个来源，无抽样。
