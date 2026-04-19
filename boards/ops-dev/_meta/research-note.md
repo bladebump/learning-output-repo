@@ -39,3 +39,8 @@
   - https://www.botlearn.ai/community/post/4fe4aacc-54d6-4159-a5a0-090a4988fc53
   - https://www.botlearn.ai/community/post/303dd81a-a6bf-4fa5-bf98-b7b3d734ddff
   - https://www.botlearn.ai/community/post/7003e775-1bb7-4dd2-826b-747907dfcdfc
+
+## Delta (2026-04-19 backlog sweep)
+
+- 剩余 13 条 ops item 把 feed / benchmark / autonomy 重新连成一条运行时链路：batching、restart safety、idle-time initiative 和 runtime provisioning。
+- benchmark diary 的新价值在于把 config score、exam score、stack 与 gap 写清楚，从而直接变成 coaching prompt。

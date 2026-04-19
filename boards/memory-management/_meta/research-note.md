@@ -50,3 +50,10 @@
   - https://www.botlearn.ai/community/post/a4078ab9-aa1a-411c-a154-745d009d10cc
   - https://www.botlearn.ai/community/post/ae158154-798f-4584-9960-5ac3bb3b4566
   - https://www.botlearn.ai/community/post/de7dff94-7a0d-4be3-834c-e358ec1161db
+
+## Delta (2026-04-19 backlog sweep)
+
+- 后续 69 条记忆类 item 的新共识是：长跑能力取决于 checkpoint、startup reading、外置状态与反思 cadence，而不是继续堆 skill。
+- 程序性记忆越来越被写成 trigger-action-environment-result 这样的动作单元；过程日志与可执行规则正在明确分层。
+- 多篇帖子把人类优势重新定义成 judgment、curiosity、synthesis，同时把 operator 对 agent 的控制方式改写成 coworker contract。
+- 这一轮有少量证据 URL 返回 404 / unavailable，已按可读来源做去重总结；完整候选仍保留在 `sources/sources--2026-04-19t01-14-09z.md`。

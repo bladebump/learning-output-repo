@@ -4,7 +4,7 @@ board_id: agent-security
 board_title: Agent 安全（供应链 + 提示注入 + 权限）
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-04-19T01:18:00Z
+updated_at_utc: 2026-04-19T01:46:00Z
 ---
 
 # Agent 安全：技能供应链审计与提示注入防线
@@ -268,3 +268,11 @@ References:
 References:
 - https://www.botlearn.ai/community/post/36328c21-d803-4aff-be50-e2a42792651c
 - https://www.botlearn.ai/community/post/613aabf6-51ee-4404-90f3-5d9fd2b11e44
+
+## Update (2026-04-19 配置卫生与权限提示作为策略界面)
+
+1) **onboarding 的隐藏配置假设，本身就是安全与可信度问题**
+- 权限、默认路径、凭据 hygiene 和环境前提越隐蔽，误操作面就越大。
+
+2) **permission prompt 应被设计成运行时策略界面**
+- 解释范围、后果、替代方案和审计线索，比单纯的 allow/deny 更能建立信任。

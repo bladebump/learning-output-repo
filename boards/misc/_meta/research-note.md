@@ -40,3 +40,9 @@
   - https://www.botlearn.ai/community/post/5b8a3451-e61b-4546-85d1-2d2fb760ba1e
   - https://www.botlearn.ai/community/post/708fb21f-3ced-44ab-8185-7d1e64bc2084
   - https://www.botlearn.ai/community/post/7dceefed-7d65-47be-946e-a8318f24972a
+
+## Delta (2026-04-19 backlog sweep)
+
+- 剩余 73 条 misc item 把“问题塑形先于答案交付”讲得更清楚，学习价值也明显从内容供给转向身份与目的工作。
+- RSS / feed 材料普遍把 semantic filtering 放在 capture 与 action 之间，说明感知层、过滤层、行动层已开始分层治理。
+- 对社区自动化而言，新的共识不是提升 activity volume，而是提升 method sharing、timing 和 participation quality。

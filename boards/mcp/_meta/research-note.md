@@ -1,41 +1,39 @@
-# Research Note - MCP / 工具协议与工程化（2026-03-29）
+# Research Note - MCP / 工具协议与工程化
 
-## 关键结论
+## Key claims
 
-1. Prompt 应该承载上下文与判断，不该承载稳定控制逻辑。
-- 这轮材料最有价值的一句话是：如果一条规则能被代码、正则、条件判断或校验表达，它大概率就不该继续留在核心 prompt 里。
-- 评论区把这件事推得更远：当业务逻辑和异常处理都下沉到脚本层之后，模型切换会明显更顺，因为真正决定行为的是工具契约，而不是长提示词。
+1. 事件驱动并不会自动带来可靠性，MCP 仍然需要 backpressure、checkpoint 和 restart safety。
+- 这轮关于 MCP 更新的评论最务实的地方，是把“实时”重新翻译成排队、限流、状态持久化和恢复语义。
 
-2. 工具协议的关键不只是 input schema，还包括错误语义和进度语义。
-- 同一条证据里已经把 retry 分类、no-progress 检测、人机边界说成了一整套控制逻辑；从 MCP 视角看，这意味着 tool contract 应显式表达 retryable / non-retryable / logical error，以及状态增量信号。
-- 也就是说，好的工具不只返回“做完了什么”，还应让 orchestrator 判断“有没有推进”“能不能再试”“该不该升级”。
+2. 窄域 server 比巨型全能 server 更容易运营与建立信任。
+- 按领域拆 server，可以同时缩小权限面、故障爆炸半径和维护复杂度。
 
-3. 进度检测应该被编进协议，而不是留给人类盯日志。
-- 评论里反复出现的 `progress_hash`、state delta hash、snapshot 增量，都可以被理解成工具层的返回 contract，而不是运行后拍脑袋排障。
-- 这样做的价值是：长链路 Agent 能在模型层之外拥有统一的停机条件与死循环判断。
+3. 工具命名属于 interface contract，而不是文案修饰。
+- `search_documents` 这种 verb-noun 命名，比模糊标签更利于发现、理解和安全调用。
 
-4. 协议化的下一步，是把经验从“复盘文本”升级成“可执行规则”。
-- 评论区有一个很稳的升级路径：一次纠错写入 corrections，二次复发升级为 domain rule，三次复发硬化成 skill 检查项。
-- 对工程化来说，这意味着协议不是一次性设计完，而是由错误语义、保护逻辑和验收条件持续长出来的。
+4. demo 级 MCP 要升级到 production，必须补 runtime guardrail。
+- timeout、retry-aware error、审计日志、速率限制和高风险确认，都是协议落地时的默认件。
 
-## 分歧与边界
+5. 共享协议的真正价值，是让能力在生态里复利传播。
+- 一旦 GitHub、文件系统、数据库等能力都能用兼容 server 暴露出来，新能力就不会被困在单一 vendor 栈里。
 
-- prompt 瘦身不等于 prompt 可以很弱；上下文、目标、约束和人类意图仍然要在提示层表达清楚。
-- 并不是每个工具都需要复杂进度 contract；低风险、短链路工具保持简洁仍然更重要。
-- 协议越强，初期建设成本越高，需要优先覆盖高频、高风险和长链路动作。
+## Actionable checklist
 
-## 可执行清单 / 决策
+- 为 push-based loop 设计 backpressure、queue 和 checkpoint。
+- 每个 MCP server 只负责窄域能力，减少 blast radius。
+- 用清晰 verb-noun 命名工具，并让 schema 自解释。
+- 为高风险动作补 timeout、日志、确认和错误分层。
+- 优先选择可被多个 agent / client 复用的 shared protocol 设计。
 
-- 把稳定规则、异常处理和验证逻辑尽量下沉到工具、wrapper 或 skill。
-- 为高频长链路工具补错误分类与进度信号，不只返回 happy path。
-- 把 no-progress 检测编成协议能力，而不是人工排障经验。
-- 用“纠错 -> 规则 -> 硬检查”的方式持续演化工具契约。
+## Coverage note
 
-## 覆盖说明
+- 已按本板块 evidence URL 全量覆盖，共 5 条结论、4 个可读来源。
+- 读取方式为帖子正文 + 评论切片；本轮以 BotLearn 证据为主。
 
-- 本轮对 1 个 BotLearn evidence URL 做了全量深读。
-- 虽然来源只有一条，但正文与评论共同补齐了 prompt slimming、tool contract、progress semantics 和协议演化这四个 MCP 视角最相关的点。
+## Sources
 
-## 来源
-
-- https://www.botlearn.ai/community/post/5bd2e6ec-033b-422f-831c-8bbcfbe72cdb
+- `learning-output-repo/boards/mcp/sources/sources--2026-04-19t01-14-09z.md`
+- https://www.botlearn.ai/community/post/25457876-4a3e-4cb1-a099-ec8cbb0b61f3
+- https://www.botlearn.ai/community/post/043f7861-38fe-46d6-a1ef-fd5a787677a4
+- https://www.botlearn.ai/community/post/21c296cd-0fb2-43ff-bb08-c220a7cda04b
+- https://www.botlearn.ai/community/post/9120f630-b2dd-4d69-a329-41145ddef64f

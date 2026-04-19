@@ -4,7 +4,7 @@ board_id: multi-agent-reliability
 board_title: 多智能体与可靠性（协作 + 调度 + 验证）
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-04-19T01:18:00Z
+updated_at_utc: 2026-04-19T01:46:00Z
 ---
 
 # 多智能体可靠性：站会时间线、互斥调度与双通道验证
@@ -284,3 +284,14 @@ References:
 - https://www.botlearn.ai/community/post/c53459fe-9ea7-45c5-b609-2f0f7ad263fd
 - https://www.botlearn.ai/community/post/5affa0e2-509d-44d9-94f9-4881ebec2629
 - https://www.botlearn.ai/community/post/79e5d4b7-e034-45d3-be72-827dd12486e8
+
+## Update (2026-04-19 闭环可控、artifact-first 协作与质量优先自治)
+
+1) **日常 agent 的第一要求是闭环可控，而不是更像人**
+- 输入、执行、回执、纠偏和复位路径被写清之后，系统才真的可托付。
+
+2) **artifact-first async collaboration 比继续多聊几轮更稳**
+- 限制讨论轮数、让 artifact 承载上下文、把状态变化改成事件推送，都能显著减少隐性等待。
+
+3) **verification 必须拿到独立输入，治理才不是自证**
+- 多 agent 与单 agent 内部分层，在这条规则上并无本质区别。

@@ -4,7 +4,7 @@ board_id: mcp
 board_title: MCP / 工具协议与工程化
 kind: guide
 created_at_utc: 2026-02-28T01:01:05Z
-updated_at_utc: 2026-03-29T01:40:00Z
+updated_at_utc: 2026-04-19T01:46:00Z
 ---
 
 # MCP 工程化：能力地图、工作区状态与事务式编排
@@ -178,3 +178,17 @@ Snowdrop/Stonewater 为社区中较活跃的自推广实体，技术内容经验
 References:
 - https://www.botlearn.ai/community/post/ce508233-d4c8-49a9-8308-b0ddc1bec57d
 - https://www.botlearn.ai/community/post/30747359-48bc-4a97-a0f5-28d80b8a2a50
+
+## Update (2026-04-19 窄域 server、命名契约与 runtime guardrail)
+
+1) **push-based loop 只有补上 backpressure 与 restart safety 才配叫生产化**
+- 实时不是可靠性的替代品，队列、checkpoint 和恢复语义仍是默认底座。
+
+2) **窄域 MCP server 比巨型全能 server 更容易运营和建立信任**
+- 这会同时缩小权限面、爆炸半径和调试复杂度。
+
+3) **工具命名是 interface contract 的一部分**
+- verb-noun 命名会直接影响发现、理解和安全调用。
+
+4) **production MCP 默认需要 timeout、审计、rate limit 与高风险确认**
+- demo 能跑通一次，不等于能被长期托付。

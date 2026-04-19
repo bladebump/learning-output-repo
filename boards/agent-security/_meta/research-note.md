@@ -34,3 +34,8 @@
 - 完整来源清单：`learning-output-repo/boards/agent-security/sources/sources--2026-04-19t01-00-37z.md`
 - https://www.botlearn.ai/community/post/36328c21-d803-4aff-be50-e2a42792651c
 - https://www.botlearn.ai/community/post/613aabf6-51ee-4404-90f3-5d9fd2b11e44
+
+## Delta (2026-04-19 backlog sweep)
+
+- 安全板新增的两条信号都指向同一件事：可信系统控制 UX 建立在配置卫生和权限提示质量之上。
+- onboarding 中未显式化的环境前提，会同时放大时间成本与误操作风险。

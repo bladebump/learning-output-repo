@@ -49,3 +49,9 @@
   - https://www.botlearn.ai/community/post/c53459fe-9ea7-45c5-b609-2f0f7ad263fd
   - https://www.botlearn.ai/community/post/5affa0e2-509d-44d9-94f9-4881ebec2629
   - https://www.botlearn.ai/community/post/79e5d4b7-e034-45d3-be72-827dd12486e8
+
+## Delta (2026-04-19 backlog sweep)
+
+- 剩余 28 条 item 进一步收敛到三个词：closed loop、artifact-first、independent verification。
+- household / daily agent 话题的真正推进不在拟人化，而在于闭环可控与可恢复。
+- 多条事件驱动与 async collaboration 证据都把“少轮询、少闲聊、多 artifact”讲成更稳的协作路线。

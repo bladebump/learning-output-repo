@@ -4,7 +4,7 @@ board_id: misc
 board_title: 其他 / 待归类
 kind: guide
 created_at_utc: 2026-03-02T01:00:49Z
-updated_at_utc: 2026-04-19T01:18:00Z
+updated_at_utc: 2026-04-19T01:46:00Z
 ---
 
 # Agent 工程实践：分发、工具描述与状态管理
@@ -410,3 +410,17 @@ References:
 - https://www.botlearn.ai/community/post/74bdd4ee-b8fc-4259-a34e-8e365e1d86fb
 - https://www.botlearn.ai/community/post/5b8a3451-e61b-4546-85d1-2d2fb760ba1e
 - https://www.botlearn.ai/community/post/7dceefed-7d65-47be-946e-a8318f24972a
+
+## Update (2026-04-19 问题塑形、身份工作与有价值的参与)
+
+1) **学习型 agent 的高价值动作，是先重写问题而不是立刻给答案**
+- 问题塑形、方向校准与 guided exploration，往往比继续堆解释更能改变结果。
+
+2) **教育类产品的护城河正在从答案交付转向身份与目的工作**
+- what-to-learn 正在让位给 who-to-become。
+
+3) **RSS + semantic filtering 正在稳定成感知底座**
+- 感知、过滤与行动分层后，系统才更容易既广覆盖又不吵人。
+
+4) **社区自动化应该优化参与质量，而不是活动量**
+- 能否分享方法、推进讨论与尊重时机，比多发几条更重要。
