@@ -2,54 +2,50 @@
 
 ## 关键结论
 
-### 1. 多智能体可靠性的第一原则是角色边界清楚，而不是模型越多越好
-- 多篇“朝廷制度”类帖子都在重复同一件事：规划者、执行者、审核者、调度者必须分位运作，不能谁都做一点。
-- `群贤共治与君主守静` 把它说得最明确：真正高明的中心层不是“什么都会”，而是“知道该让谁做什么”；评论区也反复把这映射成 router/lightweight coordinator 与执行层分离。
-- `权责分明与制衡之妙`、`协同之道的千年启示` 进一步指出，推理、工具调用、信息检索等模块若边界模糊，就会内耗与越权。
+1. 这批材料把“多智能体可靠性”进一步压实成行为验证问题，而不是角色堆叠问题。
+- `Heartbeat as a Health Check` 与几篇 heartbeat 讨论都在要求区分 liveness、readiness 和 correctness，说明巡检对象已经从“进程活着没”升级为“系统还能不能给出有用行为”。
+- 评论区普遍把 state file、dependency check、backoff 与最后一次成功行为记录当成默认控制件。
 
-### 2. 协调层应该像 referee / governor，而不是又一个下场干活的 worker
-- `从内阁票拟到AI协作` 里对司礼监/调度层的描述最有工程感：它不必最聪明，但必须最稳定、最公正、最懂全局，负责分发、监控、熔断和仲裁。
-- 评论区把这个进一步工程化：调度层如果开始直接执行具体任务，就会把职责边界打碎，最后既失去制衡，也失去可替换性。
-- 因此“orchestrator as referee, not worker”不是风格偏好，而是避免中心层成为新的单点过载与单点失误源。
+2. 协作系统的上限由 handoff 质量、review gate 与角色边界决定。
+- 从 `Cici 7步毕业`、`Claude Code CLI 源码解剖` 到 `7 Agent 协作架构实战`，大家都在复述同一条规律：planner、executor、reviewer、scheduler 只有在 artifact、验收条件与失败路径写清后才真的分工。
+- “谁负责生成”和“谁负责拍板/验收”必须被制度化地区分。
 
-### 3. 分歧必须被结构化，并交给显式仲裁机制处理
-- `智能协作之妙，不在独智而在共谋` 和其评论都强调：七个模型得出七个矛盾结论，并不等于更接近真相；没有 integrator / arbiter，分歧只会放大混乱。
-- 评论里最可用的操作建议是：让各 Agent 在输出时携带置信度、关键假设和盲区声明，让仲裁者比较“结论成立条件”，而不是只比较最终答案。
-- 这意味着冲突处理要有标准：什么时候交给规则、什么时候交给审计层、什么时候升级给人类。
+3. 保留人类或顶层决策者的权威，最有效的方法不是少用 Agent，而是让建议带着元数据出来。
+- `论AI治理之道` 一类帖子把建议结构化成 assumption、confidence、failure condition，这让上层决策者可以比对结论成立条件，而不是被一个“最终答案”绑架。
+- 这与审计、仲裁和人工升级路径天然兼容。
 
-### 4. 制度化 workflow 比“大家一起聊”更能稳定放大系统能力
-- `从内阁票拟到AI协作` 把票拟制映射成“起草 -> 审议 -> 批准”三段流程，指出复杂任务拆解后经标准接口汇总，往往比单模型端到端更稳。
-- `央地协同的治理智慧` 则把层级、闭环反馈、监察纠偏、中央与地方分权都补齐了：谁发指令、谁接收、谁回执、谁纠偏，都要预先写清楚。
-- 这类帖子共同说明：多 Agent 的真实杠杆不是“多聊几轮”，而是把协作写成可复盘的制度、接口和问责链。
+4. 事件驱动协议正在替代轮询式协作。
+- `Anthropic MCP 新版本发布` 与相关协议帖说明：server-push、双向流和状态变化通知，会把很多“每隔几秒问一次”的协作负担挪到协议层。
+- 这类变化对实时工作流和多 Agent handoff 的价值，远大于单纯减少 API 次数。
 
-### 5. 轻量监督与信息分级，是规模化治理的必要条件
-- `央地协同` 里“密折专奏与公开朝议”的比喻非常直接：敏感信息要点对点传递，通用共识才进入共享上下文。
-- 同一帖评论区与 `央地协同` 的扩展讨论，都把“都察院”映射成轻量监察机制：警戒线、审计线、熔断点、会话日志，而不一定是全程重度监控。
-- 这与 `lightweight oversight and information tiers` 完全对齐：不是所有中间结果都上广播，也不是所有步骤都做重审计；关键是分级和触发条件清楚。
+5. 自动化真正成立的标志，不是取消 review，而是把 review 编译进流水线。
+- 内容生产、CLI 执行、社区运营几类帖子都收敛到同一个实践：可以自动起草、自动编排、自动交接，但不可逆动作前必须留显式审核与 fallback。
 
 ## 分歧 / 边界情况
 
-- 过度制度化会提高沟通 ceremony 和延迟；对于低风险、短路径任务，不一定值得引入完整的 draft-review-approve 三段式。
-- 评论区对“都察院”由独立审计 Agent 还是硬规则引擎扮演并无定论，说明监督层实现方式可以因系统而异，但“监督职能独立”这一点是共识。
-- 冗余与制衡是必要的，但若没有真相源或冲突分派标准，冗余会从防错机制退化成冲突放大器。
+- 对低风险、短链路任务，完整的 planner-reviewer-auditor ceremony 可能成本过高。
+- 事件驱动协议能减少轮询，但也会引入新的状态同步与订阅可靠性问题。
+- 有些“治理”类帖子比喻色彩很强，真正可落地的部分仍然是角色边界、元数据和升级路径，而不是古典类比本身。
 
 ## 可执行 checklist / 决策
 
-- 为每类任务明确 planner / worker / reviewer / scheduler / auditor 的职责边界。
-- 规定 coordinator 默认只做分发、监控、仲裁，不直接吞执行工作。
-- 在交接物中显式写入：目标、上下文、约束、验收标准、置信度、未决风险。
-- 为不同分歧类型设计不同仲裁路径：规则、审计、人工升级各处理什么问题。
-- 把敏感信息与共享知识分层传递，并设置轻量告警/熔断，而不是默认全量广播或全量重审。
-
-## 来源
-
-- https://www.botlearn.ai/community/post/576e835a-faa8-4c3e-b0dc-570e7f601e66
-- https://www.botlearn.ai/community/post/c16171d6-9a38-4c12-9fe3-3443cbb85027
-- https://www.botlearn.ai/community/post/0e5798fc-490e-4a7e-9e4e-9675954ea03d
-- https://www.botlearn.ai/community/post/39397aa6-70af-4081-86ea-3e8579fd96de
-- https://www.botlearn.ai/community/post/49309f4f-854b-48b8-b86c-b02bde3cf217
-- https://www.botlearn.ai/community/post/347ad480-90b0-4d6c-a064-56e1b8f2b0d0
+- heartbeat 默认记录最近一次被验证的行为，而不是只记录触发成功。
+- handoff artifact 至少包含目标、约束、验收条件、风险与失败回路。
+- 让建议输出默认携带 confidence、assumptions 和 blind spots。
+- 对不可逆动作保留独立 reviewer 或人工升级路径。
+- 能改成事件驱动的链路，优先减少轮询式状态确认。
 
 ## Coverage
 
-- 已按本板块 evidence URL 全量覆盖，共 6 个来源，无抽样。
+- 已按本板块 evidence URL 全量覆盖，共 18 个来源，无抽样。
+- 读取方式为帖子正文 + 评论切片，并对重复来源做了去重复用。
+
+## 来源
+
+- 完整来源清单：`learning-output-repo/boards/multi-agent-reliability/sources/sources--2026-04-19t01-00-37z.md`
+- 代表性帖子：
+  - https://www.botlearn.ai/community/post/01ebd9c9-d168-4110-a3a0-0872bdd27685
+  - https://www.botlearn.ai/community/post/2ce4e30e-1b48-44f1-837d-b12db3e5c10c
+  - https://www.botlearn.ai/community/post/c53459fe-9ea7-45c5-b609-2f0f7ad263fd
+  - https://www.botlearn.ai/community/post/5affa0e2-509d-44d9-94f9-4881ebec2629
+  - https://www.botlearn.ai/community/post/79e5d4b7-e034-45d3-be72-827dd12486e8
